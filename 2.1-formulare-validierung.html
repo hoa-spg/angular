@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2.1 &ndash; Formulare &amp; Validierung | Angular Kurs</title>
+  <script>(function(){var t=localStorage.getItem('kurs-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();</script>
+  <link rel="stylesheet" href="assets/kurs.css">
+  <link rel="stylesheet" id="hljs-theme" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+</head>
+<body>
+
+<button class="hamburger" id="hamburger" aria-label="Navigation &ouml;ffnen">&#9776;</button>
+<div class="sidebar-overlay" id="overlay"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <a href="index.html">
+      <span class="brand-icon">&#9992;</span>
+      <div>
+        <div class="brand-name">Angular Kurs</div>
+        <div class="brand-sub">FlugBoard</div>
+      </div>
+    </a>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Dark/Light Mode" title="Theme wechseln">&#9728;</button>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-group">
+      <div class="nav-group-label angular-label">Teil 1 &mdash; Grundlagen</div>
+      <a class="nav-link" href="1.1-einfuehrung-setup.html"><span class="ln">1.1</span>Einstieg &amp; Setup</a>
+      <a class="nav-link" href="1.2-komponenten-templates.html"><span class="ln">1.2</span>Komponenten &amp; Templates</a>
+      <a class="nav-link" href="1.3-datenbindung-events.html"><span class="ln">1.3</span>Datenbindung &amp; Events</a>
+      <a class="nav-link" href="1.4-listen-filter-pipes.html"><span class="ln">1.4</span>Listen, Filter &amp; Pipes</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label angular-label">Teil 2 &mdash; Praxis &amp; Fullstack</div>
+      <a class="nav-link" href="2.1-formulare-validierung.html"><span class="ln">2.1</span>Formulare &amp; Validierung</a>
+      <a class="nav-link" href="2.2-services-http.html"><span class="ln">2.2</span>Services &amp; HTTP</a>
+      <a class="nav-link" href="2.3-observables-rxjs.html"><span class="ln">2.3</span>Observables &amp; RxJS</a>
+      <a class="nav-link" href="2.4-fullstack-flugboard.html"><span class="ln">2.4</span>Fullstack FlugBoard</a>
+    </div>
+  </nav>
+</aside>
+
+<main class="main-content">
+  <header class="lesson-header">
+    <p class="lesson-eyebrow">Lektion 2.1 &mdash; Teil 2: Praxis &amp; Fullstack</p>
+    <h1>Formulare &amp; Validierung</h1>
+    <div class="lesson-tags">
+      <span class="tag tag-angular">Angular</span>
+      <span class="tag tag-time">ca. 90 min</span>
+      <span class="tag tag-level">Fortgeschritten</span>
+    </div>
+  </header>
+
+  <div class="content-area">
+
+    <!-- Lernziele -->
+    <section class="section section-lernziele">
+      <h2>Lernziele</h2>
+      <ul class="lernziele-list">
+        <li>Template-Driven Forms und Reactive Forms kennen und situativ einsetzen k&ouml;nnen</li>
+        <li>Ein Formular mit <code>NgModel</code> und Template-Referenzvariablen aufbauen</li>
+        <li><code>FormBuilder</code>, <code>FormGroup</code>, <code>FormControl</code> und <code>Validators</code> einsetzen</li>
+        <li>Eigene Validatoren (synchron und asynchron) schreiben und registrieren</li>
+        <li>Fehleranzeige im Template typsicher und zug&auml;nglich umsetzen</li>
+        <li>Das <code>AddFlightForm</code>-Formular f&uuml;r das FlugBoard vollst&auml;ndig implementieren</li>
+      </ul>
+    </section>
+
+    <!-- Section 1: Zwei Formular-Ansätze -->
+    <section class="section">
+      <h2>Zwei Formular-Ans&auml;tze in Angular</h2>
+
+      <p>
+        Angular bietet zwei grundlegend verschiedene Wege, Formulare zu implementieren:
+        <strong>Template-Driven Forms</strong> und <strong>Reactive Forms</strong>.
+        Beide Ans&auml;tze sind vollst&auml;ndig unterst&uuml;tzt und in der Angular-Bibliothek
+        als separate Module enthalten &mdash; <code>FormsModule</code> f&uuml;r Template-Driven
+        und <code>ReactiveFormsModule</code> f&uuml;r Reactive Forms.
+      </p>
+
+      <p>
+        Das Verst&auml;ndnis beider Ans&auml;tze ist wichtig, da viele bestehende Angular-Projekte
+        Template-Driven Forms verwenden, w&auml;hrend neuere Projekte und die offizielle
+        Angular-Empfehlung auf Reactive Forms setzen.
+      </p>
+
+      <h3>Vergleich der beiden Ans&auml;tze</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Merkmal</th>
+              <th>Template-Driven Forms</th>
+              <th>Reactive Forms</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Setup-Import</strong></td>
+              <td><code>FormsModule</code></td>
+              <td><code>ReactiveFormsModule</code></td>
+            </tr>
+            <tr>
+              <td><strong>Formular-Definition</strong></td>
+              <td>Haupts&auml;chlich im Template (<code>ngModel</code>, Direktiven)</td>
+              <td>Vollst&auml;ndig in der TypeScript-Klasse (<code>FormBuilder</code>)</td>
+            </tr>
+            <tr>
+              <td><strong>Typsicherheit</strong></td>
+              <td>Eingeschr&auml;nkt; <code>NgForm</code>-Objekt ist loosely typed</td>
+              <td>Vollst&auml;ndig typisiert mit <code>FormGroup&lt;T&gt;</code></td>
+            </tr>
+            <tr>
+              <td><strong>Testbarkeit</strong></td>
+              <td>Schwieriger; Formular-State ist im DOM</td>
+              <td>Sehr gut testbar; alles in reinen TypeScript-Objekten</td>
+            </tr>
+            <tr>
+              <td><strong>Validierung</strong></td>
+              <td>HTML-Attribute (<code>required</code>, <code>email</code>)</td>
+              <td>TypeScript-Funktionen in <code>Validators</code>-Array</td>
+            </tr>
+            <tr>
+              <td><strong>Dynamische Felder</strong></td>
+              <td>Umst&auml;ndlich; erfordert <code>*ngIf</code>-Tricks</td>
+              <td>Einfach via <code>FormArray</code> und <code>addControl()</code></td>
+            </tr>
+            <tr>
+              <td><strong>Boilerplate</strong></td>
+              <td>Wenig; gut f&uuml;r einfache Formulare</td>
+              <td>Mehr; l&ouml;hnt sich ab mittlerer Komplexit&auml;t</td>
+            </tr>
+            <tr>
+              <td><strong>Echtzeit-Reaktivit&auml;t</strong></td>
+              <td>M&ouml;glich, aber unhandlich</td>
+              <td>Eingebaut via <code>valueChanges</code> Observable</td>
+            </tr>
+            <tr>
+              <td><strong>Empfohlen f&uuml;r</strong></td>
+              <td>Einfache Kontaktformulare, Login, kleine Formulare</td>
+              <td>Komplexe Formulare, Wizards, dynamische Felder, Produktion</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout callout-tip">
+        <div class="callout-icon">&#10003;</div>
+        <div class="callout-body">
+          <div class="callout-title">Faustregel f&uuml;r die Wahl des Ansatzes</div>
+          <p>
+            <strong>Template-Driven</strong> w&auml;hlen, wenn: Das Formular hat wenige Felder,
+            keine komplexe Quervalidierung, und du m&ouml;chtest schnell loslegen (z.B.
+            ein einfaches Login-Formular oder Newsletteranmeldung).
+          </p>
+          <p style="margin-top:.5rem">
+            <strong>Reactive Forms</strong> w&auml;hlen, wenn: Das Formular hat viele Felder,
+            eigene Validatoren, dynamisch hinzugef&uuml;gte Felder, Async-Validierung oder
+            du die Formulardaten programmatisch ver&auml;ndern m&ouml;chtest.
+            Reactive Forms sind die <em>offizielle Empfehlung f&uuml;r Produktionsanwendungen</em>.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: Template-Driven Forms -->
+    <section class="section">
+      <h2>Template-Driven Forms</h2>
+
+      <p>
+        Bei Template-Driven Forms lebt die gesamte Formularlogik im HTML-Template.
+        Angular's <code>FormsModule</code> stellt die Direktive <code>NgModel</code> bereit,
+        die ein Two-Way-Binding zwischen einem Input-Element und einer Komponenteneigenschaft
+        herstellt. Das Formular selbst wird &uuml;ber eine Template-Referenzvariable
+        (<code>#f="ngForm"</code>) im Template referenziert.
+      </p>
+
+      <h3>Grundprinzip: ngModel und #f="ngForm"</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">Einfaches Login-Formular (Template-Driven)</span>
+          <span class="code-lang">typescript</span>
+        </div>
+        <pre><code class="language-typescript">import { Component } from '@angular/core';
+import { FormsModule, NgForm } from '@angular/forms';
+import { CommonModule }       from '@angular/common';
+
+@Component({
+  selector: 'app-login',
+  standalone: true,
+  imports: [FormsModule, CommonModule],  // FormsModule aktiviert ngModel
+  template: `
+    &lt;form #f="ngForm" (ngSubmit)="onSubmit(f)"&gt;
+
+      &lt;!-- ngModel = Two-Way-Binding + Formular-Registrierung --&gt;
+      &lt;div class="form-field"&gt;
+        &lt;label for="email"&gt;E-Mail&lt;/label&gt;
+        &lt;input
+          id="email"
+          name="email"
+          type="email"
+          ngModel
+          required
+          email
+          #emailCtrl="ngModel"
+        &gt;
+        &lt;span *ngIf="emailCtrl.invalid &amp;&amp; emailCtrl.touched"&gt;
+          Bitte eine g&uuml;ltige E-Mail-Adresse eingeben.
+        &lt;/span&gt;
+      &lt;/div&gt;
+
+      &lt;div class="form-field"&gt;
+        &lt;label for="password"&gt;Passwort&lt;/label&gt;
+        &lt;input
+          id="password"
+          name="password"
+          type="password"
+          ngModel
+          required
+          minlength="8"
+          #pwCtrl="ngModel"
+        &gt;
+        &lt;span *ngIf="pwCtrl.errors?.['minlength'] &amp;&amp; pwCtrl.touched"&gt;
+          Mindestens 8 Zeichen erforderlich.
+        &lt;/span&gt;
+      &lt;/div&gt;
+
+      &lt;button type="submit" [disabled]="f.invalid"&gt;Anmelden&lt;/button&gt;
+    &lt;/form&gt;
+  `
+})
+export class LoginComponent {
+  onSubmit(form: NgForm): void {
+    if (form.invalid) return;
+    console.log('Formulardaten:', form.value);
+    // form.value = { email: '...', password: '...' }
+    form.reset();
+  }
+}
+</code></pre>
+      </div>
+
+      <h3>Eingebaute Validatoren (HTML-Attribute)</h3>
+      <p>
+        Template-Driven Forms nutzen HTML-Attribute f&uuml;r die Validierung. Angular &uuml;bersetzt
+        diese Attribute intern in Validator-Funktionen:
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>HTML-Attribut</th>
+              <th>Fehler-Key</th>
+              <th>Beschreibung</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><code>required</code></td><td><code>required</code></td><td>Feld darf nicht leer sein</td></tr>
+            <tr><td><code>email</code></td><td><code>email</code></td><td>Muss g&uuml;ltiges E-Mail-Format haben</td></tr>
+            <tr><td><code>minlength="n"</code></td><td><code>minlength</code></td><td>Mindestl&auml;nge n Zeichen</td></tr>
+            <tr><td><code>maxlength="n"</code></td><td><code>maxlength</code></td><td>Maximal n Zeichen</td></tr>
+            <tr><td><code>pattern="regex"</code></td><td><code>pattern</code></td><td>Muss auf Regex-Muster passen</td></tr>
+            <tr><td><code>min="n"</code></td><td><code>min</code></td><td>Minimalwert (bei number/date)</td></tr>
+            <tr><td><code>max="n"</code></td><td><code>max</code></td><td>Maximalwert (bei number/date)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Formular-States verstehen</h3>
+      <p>
+        Jedes Control und das gesamte Formular (<code>NgForm</code>) verf&uuml;gt &uuml;ber
+        folgende State-Flags:
+      </p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">Control- und Formular-States</span>
+          <span class="code-lang">typescript</span>
+        </div>
+        <pre><code class="language-typescript">// Gegenteilige Paare:
+// pristine  ↔ dirty       (unber&uuml;hrt ↔ ge&auml;ndert)
+// untouched ↔ touched     (nie fokussiert ↔ schon fokussiert/verlassen)
+// valid     ↔ invalid     (alle Validatoren ok ↔ mindestens einer schl&auml;gt an)
+
+// Zugriff via Template-Referenzvariable:
+// #ctrl="ngModel"
+// ctrl.pristine   → true wenn noch nie ge&auml;ndert
+// ctrl.dirty      → true sobald Wert ge&auml;ndert wurde
+// ctrl.untouched  → true wenn Input noch nie den Fokus hatte
+// ctrl.touched    → true sobald Input den Fokus verloren hat
+// ctrl.valid      → true wenn alle Validatoren bestehen
+// ctrl.invalid    → true wenn mindestens ein Validator fehlschl&auml;gt
+// ctrl.pending    → true wenn ein async Validator noch l&auml;uft
+// ctrl.errors     → null | { required: true, minlength: {...}, ... }
+
+// CSS-Klassen werden automatisch gesetzt:
+// .ng-pristine / .ng-dirty
+// .ng-untouched / .ng-touched
+// .ng-valid    / .ng-invalid
+</code></pre>
+      </div>
+
+      <div class="callout callout-info">
+        <div class="callout-icon">&#8505;</div>
+        <div class="callout-body">
+          <div class="callout-title">Warum auf <code>touched</code> pr&uuml;fen?</div>
+          <p>
+            Fehlermeldungen sollte man erst nach <code>touched</code> (= Nutzer hat das Feld
+            besucht und wieder verlassen) anzeigen &mdash; andernfalls sieht der Nutzer sofort
+            beim Laden der Seite alle Pflichtfeld-Fehler, was eine schlechte UX ist.
+            <code>touched</code> signalisiert: &bdquo;Der Nutzer war schon in diesem Feld und
+            hat es verlassen.&ldquo;
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3: Reactive Forms -->
+    <section class="section">
+      <h2>Reactive Forms mit FormBuilder</h2>
+
+      <p>
+        Reactive Forms sind der empfohlene Ansatz f&uuml;r komplexe Formulare in Angular.
+        Das gesamte Formularmodell &mdash; alle Felder, ihre Initialwerte und Validatoren
+        &mdash; wird in der TypeScript-Klasse definiert. Das Template bindet sich nur noch
+        an dieses Modell. Das Ergebnis: typsichere, testbare, und gut wartbare Formulare.
+      </p>
+
+      <h3>Die Bausteine: FormControl, FormGroup, FormBuilder</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">FormControl und FormGroup direkt (ohne FormBuilder)</span>
+          <span class="code-lang">typescript</span>
+        </div>
+        <pre><code class="language-typescript">import { FormControl, FormGroup, Validators } from '@angular/forms';
+
+// FormControl: repr&auml;sentiert ein einzelnes Eingabefeld
+const nameControl = new FormControl('', [Validators.required, Validators.minLength(2)]);
+
+// FormGroup: fasst mehrere FormControls zusammen
+const form = new FormGroup({
+  name:  new FormControl('', [Validators.required, Validators.minLength(2)]),
+  email: new FormControl('', [Validators.required, Validators.email]),
+});
+
+// Zugriff auf Controls:
+form.get('name')?.value;   // Aktueller Wert
+form.get('name')?.invalid; // Validierungsstatus
+form.get('name')?.errors;  // null | { required: true, minlength: {...} }
+</code></pre>
+      </div>
+
+      <p>
+        <code>FormBuilder</code> ist ein <em>Service</em>, der das Erstellen von
+        <code>FormGroup</code>- und <code>FormControl</code>-Instanzen vereinfacht.
+        Statt <code>new FormControl()</code> schreibt man einfach ein Array
+        <code>[initialValue, validators]</code>.
+      </p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">FormBuilder (k&uuml;rzere Syntax)</span>
+          <span class="code-lang">typescript</span>
+        </div>
+        <pre><code class="language-typescript">import { inject }      from '@angular/core';
+import { FormBuilder, Validators } from '@angular/forms';
+
+// FormBuilder per inject() laden (Angular 14+):
+private fb = inject(FormBuilder);
+
+// Formular definieren (identisch zu new FormGroup, aber k&uuml;rzer):
+form = this.fb.group({
+  name:  ['', [Validators.required, Validators.minLength(2)]],
+  email: ['', [Validators.required, Validators.email]],
+  // Kurzform ohne Validators:
+  city:  ['Wien'],
+  // Mit initialem Wert und einem einzelnen Validator (kein Array n&ouml;tig):
+  age:   [0, Validators.min(0)],
+});
+</code></pre>
+      </div>
+
+      <h3>Das AddFlight-Formular &mdash; vollst&auml;ndige TypeScript-Klasse</h3>
+      <p>
+        Hier ist die vollst&auml;ndige Implementierung der <code>AddFlightFormComponent</code>
+        f&uuml;r das FlugBoard. Sie demonstriert alle wichtigen Konzepte der Reactive Forms:
+        Formular-Definition, Validierung, Fehlerbehandlung und Submit-Logik.
+      </p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">src/app/components/add-flight-form/add-flight-form.component.ts</span>
+          <span class="code-lang">typescript</span>
+        </div>
+        <pre><code class="language-typescript">import { Component, EventEmitter, Output, inject } from '@angular/core';
+import { CommonModule }        from '@angular/common';
+import {
+  ReactiveFormsModule,
+  FormBuilder,
+  Validators,
+  AbstractControl,
+} from '@angular/forms';
+import { CreateFlightPayload, FlightType } from '../models/flight';
+
+// Regex: genau 2 Gro&szlig;buchstaben gefolgt von 1-4 Ziffern (z.B. OS123, LH4321)
+const FLIGHT_NUMBER_PATTERN = /^[A-Z]{2}\d{1,4}$/;
+
+@Component({
+  selector: 'app-add-flight-form',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule],
+  templateUrl: './add-flight-form.component.html',
+})
+export class AddFlightFormComponent {
+  // Output-Events: add sendet den neuen Flug, cancel schlie&szlig;t das Formular
+  @Output() add    = new EventEmitter&lt;CreateFlightPayload&gt;();
+  @Output() cancel = new EventEmitter&lt;void&gt;();
+
+  private fb = inject(FormBuilder);
+
+  // Das Formular-Modell: Felder, Initialwerte und Validatoren
+  form = this.fb.group({
+    flightNumber:  ['', [Validators.required, Validators.pattern(FLIGHT_NUMBER_PATTERN)]],
+    airline:       ['', [Validators.required, Validators.minLength(2)]],
+    type:          ['departure' as FlightType, Validators.required],
+    scheduledTime: ['', Validators.required],
+    expectedTime:  [''],           // Optional: kein required
+    airport:       ['', [Validators.required, Validators.minLength(3)]],
+    terminal:      ['T1', Validators.required],
+    gate:          [''],           // Optional
+  });
+
+  // Submitted-Flag: Fehlermeldungen auch ohne touched anzeigen
+  submitted = false;
+
+  // Helper: Gibt an ob ein Fehler f&uuml;r ein Feld angezeigt werden soll.
+  // Fehler anzeigen wenn: (touched ODER submit-Versuch) UND invalid
+  showError(controlName: string): boolean {
+    const ctrl = this.form.get(controlName);
+    return !!(ctrl?.invalid &amp;&amp; (ctrl.touched || this.submitted));
+  }
+
+  // Helper: Gibt die erste passende Fehlermeldung als String zur&uuml;ck.
+  getError(controlName: string): string {
+    const ctrl = this.form.get(controlName);
+    if (!ctrl?.errors) return '';
+    if (ctrl.errors['required'])
+      return 'Dieses Feld ist ein Pflichtfeld.';
+    if (ctrl.errors['pattern'])
+      return 'Format ung&uuml;ltig &mdash; erwartet z.B. OS123 oder LH4321.';
+    if (ctrl.errors['minlength']) {
+      const req = ctrl.errors['minlength'].requiredLength as number;
+      return `Mindestens ${req} Zeichen erforderlich.`;
+    }
+    if (ctrl.errors['email'])
+      return 'Bitte eine g&uuml;ltige E-Mail-Adresse eingeben.';
+    return 'Ung&uuml;ltige Eingabe.';
+  }
+
+  // Submit-Handler: Validierung pr&uuml;fen, Daten normalisieren, Event emittieren
+  submit(): void {
+    this.submitted = true;
+    this.form.markAllAsTouched();  // Alle Felder als "ber&uuml;hrt" markieren
+
+    if (this.form.invalid) return; // Abbrechen wenn Validierung fehlschl&auml;gt
+
+    const v = this.form.getRawValue(); // Alle Werte auch von disabled controls
+
+    this.add.emit({
+      flightNumber:  v.flightNumber!.trim().toUpperCase(),
+      airline:       v.airline!.trim(),
+      type:          v.type as FlightType,
+      scheduledTime: v.scheduledTime!,
+      expectedTime:  v.expectedTime || undefined,
+      airport:       v.airport!.trim(),
+      terminal:      v.terminal!,
+      gate:          v.gate?.trim() || undefined,
+    });
+
+    // Formular zur&uuml;cksetzen &mdash; Select-Felder brauchen explizite Defaultwerte!
+    this.form.reset({ type: 'departure', terminal: 'T1' });
+    this.submitted = false;
+  }
+}
+</code></pre>
+      </div>
+
+      <h3>Das AddFlight-Template mit Fehleranzeige</h3>
+      <p>
+        Das Template bindet sich an das <code>form</code>-Modell. Jedes Eingabefeld
+        erh&auml;lt <code>formControlName</code>, das Formular-Element selbst
+        <code>[formGroup]="form"</code>. Fehleranzeige &uuml;bernehmen die Hilfsmethoden
+        <code>showError()</code> und <code>getError()</code>.
+      </p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">src/app/components/add-flight-form/add-flight-form.component.html</span>
+          <span class="code-lang">html</span>
+        </div>
+        <pre><code class="language-html">&lt;form [formGroup]="form" (ngSubmit)="submit()" novalidate&gt;
+
+  &lt;!-- Flugnummer --&gt;
+  &lt;div class="form-field"&gt;
+    &lt;label for="flightNumber"&gt;Flugnummer *&lt;/label&gt;
+    &lt;input
+      id="flightNumber"
+      formControlName="flightNumber"
+      placeholder="z.B. OS123"
+      [class.is-invalid]="showError('flightNumber')"
+      [class.is-valid]="form.get('flightNumber')?.valid &amp;&amp; form.get('flightNumber')?.touched"
+    &gt;
+    @if (showError('flightNumber')) {
+      &lt;span class="form-error" role="alert"&gt;{{ getError('flightNumber') }}&lt;/span&gt;
+    }
+  &lt;/div&gt;
+
+  &lt;!-- Airline --&gt;
+  &lt;div class="form-field"&gt;
+    &lt;label for="airline"&gt;Airline *&lt;/label&gt;
+    &lt;input
+      id="airline"
+      formControlName="airline"
+      placeholder="z.B. Austrian Airlines"
+      [class.is-invalid]="showError('airline')"
+    &gt;
+    @if (showError('airline')) {
+      &lt;span class="form-error" role="alert"&gt;{{ getError('airline') }}&lt;/span&gt;
+    }
+  &lt;/div&gt;
+
+  &lt;!-- Typ (Abflug/Ankunft) --&gt;
+  &lt;div class="form-field"&gt;
+    &lt;label for="type"&gt;Typ *&lt;/label&gt;
+    &lt;select id="type" formControlName="type"&gt;
+      &lt;option value="departure"&gt;&#9650; Abflug&lt;/option&gt;
+      &lt;option value="arrival"&gt;&#9660; Ankunft&lt;/option&gt;
+    &lt;/select&gt;
+  &lt;/div&gt;
+
+  &lt;!-- Planmäßige Abflugzeit --&gt;
+  &lt;div class="form-field"&gt;
+    &lt;label for="scheduledTime"&gt;Planzeit *&lt;/label&gt;
+    &lt;input
+      id="scheduledTime"
+      type="time"
+      formControlName="scheduledTime"
+      [class.is-invalid]="showError('scheduledTime')"
+    &gt;
+    @if (showError('scheduledTime')) {
+      &lt;span class="form-error" role="alert"&gt;{{ getError('scheduledTime') }}&lt;/span&gt;
+    }
+  &lt;/div&gt;
+
+  &lt;!-- Erwartete Zeit (optional) --&gt;
+  &lt;div class="form-field"&gt;
+    &lt;label for="expectedTime"&gt;Erwartete Zeit&lt;/label&gt;
+    &lt;input id="expectedTime" type="time" formControlName="expectedTime"&gt;
+  &lt;/div&gt;
+
+  &lt;!-- Flughafen --&gt;
+  &lt;div class="form-field"&gt;
+    &lt;label for="airport"&gt;Flughafen *&lt;/label&gt;
+    &lt;input
+      id="airport"
+      formControlName="airport"
+      placeholder="z.B. London Heathrow"
+      [class.is-invalid]="showError('airport')"
+    &gt;
+    @if (showError('airport')) {
+      &lt;span class="form-error" role="alert"&gt;{{ getError('airport') }}&lt;/span&gt;
+    }
+  &lt;/div&gt;
+
+  &lt;!-- Terminal --&gt;
+  &lt;div class="form-field"&gt;
+    &lt;label for="terminal"&gt;Terminal *&lt;/label&gt;
+    &lt;select id="terminal" formControlName="terminal"&gt;
+      &lt;option value="T1"&gt;Terminal 1&lt;/option&gt;
+      &lt;option value="T2"&gt;Terminal 2&lt;/option&gt;
+      &lt;option value="T3"&gt;Terminal 3&lt;/option&gt;
+    &lt;/select&gt;
+  &lt;/div&gt;
+
+  &lt;!-- Gate (optional) --&gt;
+  &lt;div class="form-field"&gt;
+    &lt;label for="gate"&gt;Gate&lt;/label&gt;
+    &lt;input id="gate" formControlName="gate" placeholder="z.B. B12"&gt;
+  &lt;/div&gt;
+
+  &lt;!-- Aktions-Buttons --&gt;
+  &lt;div class="form-actions"&gt;
+    &lt;button type="button" (click)="cancel.emit()"&gt;Abbrechen&lt;/button&gt;
+    &lt;button type="submit" [disabled]="form.invalid &amp;&amp; submitted"&gt;
+      Flug hinzuf&uuml;gen
+    &lt;/button&gt;
+  &lt;/div&gt;
+
+&lt;/form&gt;
+</code></pre>
+      </div>
+
+      <div class="callout callout-warning">
+        <div class="callout-icon">&#9888;</div>
+        <div class="callout-body">
+          <div class="callout-title">novalidate nicht vergessen</div>
+          <p>
+            Das <code>novalidate</code>-Attribut am <code>&lt;form&gt;</code>-Element
+            deaktiviert die native Browser-Validierung. Ohne es w&uuml;rden zwei
+            Validierungssysteme gleichzeitig aktiv sein &mdash; das des Browsers (mit
+            nativen Popups) und das von Angular. Angular &uuml;bernimmt die Kontrolle
+            vollst&auml;ndig.
+          </p>
+        </div>
+      </div>
+
+      <h3>valueChanges &mdash; reaktiv auf &Auml;nderungen reagieren</h3>
+      <p>
+        Einer der gr&ouml;&szlig;ten Vorteile von Reactive Forms ist das eingebaute
+        <code>valueChanges</code>-Observable auf jedem Control und der gesamten FormGroup.
+        So l&auml;sst sich z.B. das <em>expectedTime</em>-Feld dynamisch ein-/ausblenden:
+      </p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">valueChanges &mdash; reaktiv auf Eingaben reagieren</span>
+          <span class="code-lang">typescript</span>
+        </div>
+        <pre><code class="language-typescript">import { Component, OnInit, inject } from '@angular/core';
+import { FormBuilder, Validators }   from '@angular/forms';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+
+@Component({ /* ... */ })
+export class AddFlightFormComponent implements OnInit {
+  private fb = inject(FormBuilder);
+
+  form = this.fb.group({
+    flightNumber: ['', Validators.required],
+    airline:      ['', Validators.required],
+  });
+
+  ngOnInit(): void {
+    // Live-Vorschau: Flugnummer auf Gro&szlig;buchstaben normalisieren
+    this.form.get('flightNumber')!.valueChanges
+      .pipe(
+        debounceTime(200),        // Warten bis Nutzer kurz aufh&ouml;rt zu tippen
+        distinctUntilChanged(),   // Nur reagieren wenn sich der Wert &auml;ndert
+      )
+      .subscribe(value =&gt; {
+        if (value &amp;&amp; value !== value.toUpperCase()) {
+          // Wert ohne neue valueChanges-Emission setzen:
+          this.form.get('flightNumber')!.setValue(
+            value.toUpperCase(),
+            { emitEvent: false }  // Verhindert rekursive Emission!
+          );
+        }
+      });
+  }
+}
+</code></pre>
+      </div>
+    </section>
+
+    <!-- Section 4: Custom Validators -->
+    <section class="section">
+      <h2>Eigene Validatoren schreiben</h2>
+
+      <p>
+        Angular's eingebaute <code>Validators</code> decken h&auml;ufige F&auml;lle ab.
+        F&uuml;r anwendungsspezifische Regeln &mdash; etwa &bdquo;Flugnummer darf nicht mit
+        bestimmten Pr&auml;fixen beginnen&ldquo; oder &bdquo;Ankunftszeit muss nach Abflugzeit
+        liegen&ldquo; &mdash; schreibt man eigene <strong>Custom Validators</strong>.
+      </p>
+
+      <h3>Synchroner Custom Validator</h3>
+      <p>
+        Ein Validator ist eine reine Funktion mit der Signatur
+        <code>(control: AbstractControl) =&gt; ValidationErrors | null</code>.
+        Sie gibt <code>null</code> zur&uuml;ck wenn der Wert g&uuml;ltig ist,
+        oder ein Fehler-Objekt wenn er ung&uuml;ltig ist.
+      </p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">src/app/validators/flight-number.validator.ts</span>
+          <span class="code-lang">typescript</span>
+        </div>
+        <pre><code class="language-typescript">import { AbstractControl, ValidationErrors } from '@angular/forms';
+
+/**
+ * Pr&uuml;ft ob eine Flugnummer mit einem reservierten Pr&auml;fix beginnt.
+ * Ung&uuml;ltig wenn: Wert beginnt mit 'XX' (reserviert f&uuml;r Testfl&uuml;ge).
+ */
+export function noTestFlightValidator(
+  control: AbstractControl
+): ValidationErrors | null {
+  const value = (control.value as string) ?? '';
+
+  if (value.toUpperCase().startsWith('XX')) {
+    // R&uuml;ckgabe: Fehler-Objekt mit Key 'reservedPrefix' und beliebigen Details
+    return { reservedPrefix: { value, prefix: 'XX' } };
+  }
+
+  return null; // null = g&uuml;ltig
+}
+
+// Verwendung im FormBuilder:
+// form = this.fb.group({
+//   flightNumber: ['', [Validators.required, noTestFlightValidator]],
+// });
+</code></pre>
+      </div>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">Fehlermeldung im Template</span>
+          <span class="code-lang">html</span>
+        </div>
+        <pre><code class="language-html">@if (form.get('flightNumber')?.errors?.['reservedPrefix']) {
+  &lt;span class="form-error"&gt;
+    Testfl&uuml;ge (Prefix XX) d&uuml;rfen nicht eingetragen werden.
+  &lt;/span&gt;
+}
+</code></pre>
+      </div>
+
+      <h3>Cross-Field Validator (Validator auf FormGroup-Ebene)</h3>
+      <p>
+        Wenn ein Validator mehrere Felder gleichzeitig lesen muss &mdash; etwa um zu pr&uuml;fen,
+        dass <code>expectedTime</code> nicht vor <code>scheduledTime</code> liegt &mdash;
+        wird er auf der <code>FormGroup</code> registriert, nicht auf einem einzelnen Control:
+      </p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">src/app/validators/time-range.validator.ts</span>
+          <span class="code-lang">typescript</span>
+        </div>
+        <pre><code class="language-typescript">import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
+
+/**
+ * Gruppenvalidator: expectedTime darf nicht fr&uuml;her als scheduledTime liegen.
+ * Wird auf FormGroup-Ebene registriert.
+ */
+export function timeRangeValidator(): ValidatorFn {
+  return (group: AbstractControl): ValidationErrors | null =&gt; {
+    const scheduled = group.get('scheduledTime')?.value as string;
+    const expected  = group.get('expectedTime')?.value  as string;
+
+    // Nur pr&uuml;fen wenn beide Felder ausgef&uuml;llt sind
+    if (!scheduled || !expected) return null;
+
+    // Zeit-Strings vergleichen (HH:MM Format)
+    if (expected &lt; scheduled) {
+      return { timeRangeInvalid: { scheduled, expected } };
+    }
+
+    return null;
+  };
+}
+
+// Registrierung auf FormGroup-Ebene (zweites Argument von fb.group):
+// form = this.fb.group(
+//   {
+//     scheduledTime: ['', Validators.required],
+//     expectedTime:  [''],
+//   },
+//   { validators: [timeRangeValidator()] }  // ← auf Gruppen-Ebene!
+// );
+</code></pre>
+      </div>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">Fehleranzeige im Template (Formular-Level)</span>
+          <span class="code-lang">html</span>
+        </div>
+        <pre><code class="language-html">@if (form.errors?.['timeRangeInvalid'] &amp;&amp; form.get('expectedTime')?.touched) {
+  &lt;div class="form-error"&gt;
+    Erwartete Zeit darf nicht vor der Planzeit liegen.
+  &lt;/div&gt;
+}
+</code></pre>
+      </div>
+
+      <h3>Asynchroner Validator</h3>
+      <p>
+        Async Validators werden eingesetzt wenn die Validierung eine asynchrone Operation
+        erfordert &mdash; etwa eine HTTP-Anfrage an den Server, um zu pr&uuml;fen ob eine
+        Flugnummer bereits vergeben ist. Sie haben die Signatur
+        <code>(control: AbstractControl) =&gt; Observable&lt;ValidationErrors | null&gt;</code>
+        und werden als <strong>drittes Argument</strong> beim FormControl &uuml;bergeben.
+      </p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">src/app/validators/unique-flight-number.validator.ts</span>
+          <span class="code-lang">typescript</span>
+        </div>
+        <pre><code class="language-typescript">import { inject }                       from '@angular/core';
+import { AbstractControl, ValidationErrors } from '@angular/forms';
+import { Observable, of }               from 'rxjs';
+import { delay, map, switchMap }        from 'rxjs/operators';
+import { FlightService }                from '../services/flight.service';
+
+/**
+ * Async Validator: Pr&uuml;ft ob eine Flugnummer schon in der lokalen Liste existiert.
+ * Simuliert mit delay(300) eine Server-Anfrage.
+ */
+export function uniqueFlightNumberValidator(
+  flightService: FlightService
+) {
+  return (control: AbstractControl): Observable&lt;ValidationErrors | null&gt; =&gt; {
+    const value = (control.value as string) ?? '';
+
+    if (!value) return of(null); // Leer-Pr&uuml;fung &uuml;bernimmt 'required'
+
+    return of(value).pipe(
+      delay(300),  // Server-Latenz simulieren → control.pending wird true
+      switchMap(flightNumber =&gt;
+        flightService.exists(flightNumber).pipe(
+          map(exists =&gt; (exists ? { flightNumberTaken: { value } } : null))
+        )
+      )
+    );
+  };
+}
+
+// Verwendung im FormBuilder (async validators als 3. Argument!):
+// form = this.fb.group({
+//   flightNumber: [
+//     '',
+//     [Validators.required, Validators.pattern(FLIGHT_NUMBER_PATTERN)], // sync
+//     [uniqueFlightNumberValidator(this.flightService)]                  // async
+//   ],
+// });
+</code></pre>
+      </div>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">Pending-State und Fehler im Template</span>
+          <span class="code-lang">html</span>
+        </div>
+        <pre><code class="language-html">&lt;!-- Während der async Validator läuft: control.pending === true --&gt;
+@if (form.get('flightNumber')?.pending) {
+  &lt;span class="form-hint"&gt;Pr&uuml;fe Verf&uuml;gbarkeit...&lt;/span&gt;
+}
+@if (form.get('flightNumber')?.errors?.['flightNumberTaken']) {
+  &lt;span class="form-error"&gt;Diese Flugnummer ist bereits vergeben.&lt;/span&gt;
+}
+</code></pre>
+      </div>
+
+      <div class="callout callout-warning">
+        <div class="callout-icon">&#9888;</div>
+        <div class="callout-body">
+          <div class="callout-title">Async Validators &mdash; Performance beachten</div>
+          <p>
+            Async Validators werden bei <em>jeder &Auml;nderung</em> des Feldes aufgerufen.
+            Ohne <code>debounceTime</code> w&uuml;rde bei jeder Tastatureingabe eine neue
+            HTTP-Anfrage gestartet. Nutze immer <code>debounceTime(300)</code> (oder mehr)
+            und <code>switchMap</code>, um ausstehende Anfragen automatisch abzubrechen.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 5: Form State & UX -->
+    <section class="section">
+      <h2>Formular-State und UX</h2>
+
+      <p>
+        Angular verwaltet den Zustand jedes Controls und der gesamten FormGroup
+        automatisch. Das Verst&auml;ndnis dieser States ist essenziell, um dem Nutzer
+        n&uuml;tzliches visuelles Feedback zu geben.
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>State-Paar</th>
+              <th>Bedeutung</th>
+              <th>Typischer Anwendungsfall</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>pristine</code> / <code>dirty</code></td>
+              <td>Wert wurde noch nie ge&auml;ndert / wurde ge&auml;ndert</td>
+              <td>&bdquo;Ungespeicherte &Auml;nderungen&ldquo;-Warnung nur bei <code>dirty</code></td>
+            </tr>
+            <tr>
+              <td><code>untouched</code> / <code>touched</code></td>
+              <td>Feld hatte noch keinen Fokus / Fokus war da und weg</td>
+              <td>Fehleranzeige erst ab <code>touched</code> (UX-Best-Practice)</td>
+            </tr>
+            <tr>
+              <td><code>valid</code> / <code>invalid</code></td>
+              <td>Alle Validatoren bestehen / mindestens einer schl&auml;gt an</td>
+              <td>Submit-Button deaktivieren solange <code>invalid</code></td>
+            </tr>
+            <tr>
+              <td><code>pending</code></td>
+              <td>Async Validator l&auml;uft gerade</td>
+              <td>Lade-Spinner anzeigen, Submit-Button sperren</td>
+            </tr>
+            <tr>
+              <td><code>enabled</code> / <code>disabled</code></td>
+              <td>Control ist aktiv / deaktiviert</td>
+              <td>Felder abh&auml;ngig von anderen Feldern sperren</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Visuelles Feedback mit CSS-Klassen</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">CSS-Klassen dynamisch setzen</span>
+          <span class="code-lang">html</span>
+        </div>
+        <pre><code class="language-html">&lt;!-- Einzelne Klassen mit [class.name]="condition": --&gt;
+&lt;input
+  formControlName="airline"
+  [class.is-invalid]="showError('airline')"
+  [class.is-valid]="form.get('airline')?.valid &amp;&amp; form.get('airline')?.touched"
+&gt;
+
+&lt;!-- Mehrere Klassen per [ngClass]-Objekt: --&gt;
+&lt;input
+  formControlName="flightNumber"
+  [ngClass]="{
+    'is-invalid': showError('flightNumber'),
+    'is-valid':   form.get('flightNumber')?.valid &amp;&amp; form.get('flightNumber')?.touched,
+    'is-pending': form.get('flightNumber')?.pending
+  }"
+&gt;
+
+&lt;!-- Submit-Button sperren während Async-Validierung läuft: --&gt;
+&lt;button
+  type="submit"
+  [disabled]="form.pending"
+&gt;
+  @if (form.pending) { Pr&uuml;fe... } @else { Flug hinzuf&uuml;gen }
+&lt;/button&gt;
+</code></pre>
+      </div>
+
+      <h3>markAllAsTouched() beim Submit-Versuch</h3>
+      <p>
+        Wenn der Nutzer den Submit-Button klickt ohne alle Felder ausgef&uuml;llt zu haben,
+        m&ouml;chte man alle Fehlermeldungen gleichzeitig anzeigen &mdash; auch f&uuml;r
+        Felder, die der Nutzer nie ber&uuml;hrt hat. Daf&uuml;r gibt es
+        <code>markAllAsTouched()</code>:
+      </p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">markAllAsTouched() beim Submit-Versuch</span>
+          <span class="code-lang">typescript</span>
+        </div>
+        <pre><code class="language-typescript">submit(): void {
+  this.submitted = true;
+
+  // Alle Controls als 'touched' markieren:
+  // → showError() gibt f&uuml;r jedes ung&uuml;ltige Feld true zur&uuml;ck
+  // → Alle Fehlermeldungen werden sofort sichtbar
+  this.form.markAllAsTouched();
+
+  if (this.form.invalid) {
+    // Fokus auf das erste ung&uuml;ltige Feld setzen (Barrierefreiheit):
+    const firstInvalid = document.querySelector('.is-invalid') as HTMLElement;
+    firstInvalid?.focus();
+    return;
+  }
+
+  // Hier: G&uuml;ltiger Submit → Daten verarbeiten
+  this.add.emit(this.form.getRawValue() as CreateFlightPayload);
+  this.form.reset({ type: 'departure', terminal: 'T1' });
+  this.submitted = false;
+}
+</code></pre>
+      </div>
+
+      <h3>setValue(), patchValue() und reset()</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">Formular-Werte programmatisch setzen</span>
+          <span class="code-lang">typescript</span>
+        </div>
+        <pre><code class="language-typescript">// setValue(): ALLE Felder m&uuml;ssen angegeben werden
+this.form.setValue({
+  flightNumber: 'OS123',
+  airline:      'Austrian Airlines',
+  type:         'departure',
+  scheduledTime: '10:30',
+  expectedTime:  '',
+  airport:       'London Heathrow',
+  terminal:      'T1',
+  gate:          'B12',
+});
+
+// patchValue(): Nur einige Felder aktualisieren (Rest bleibt unver&auml;ndert)
+this.form.patchValue({
+  terminal: 'T2',
+  gate:     'C05',
+});
+
+// reset(): Zur&uuml;ck auf Initialwerte setzen
+// WICHTIG: Ohne Argument werden alle Controls auf null zur&uuml;ckgesetzt!
+// Select-Felder verlieren ihren Standardwert → explizit angeben:
+this.form.reset({ type: 'departure', terminal: 'T1' });
+
+// Einzelnes Control zur&uuml;cksetzen:
+this.form.get('gate')?.reset('');
+</code></pre>
+      </div>
+
+      <div class="callout callout-info">
+        <div class="callout-icon">&#8505;</div>
+        <div class="callout-body">
+          <div class="callout-title">getRawValue() vs. value</div>
+          <p>
+            <code>form.value</code> enth&auml;lt nur Werte von <em>aktivierten</em> Controls
+            &mdash; deaktivierte Controls (<code>disabled</code>) werden ausgeschlossen.
+            <code>form.getRawValue()</code> gibt <em>alle</em> Werte zur&uuml;ck, einschlie&szlig;lich
+            der deaktivierten. Im Submit-Handler ist <code>getRawValue()</code> in der Regel
+            die sicherere Wahl.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Projektschritt -->
+    <section class="section section-projekt">
+      <h2>Projektschritt</h2>
+      <div class="projekt-box">
+        <div class="projekt-box-header">
+          <span class="projekt-step">Projektschritt 2.1</span>
+          <h3>AddFlightForm in FlugBoard einbauen</h3>
+        </div>
+        <p>
+          In diesem Schritt bekommt das FlugBoard ein vollst&auml;ndiges Formular, um neue
+          Fl&uuml;ge zur Liste hinzuzuf&uuml;gen &mdash; lokal, noch ohne Backend-Anbindung:
+        </p>
+        <ol style="margin:.75rem 0 0 1.25rem;line-height:2">
+          <li>
+            Erstelle <code>AddFlightFormComponent</code> mit Reactive Forms in
+            <code>src/app/components/add-flight-form/</code>
+          </li>
+          <li>
+            Implementiere alle Felder: <code>flightNumber</code>, <code>airline</code>,
+            <code>type</code>, <code>scheduledTime</code>, <code>expectedTime</code>,
+            <code>airport</code>, <code>terminal</code>, <code>gate</code>
+          </li>
+          <li>
+            Baue die Komponente in der Board-Seite (<code>FlightBoardComponent</code>) per
+            Toggle ein: Klick auf &bdquo;+ Flug hinzuf&uuml;gen&ldquo; blendet das Formular ein,
+            Abbrechen oder erfolgreicher Submit blendet es wieder aus
+          </li>
+          <li>
+            Bei Submit: Erzeuge ein <code>Flight</code>-Objekt mit generierter <code>id</code>
+            und Status <code>'on-time'</code> und f&uuml;ge es per <code>unshift()</code>
+            an den Anfang der lokalen Flugliste
+          </li>
+          <li>
+            Teste die Validierung: Versuche das Formular ohne Pflichtfelder abzuschicken
+            &mdash; alle Fehlermeldungen m&uuml;ssen sofort erscheinen
+          </li>
+          <li>
+            Teste das Pattern: <code>OS123</code> g&uuml;ltig, <code>os123</code> ung&uuml;ltig,
+            <code>TOOLONG1234</code> ung&uuml;ltig
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- Häufige Fehler -->
+    <section class="section section-fehler">
+      <h2>H&auml;ufige Fehler</h2>
+
+      <div class="fehler-item">
+        <div class="fehler-title"><code>Can't bind to 'formGroup' since it isn't a known property</code></div>
+        <p>
+          Die Direktive <code>[formGroup]</code> stammt aus <code>ReactiveFormsModule</code>.
+          Dieser Fehler bedeutet, dass das Modul nicht im <code>imports</code>-Array der
+          Standalone-Komponente (oder des NgModules) eingetragen ist.
+        </p>
+        <p class="fehler-fix">
+          <strong>Fix:</strong> <code>ReactiveFormsModule</code> in das <code>imports</code>-Array
+          der Komponente eintragen:
+          <code>imports: [CommonModule, ReactiveFormsModule]</code>.
+        </p>
+      </div>
+
+      <div class="fehler-item">
+        <div class="fehler-title"><code>formControlName must be used with a parent formGroup directive</code></div>
+        <p>
+          <code>formControlName</code> setzt voraus, dass ein &uuml;bergeordnetes
+          <code>[formGroup]="form"</code>-Element existiert. Fehlt diese Bindung am
+          <code>&lt;form&gt;</code>-Element, weiss Angular nicht, zu welcher FormGroup das
+          Control geh&ouml;rt.
+        </p>
+        <p class="fehler-fix">
+          <strong>Fix:</strong> Sicherstellen, dass das <code>&lt;form&gt;</code>-Element
+          die Direktive tr&auml;gt: <code>&lt;form [formGroup]="form" (ngSubmit)="submit()"&gt;</code>.
+        </p>
+      </div>
+
+      <div class="fehler-item">
+        <div class="fehler-title"><code>Cannot read properties of null (reading 'invalid')</code></div>
+        <p>
+          <code>form.get('controlName')</code> gibt <code>null</code> zur&uuml;ck, wenn kein
+          Control mit dem angegebenen Namen in der FormGroup existiert. H&auml;ufige Ursache:
+          Tippfehler im Control-Namen (z.B. <code>'flightNr'</code> statt
+          <code>'flightNumber'</code>).
+        </p>
+        <p class="fehler-fix">
+          <strong>Fix:</strong> Den Control-Namen genau pr&uuml;fen. Im Template den
+          Optional-Chaining-Operator verwenden: <code>form.get('flightNumber')?.invalid</code>
+          &mdash; der <code>?.</code> verhindert den Crash und gibt stattdessen
+          <code>undefined</code> zur&uuml;ck.
+        </p>
+      </div>
+
+      <div class="fehler-item">
+        <div class="fehler-title">Submit setzt Select-Felder nicht auf den Standardwert zur&uuml;ck</div>
+        <p>
+          <code>form.reset()</code> ohne Argumente setzt alle Controls auf <code>null</code>
+          zur&uuml;ck. <code>&lt;select&gt;</code>-Elemente zeigen dann keinen gew&auml;hlten
+          Wert an &mdash; oder Angular w&auml;hlt den ersten Option-Eintrag, was inkonsistent
+          ist.
+        </p>
+        <p class="fehler-fix">
+          <strong>Fix:</strong> <code>form.reset()</code> immer mit einem Objekt aufrufen,
+          das die Standardwerte f&uuml;r Select-Felder (und andere Felder mit Defaultwert) enth&auml;lt:
+          <code>this.form.reset({ type: 'departure', terminal: 'T1' })</code>.
+        </p>
+      </div>
+
+    </section>
+
+    <!-- Aufgaben -->
+    <section class="section section-aufgaben">
+      <h2>Aufgaben</h2>
+      <div class="aufgaben-list">
+
+        <div class="aufgabe">
+          <div class="aufgabe-header">
+            <span class="aufgabe-num">Aufgabe 1</span>
+            <span class="aufgabe-title">Flugnummer-Pattern erweitern</span>
+          </div>
+          <p>
+            Das aktuelle Regex-Pattern <code>/^[A-Z]{2}\d{1,4}$/</code> erlaubt nur
+            2-buchstabige Airline-Codes (z.B. <code>OS</code>, <code>LH</code>).
+            Erweitere es so, dass auch 3-buchstabige ICAO-Codes erlaubt sind
+            (z.B. <code>AUA</code>, <code>DLH</code>). Das neue Pattern soll also
+            2 <em>oder</em> 3 Gro&szlig;buchstaben gefolgt von 1&ndash;4 Ziffern akzeptieren.
+            Passe die Fehlermeldung in <code>getError()</code> entsprechend an
+            (z.B. &bdquo;<code>Format ung&uuml;ltig &mdash; erwartet z.B. OS123 oder AUA4321</code>&ldquo;).
+          </p>
+        </div>
+
+        <div class="aufgabe">
+          <div class="aufgabe-header">
+            <span class="aufgabe-num">Aufgabe 2</span>
+            <span class="aufgabe-title">timeRangeValidator implementieren und einbauen</span>
+          </div>
+          <p>
+            Implementiere den <code>timeRangeValidator()</code> aus Section&nbsp;4 vollst&auml;ndig
+            und registriere ihn auf der FormGroup der <code>AddFlightFormComponent</code>.
+            Zeige die Fehlermeldung &bdquo;Erwartete Zeit darf nicht vor der Planzeit liegen&ldquo;
+            unterhalb des <em>expectedTime</em>-Feldes an &mdash; aber nur, wenn
+            <code>expectedTime</code> einen Wert hat und <code>touched</code> ist.
+            Achte darauf, dass <code>form.errors</code> (Gruppen-Level), nicht
+            <code>form.get('expectedTime')?.errors</code> (Control-Level) ausgewertet wird.
+          </p>
+        </div>
+
+        <div class="aufgabe">
+          <div class="aufgabe-header">
+            <span class="aufgabe-num">Aufgabe 3</span>
+            <span class="aufgabe-title">Formular per Toggle ein-/ausblenden</span>
+          </div>
+          <p>
+            Baue in der <code>FlightBoardComponent</code> einen Toggle-Mechanismus ein:
+            Ein Button &bdquo;+ Flug hinzuf&uuml;gen&ldquo; blendet die
+            <code>AddFlightFormComponent</code> ein. Klick auf &bdquo;Abbrechen&ldquo;
+            oder ein erfolgreicher Submit blendet das Formular wieder aus. Nutze daf&uuml;r
+            eine boolesche Eigenschaft <code>showAddForm = false</code> und
+            <code>@if (showAddForm) { &lt;app-add-flight-form ... /&gt; }</code> im Template.
+            Vergewissere dich, dass das Formular beim erneuten &Ouml;ffnen sauber
+            zur&uuml;ckgesetzt wird (kein Dirty-State vom letzten Mal).
+          </p>
+        </div>
+
+        <div class="aufgabe aufgabe-bonus">
+          <div class="aufgabe-header">
+            <span class="aufgabe-num">Bonus</span>
+            <span class="aufgabe-title">Async Validator: doppelte Flugnummer verhindern</span>
+          </div>
+          <p>
+            Implementiere einen Async Validator, der pr&uuml;ft ob eine eingegebene Flugnummer
+            bereits in der lokalen Flugliste vorhanden ist. Injiziere dazu den
+            <code>FlightService</code> (oder &uuml;bergib das <code>flights</code>-Signal
+            direkt) und simuliere eine Server-Latenz von 300&nbsp;ms mit <code>delay(300)</code>
+            aus RxJS. W&auml;hrend der Validator l&auml;uft (<code>control.pending === true</code>),
+            zeige einen Lade-Indikator (&bdquo;Pr&uuml;fe Verf&uuml;gbarkeit&hellip;&ldquo;)
+            im Template an. Stelle sicher, dass <code>debounceTime(300)</code> und
+            <code>switchMap</code> eingesetzt werden, um unn&ouml;tige Aufrufe zu vermeiden.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+  </div><!-- /content-area -->
+
+  <nav class="lesson-nav">
+    <a class="nav-btn" href="1.4-listen-filter-pipes.html">&larr; Lektion 1.4: Listen, Filter &amp; Pipes</a>
+    <span class="nav-center-info">Lektion 2.1</span>
+    <a class="nav-btn primary" href="2.2-services-http.html">Lektion 2.2: Services &amp; HTTP &rarr;</a>
+  </nav>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/bash.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/json.min.js"></script>
+<script>
+  const ham = document.getElementById('hamburger');
+  const sb  = document.getElementById('sidebar');
+  const ov  = document.getElementById('overlay');
+  ham.addEventListener('click', () => { sb.classList.toggle('open'); ov.classList.toggle('visible'); });
+  ov.addEventListener('click',  () => { sb.classList.remove('open'); ov.classList.remove('visible'); });
+  const cur = window.location.pathname.split('/').pop() || 'index.html';
+  document.querySelectorAll('.nav-link').forEach(l => {
+    if (l.getAttribute('href') === cur) l.classList.add('active');
+  });
+  const themeBtn = document.getElementById('theme-toggle');
+  const applyTheme = (t) => {
+    document.documentElement.setAttribute('data-theme', t);
+    if (themeBtn) themeBtn.innerHTML = t === 'dark' ? '&#9728;' : '&#9790;';
+  };
+  applyTheme(localStorage.getItem('kurs-theme') || 'dark');
+  setTimeout(() => document.documentElement.classList.add('theme-transitions'), 50);
+  if (themeBtn) themeBtn.addEventListener('click', () => {
+    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('kurs-theme', next);
+    applyTheme(next);
+  });
+  hljs.highlightAll();
+</script>
+</body>
+</html>

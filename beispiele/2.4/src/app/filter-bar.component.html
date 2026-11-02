@@ -1,0 +1,21 @@
+<div class="toolbar">
+  <input
+    class="search-input"
+    [ngModel]="searchQuery"
+    (ngModelChange)="searchQueryChange.emit($event)"
+    placeholder="Flug, Airline, Airport ..."
+  >
+  <select
+    [ngModel]="statusFilter"
+    (ngModelChange)="statusFilterChange.emit($event)"
+  >
+    <option value="all">Alle Status</option>
+    <option value="on-time">Pünktlich</option>
+    <option value="delayed">Verspätet</option>
+    <option value="boarding">Boarding</option>
+    <option value="departed">Abgeflogen</option>
+    <option value="landed">Gelandet</option>
+    <option value="cancelled">Storniert</option>
+  </select>
+  <button type="button" (click)="reset.emit()">Filter zur&uuml;cksetzen</button>
+</div>

@@ -1,0 +1,48 @@
+import { Flight } from './flight';
+
+export const FLIGHTS: Flight[] = [
+  {
+    id: 1,
+    flightNumber: 'OS123',
+    airline: 'Austrian Airlines',
+    type: 'departure',
+    scheduledTime: '10:30',
+    status: 'boarding',
+    airport: 'London Heathrow (LHR)',
+    terminal: 'T3',
+    gate: 'B12',
+  },
+  {
+    id: 2,
+    flightNumber: 'LH456',
+    airline: 'Lufthansa',
+    type: 'departure',
+    scheduledTime: '11:15',
+    expectedTime: '11:45',
+    status: 'delayed',
+    airport: 'Frankfurt (FRA)',
+    terminal: 'T2',
+    gate: 'A07',
+  },
+  {
+    id: 3,
+    flightNumber: 'EK789',
+    airline: 'Emirates',
+    type: 'arrival',
+    scheduledTime: '09:45',
+    status: 'landed',
+    airport: 'Dubai (DXB)',
+    terminal: 'T1',
+  },
+  {
+    id: 4,
+    flightNumber: 'BA234',
+    airline: 'British Airways',
+    type: 'departure',
+    scheduledTime: '12:00',
+    status: 'on-time',
+    airport: 'London Heathrow (LHR)',
+    terminal: 'T3',
+    gate: 'C22',
+  },
+];

@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>1.3 &ndash; Datenbindung &amp; Events | Angular Kurs</title>
+  <script>(function(){var t=localStorage.getItem('kurs-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();</script>
+  <link rel="stylesheet" href="assets/kurs.css">
+  <link rel="stylesheet" id="hljs-theme" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+</head>
+<body>
+
+<button class="hamburger" id="hamburger" aria-label="Navigation &ouml;ffnen">&#9776;</button>
+<div class="sidebar-overlay" id="overlay"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <a href="index.html">
+      <span class="brand-icon">&#9992;</span>
+      <div>
+        <div class="brand-name">Angular Kurs</div>
+        <div class="brand-sub">FlugBoard</div>
+      </div>
+    </a>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Dark/Light Mode" title="Theme wechseln">&#9728;</button>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-group">
+      <div class="nav-group-label angular-label">Teil 1 &mdash; Grundlagen</div>
+      <a class="nav-link" href="1.1-einfuehrung-setup.html"><span class="ln">1.1</span>Einstieg &amp; Setup</a>
+      <a class="nav-link" href="1.2-komponenten-templates.html"><span class="ln">1.2</span>Komponenten &amp; Templates</a>
+      <a class="nav-link" href="1.3-datenbindung-events.html"><span class="ln">1.3</span>Datenbindung &amp; Events</a>
+      <a class="nav-link" href="1.4-listen-filter-pipes.html"><span class="ln">1.4</span>Listen, Filter &amp; Pipes</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label angular-label">Teil 2 &mdash; Praxis &amp; Fullstack</div>
+      <a class="nav-link" href="2.1-formulare-validierung.html"><span class="ln">2.1</span>Formulare &amp; Validierung</a>
+      <a class="nav-link" href="2.2-services-http.html"><span class="ln">2.2</span>Services &amp; HTTP</a>
+      <a class="nav-link" href="2.3-observables-rxjs.html"><span class="ln">2.3</span>Observables &amp; RxJS</a>
+      <a class="nav-link" href="2.4-fullstack-flugboard.html"><span class="ln">2.4</span>Fullstack FlugBoard</a>
+    </div>
+  </nav>
+</aside>
+
+<main class="main-content">
+  <header class="lesson-header">
+    <p class="lesson-eyebrow">Lektion 1.3 &mdash; Teil 1: Grundlagen</p>
+    <h1>Datenbindung &amp; Events</h1>
+    <div class="lesson-tags">
+      <span class="tag tag-angular">Angular</span>
+      <span class="tag tag-time">ca. 75 min</span>
+      <span class="tag tag-level">Grundlagen</span>
+    </div>
+  </header>
+
+  <div class="content-area">
+
+    <section class="section section-lernziele">
+      <h2>Lernziele</h2>
+      <ul class="lernziele-list">
+        <li>Alle vier Datenbindungstypen sicher und korrekt einsetzen k&ouml;nnen</li>
+        <li><code>FormsModule</code> einbinden und <code>[(ngModel)]</code> f&uuml;r Two-Way-Binding nutzen</li>
+        <li>Event-Typisierung verstehen: <code>$event</code>, <code>InputEvent</code>, <code>MouseEvent</code></li>
+        <li>Getter als reaktiven, berechneten State einsetzen (Angular-&Auml;quivalent zu <code>useMemo</code>)</li>
+        <li>Ein Suchfeld und einen Typ-Filter f&uuml;r das FlugBoard implementieren</li>
+        <li>Change Detection und wann sie ausgel&ouml;st wird verstehen</li>
+      </ul>
+    </section>
+
+    <!-- Section 1: Die 4 Bindungstypen ausführlich -->
+    <section class="section">
+      <h2>Die 4 Bindungstypen &mdash; ausf&uuml;hrlich</h2>
+
+      <h3>1. Interpolation <code>{{ }}</code></h3>
+      <p>
+        Wertet einen JavaScript-Ausdruck aus und f&uuml;gt das Ergebnis als Text in das DOM ein.
+        Sicher gegen XSS: Angular escaped automatisch. Kann einfache Ausdr&uuml;cke enthalten,
+        aber keine Statements (<code>if</code>, <code>for</code>, Zuweisungen sind nicht erlaubt).
+      </p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">Interpolation Beispiele</span>
+          <span class="code-lang">html</span>
+        </div>
+        <pre><code class="language-html">&lt;!-- Einfache Eigenschaft: --&gt;
+&lt;span&gt;{{ flight.flightNumber }}&lt;/span&gt;
+
+&lt;!-- Berechneter Ausdruck: --&gt;
+&lt;span&gt;{{ flight.airline.toUpperCase() }}&lt;/span&gt;
+
+&lt;!-- Ternary-Operator: --&gt;
+&lt;span&gt;{{ flight.type === 'departure' ? 'Abflug' : 'Ankunft' }}&lt;/span&gt;
+
+&lt;!-- Nullish Coalescing: --&gt;
+&lt;span&gt;{{ flight.gate ?? 'kein Gate' }}&lt;/span&gt;
+
+&lt;!-- Template-Ausdruck (kein Statement erlaubt!): --&gt;
+&lt;span&gt;{{ count++ }}&lt;/span&gt;  &lt;!-- ← FEHLER! Seiteneffekte verboten --&gt;
+</code></pre>
+      </div>
+
+      <h3>2. Property-Binding <code>[property]="ausdruck"</code></h3>
+      <p>
+        Bindet einen Ausdruck an eine DOM-Eigenschaft oder eine Komponent-Input-Eigenschaft.
+        Die eckigen Klammern signalisieren: &bdquo;Dieser Wert wird dynamisch berechnet.&ldquo;
+        Ohne Klammern w&uuml;rde Angular den Wert als literal String &uuml;bergeben.
+      </p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">Property-Binding Beispiele</span>
+          <span class="code-lang">html</span>
+        </div>
+        <pre><code class="language-html">&lt;!-- DOM-Eigenschaft: --&gt;
+&lt;img [src]="flight.airlineLogo" [alt]="flight.airline"&gt;
+&lt;button [disabled]="flight.status === 'departed'"&gt;Details&lt;/button&gt;
+
+&lt;!-- CSS-Klasse dynamisch setzen: --&gt;
+&lt;div [class.delayed]="flight.status === 'delayed'"&gt;
+&lt;div [class]="'status-' + flight.status"&gt;
+
+&lt;!-- Inline-Style dynamisch: --&gt;
+&lt;span [style.color]="flight.status === 'cancelled' ? 'red' : 'inherit'"&gt;
+
+&lt;!-- Input einer Kindkomponente: --&gt;
+&lt;app-flight-card [flight]="currentFlight"&gt;&lt;/app-flight-card&gt;
+
+&lt;!-- ACHTUNG: Unterschied zu Interpolation: --&gt;
+&lt;button disabled="true"&gt;     &lt;!-- String "true" → Button IMMER disabled --&gt;
+&lt;button [disabled]="true"&gt;   &lt;!-- Boolean true  → Button disabled --&gt;
+&lt;button [disabled]="false"&gt;  &lt;!-- Boolean false → Button enabled --&gt;
+</code></pre>
+      </div>
+
+      <h3>3. Event-Binding <code>(event)="handler($event)"</code></h3>
+      <p>
+        H&ouml;rt auf DOM-Events (click, input, submit, keyup, ...) oder benutzerdefinierte
+        Ereignisse von Kindkomponenten. <code>$event</code> enth&auml;lt das native
+        <code>Event</code>-Objekt.
+      </p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">Event-Binding Beispiele – Template</span>
+          <span class="code-lang">html</span>
+        </div>
+        <pre><code class="language-html">&lt;button (click)="onDeleteFlight(flight)"&gt;Löschen&lt;/button&gt;
+&lt;input (input)="onSearchInput($event)"&gt;
+&lt;form (submit)="onFormSubmit($event)"&gt;
+&lt;input (keyup.enter)="onEnterPressed()"&gt;  &lt;!-- Angular Key-Filter --&gt;
+</code></pre>
+      </div>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">Event-Binding Beispiele – Klasse</span>
+          <span class="code-lang">typescript</span>
+        </div>
+        <pre><code class="language-typescript">export class FlightListComponent {
+  flights: Flight[] = FLIGHTS;
+
+  onDeleteFlight(flight: Flight): void {
+    this.flights = this.flights.filter(f =&gt; f.id !== flight.id);
+  }
+
+  onSearchInput(event: Event): void {
+    // Typsicherheit: event.target ist EventTarget, kein HTMLInputElement
+    const input = event.target as HTMLInputElement;
+    this.searchTerm = input.value;
+  }
+}
+</code></pre>
+      </div>
+
+      <h3>4. Two-Way-Binding <code>[(ngModel)]="eigenschaft"</code></h3>
+      <p>
+        Syntaktischer Zucker f&uuml;r die Kombination aus Property-Binding und Event-Binding.
+        <code>[(ngModel)]</code> entspricht <code>[ngModel]="term" (ngModelChange)="term = $event"</code>.
+        Ben&ouml;tigt das <strong>FormsModule</strong> im <code>imports</code>-Array.
+      </p>
+    </section>
+
+    <!-- Section 2: FormsModule -->
+    <section class="section">
+      <h2>FormsModule &mdash; Two-Way-Binding aktivieren</h2>
+
+      <div class="callout callout-warning">
+        <div class="callout-icon">&#9888;</div>
+        <div class="callout-body">
+          <div class="callout-title">FormsModule vergessen &mdash; h&auml;ufigster Fehler!</div>
+          <p>
+            <code>[(ngModel)]</code> funktioniert nur, wenn <code>FormsModule</code> im
+            <code>imports</code>-Array der Komponente steht. Ohne diesen Import erscheint der
+            Fehler: <em>&bdquo;Can't bind to 'ngModel' since it isn't a known property of 'input'.&ldquo;</em>
+          </p>
+        </div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">FlugBoard-Suchfeld mit [(ngModel)]</span>
+          <span class="code-lang">typescript</span>
+        </div>
+        <pre><code class="language-typescript">import { Component }  from '@angular/core';
+import { FormsModule } from '@angular/forms';   // ← Pflicht für ngModel!
+import { Flight }      from '../../models/flight';
+import { FLIGHTS }     from '../../data/flights';
+
+@Component({
+  selector: 'app-flight-list',
+  standalone: true,
+  imports: [FormsModule],  // ← hier eintragen
+  template: `
+    &lt;div class="controls"&gt;
+      &lt;input
+        type="text"
+        [(ngModel)]="searchTerm"
+        placeholder="Flugnummer, Airline, Flughafen..."
+        class="search-input"
+      &gt;
+      &lt;span class="result-count"&gt;{{ filteredFlights.length }} Treffer&lt;/span&gt;
+    &lt;/div&gt;
+
+    &lt;table class="flight-table"&gt;
+      &lt;thead&gt;
+        &lt;tr&gt;
+          &lt;th&gt;Flug&lt;/th&gt;&lt;th&gt;Airline&lt;/th&gt;&lt;th&gt;Zeit&lt;/th&gt;&lt;th&gt;Status&lt;/th&gt;
+        &lt;/tr&gt;
+      &lt;/thead&gt;
+      &lt;tbody&gt;
+        @for (flight of filteredFlights; track flight.id) {
+          &lt;tr&gt;
+            &lt;td&gt;{{ flight.flightNumber }}&lt;/td&gt;
+            &lt;td&gt;{{ flight.airline }}&lt;/td&gt;
+            &lt;td&gt;{{ flight.scheduledTime }}&lt;/td&gt;
+            &lt;td&gt;{{ flight.status }}&lt;/td&gt;
+          &lt;/tr&gt;
+        } @empty {
+          &lt;tr&gt;
+            &lt;td colspan="4" class="empty-state"&gt;Keine Flüge gefunden.&lt;/td&gt;
+          &lt;/tr&gt;
+        }
+      &lt;/tbody&gt;
+    &lt;/table&gt;
+  `,
+})
+export class FlightListComponent {
+  flights: Flight[]  = FLIGHTS;
+  searchTerm: string = '';
+
+  // Getter = reaktiver computed State (kein useMemo nötig)
+  get filteredFlights(): Flight[] {
+    const term = this.searchTerm.toLowerCase().trim();
+    if (!term) return this.flights;
+    return this.flights.filter(f =&gt;
+      f.flightNumber.toLowerCase().includes(term) ||
+      f.airline.toLowerCase().includes(term)      ||
+      f.airport.toLowerCase().includes(term)
+    );
+  }
+}
+</code></pre>
+      </div>
+    </section>
+
+    <!-- Section 3: Typ-Filter -->
+    <section class="section">
+      <h2>Typ-Filter mit Buttons</h2>
+
+      <p>
+        Zus&auml;tzlich zum Suchfeld wollen wir per Button zwischen <em>Alle</em>, <em>Abfl&uuml;ge</em>
+        und <em>Ank&uuml;nfte</em> filtern k&ouml;nnen. Das Muster ist: eine Zustandsvariable
+        h&auml;lt den aktiven Filter, der Getter kombiniert beide Filter, Property-Binding auf
+        <code>[class.active]</code> markiert den aktiven Button.
+      </p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">Typ-Filter &mdash; Komponente komplett</span>
+          <span class="code-lang">typescript</span>
+        </div>
+        <pre><code class="language-typescript">import { Component }  from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { Flight, FlightType } from '../../models/flight';
+import { FLIGHTS }            from '../../data/flights';
+
+type FilterType = 'all' | FlightType;
+
+@Component({
+  selector: 'app-flight-list',
+  standalone: true,
+  imports: [FormsModule],
+  template: `
+    &lt;div class="controls"&gt;
+      &lt;input
+        type="text"
+        [(ngModel)]="searchTerm"
+        placeholder="Suche..."
+      &gt;
+      &lt;div class="type-filter"&gt;
+        &lt;button
+          [class.active]="typeFilter === 'all'"
+          (click)="typeFilter = 'all'"
+        &gt;Alle&lt;/button&gt;
+        &lt;button
+          [class.active]="typeFilter === 'departure'"
+          (click)="typeFilter = 'departure'"
+        &gt;Abflüge&lt;/button&gt;
+        &lt;button
+          [class.active]="typeFilter === 'arrival'"
+          (click)="typeFilter = 'arrival'"
+        &gt;Ankünfte&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;p class="result-info"&gt;
+        {{ filteredFlights.length }} von {{ flights.length }} Flügen
+      &lt;/p&gt;
+    &lt;/div&gt;
+
+    @for (flight of filteredFlights; track flight.id) {
+      &lt;div class="flight-row"&gt;
+        &lt;strong&gt;{{ flight.flightNumber }}&lt;/strong&gt; – {{ flight.airline }}
+      &lt;/div&gt;
+    } @empty {
+      &lt;p class="empty"&gt;Keine Flüge für diese Auswahl.&lt;/p&gt;
+    }
+  `,
+})
+export class FlightListComponent {
+  flights: Flight[]   = FLIGHTS;
+  searchTerm: string  = '';
+  typeFilter: FilterType = 'all';
+
+  get filteredFlights(): Flight[] {
+    const term = this.searchTerm.toLowerCase().trim();
+
+    return this.flights.filter(f =&gt; {
+      // Typ-Filter
+      if (this.typeFilter !== 'all' &amp;&amp; f.type !== this.typeFilter) {
+        return false;
+      }
+      // Suchtext-Filter
+      if (term) {
+        return (
+          f.flightNumber.toLowerCase().includes(term) ||
+          f.airline.toLowerCase().includes(term)      ||
+          f.airport.toLowerCase().includes(term)
+        );
+      }
+      return true;
+    });
+  }
+}
+</code></pre>
+      </div>
+    </section>
+
+    <!-- Section 4: Getter als computed State -->
+    <section class="section">
+      <h2>Getter als reaktiver State &mdash; das Angular-Muster</h2>
+
+      <p>
+        In React w&uuml;rde man <code>useMemo()</code> verwenden, um eine berechnete Liste
+        nicht bei jedem Render neu zu berechnen. In Angular ist das Muster anders:
+        <strong>TypeScript-Getter</strong> werden bei jedem Change-Detection-Durchlauf
+        aufgerufen und liefern den aktuellen Wert.
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Konzept</th>
+              <th>React</th>
+              <th>Angular</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Lokaler State</td><td><code>const [x, setX] = useState(v)</code></td><td><code>x = v</code> (Klasseneigenschaft)</td></tr>
+            <tr><td>State &auml;ndern</td><td><code>setX(newVal)</code></td><td><code>this.x = newVal</code></td></tr>
+            <tr><td>Berechneter Wert</td><td><code>useMemo(() =&gt; compute(x), [x])</code></td><td><code>get computed() { return compute(this.x); }</code></td></tr>
+            <tr><td>Seiteneffekte</td><td><code>useEffect(() =&gt; {}, [dep])</code></td><td><code>ngOnInit()</code>, <code>ngOnChanges()</code></td></tr>
+            <tr><td>Input (Props)</td><td><code>function Comp({ prop }: Props)</code></td><td><code>@Input() prop: Type</code></td></tr>
+            <tr><td>Output (Callback)</td><td><code>const cb = props.onEvent</code></td><td><code>@Output() ev = new EventEmitter()</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout callout-info">
+        <div class="callout-icon">&#8505;</div>
+        <div class="callout-body">
+          <div class="callout-title">Getter und Performance</div>
+          <p>
+            Angular ruft Getter bei jedem Change-Detection-Durchlauf auf. F&uuml;r einfache Berechnungen
+            (Filter, Sort) ist das vollkommen in Ordnung. F&uuml;r sehr teure Berechnungen:
+            entweder <code>ChangeDetectionStrategy.OnPush</code> verwenden (reduziert Checks drastisch)
+            oder die Filterlogik in einen <code>Signal</code> oder ein <code>computed()</code>
+            verlagern (Angular 16+ Signals API).
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 5: Change Detection -->
+    <section class="section">
+      <h2>Change Detection &mdash; wann aktualisiert Angular die View?</h2>
+
+      <p>
+        Angular h&ouml;rt automatisch auf alle asynchronen Ereignisse: Browser-Events (Clicks, Inputs),
+        HTTP-Antworten, <code>setTimeout</code>/<code>setInterval</code>-Callbacks &mdash; und l&auml;uft
+        danach durch den gesamten Komponentenbaum, um zu pr&uuml;fen, ob sich etwas ge&auml;ndert hat
+        (<em>Dirty Checking</em>). Das passiert dank der Zone.js-Bibliothek, die Angular im Hintergrund
+        patcht.
+      </p>
+
+      <h3>Default vs. OnPush</h3>
+      <ul>
+        <li>
+          <strong>Default:</strong> Nach jedem Event wird der gesamte Baum gepr&uuml;ft.
+          Einfach und sicher, aber bei gro&szlig;en Apps langsam.
+        </li>
+        <li>
+          <strong>OnPush:</strong> Eine Komponente wird nur gepr&uuml;ft, wenn (a) ein
+          neues Input-Objekt ankommt (neue Referenz!), (b) ein Output-Event gefeuert hat
+          oder (c) manuell <code>markForCheck()</code> aufgerufen wurde.
+        </li>
+      </ul>
+
+      <div class="callout callout-tip">
+        <div class="callout-icon">&#10003;</div>
+        <div class="callout-body">
+          <div class="callout-title">Unveränderlichkeit und OnPush</div>
+          <p>
+            Mit <code>OnPush</code> muss man darauf achten, Arrays und Objekte immer durch
+            <strong>neue Referenzen</strong> zu ersetzen statt sie zu mutieren.
+            <code>this.flights.push(newFlight)</code> w&uuml;rde bei OnPush kein Re-Render
+            ausl&ouml;sen. Richtig: <code>this.flights = [...this.flights, newFlight]</code>.
+            Dasselbe Prinzip wie in React.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Projektschritt -->
+    <section class="section section-projekt">
+      <h2>Projektschritt</h2>
+      <div class="projekt-box">
+        <div class="projekt-box-header">
+          <span class="projekt-step">Projektschritt 1.3</span>
+          <h3>Suchfeld + Typfilter + Trefferzaehler</h3>
+        </div>
+        <p>
+          Erweitere <code>FlightListComponent</code> um vollst&auml;ndige Filterfunktionalit&auml;t:
+        </p>
+        <ol style="margin:.75rem 0 0 1.25rem;line-height:2">
+          <li><code>FormsModule</code> in <code>imports</code> einbinden</li>
+          <li>Suchfeld mit <code>[(ngModel)]="searchTerm"</code> einbauen</li>
+          <li>Drei Filter-Buttons (<em>Alle / Abfl&uuml;ge / Ank&uuml;nfte</em>) mit <code>[class.active]</code> und <code>(click)</code> implementieren</li>
+          <li>Getter <code>filteredFlights</code> schreiben, der beide Filter kombiniert</li>
+          <li>Trefferzaehler anzeigen: <em>&bdquo;X von Y Fl&uuml;gen&ldquo;</em></li>
+          <li>Empty-State mit <code>@empty</code> f&uuml;r den Fall, dass nichts gefunden wird</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- Häufige Fehler -->
+    <section class="section section-fehler">
+      <h2>H&auml;ufige Fehler</h2>
+
+      <div class="fehler-item">
+        <div class="fehler-title"><code>Can't bind to 'ngModel' since it isn't a known property of 'input'</code></div>
+        <p>Das <code>FormsModule</code> fehlt im <code>imports</code>-Array der Standalone-Komponente.</p>
+        <p class="fehler-fix">
+          <strong>Fix:</strong> <code>import { FormsModule } from '@angular/forms';</code> und
+          <code>imports: [FormsModule]</code> in die betroffene Komponente eintragen.
+        </p>
+      </div>
+
+      <div class="fehler-item">
+        <div class="fehler-title">Filter funktioniert, aber Array-Mutation wird nicht angezeigt</div>
+        <p>
+          Bei <code>this.flights.push(f)</code> bleibt die View leer/veraltet, wenn
+          <code>OnPush</code> aktiv ist.
+        </p>
+        <p class="fehler-fix">
+          <strong>Fix:</strong> <code>this.flights = [...this.flights, f]</code> verwenden,
+          um eine neue Array-Referenz zu erzeugen. Angular erkennt dann die Ver&auml;nderung.
+        </p>
+      </div>
+
+      <div class="fehler-item">
+        <div class="fehler-title">Getter wird bei jedem Tastendruck mehrfach aufgerufen</div>
+        <p>
+          Das ist normales Angular-Verhalten bei <code>Default</code>-Change-Detection.
+          Der Getter wird bei jedem CD-Durchlauf aufgerufen (auch wenn keine &Auml;nderung
+          vorliegt), was bei teuren Operationen zu Performance-Problemen f&uuml;hren kann.
+        </p>
+        <p class="fehler-fix">
+          <strong>Fix (kurzfristig):</strong> <code>ChangeDetectionStrategy.OnPush</code> setzen.
+          <strong>Fix (modern):</strong> Angular Signals (<code>signal()</code>, <code>computed()</code>)
+          verwenden &mdash; diese berechnen nur bei tats&auml;chlicher &Auml;nderung neu.
+        </p>
+      </div>
+
+      <div class="fehler-item">
+        <div class="fehler-title"><code>$event</code> hat Typ <code>any</code> beim Input-Event</div>
+        <p>
+          <code>(input)="onInput($event)"</code> &uuml;bergibt <code>Event</code>, nicht
+          <code>InputEvent&lt;HTMLInputElement&gt;</code>. <code>event.target.value</code>
+          ist dann ein Typfehler.
+        </p>
+        <p class="fehler-fix">
+          <strong>Fix:</strong> In der Methode casten: <code>const val = (event.target as HTMLInputElement).value;</code>.
+          Oder besser: <code>[(ngModel)]</code> statt manuellen Input-Events verwenden &mdash;
+          dann ist kein Casten n&ouml;tig.
+        </p>
+      </div>
+    </section>
+
+    <!-- Aufgaben -->
+    <section class="section section-aufgaben">
+      <h2>Aufgaben</h2>
+      <div class="aufgaben-list">
+
+        <div class="aufgabe">
+          <div class="aufgabe-header">
+            <span class="aufgabe-num">Aufgabe 1</span>
+            <span class="aufgabe-title">Status-Filter erg&auml;nzen</span>
+          </div>
+          <p>
+            F&uuml;ge einen weiteren Filter hinzu, der nach <em>Status</em> filtert.
+            Implementiere ein <code>&lt;select&gt;</code>-Element mit <code>[(ngModel)]</code>
+            und den Optionen <em>Alle Status, On-Time, Delayed, Boarding, Cancelled</em>.
+            Kombiniere den Status-Filter mit dem bestehenden Suchfeld- und Typ-Filter.
+          </p>
+        </div>
+
+        <div class="aufgabe">
+          <div class="aufgabe-header">
+            <span class="aufgabe-num">Aufgabe 2</span>
+            <span class="aufgabe-title">Sortierung nach Zeit</span>
+          </div>
+          <p>
+            Erg&auml;nze den <code>filteredFlights</code>-Getter um eine optionale Sortierung
+            nach <code>scheduledTime</code> aufsteigend oder absteigend.
+            Verwende einen weiteren Button-Toggle (<em>Zeit &#8593; / Zeit &#8595;</em>)
+            und das Zustandsvariable <code>sortAsc: boolean = true</code>.
+          </p>
+        </div>
+
+        <div class="aufgabe">
+          <div class="aufgabe-header">
+            <span class="aufgabe-num">Aufgabe 3</span>
+            <span class="aufgabe-title">Suchfeld zur&uuml;cksetzen</span>
+          </div>
+          <p>
+            F&uuml;ge einen &bdquo;Zur&uuml;cksetzen&ldquo;-Button hinzu, der sichtbar ist wenn
+            <code>searchTerm !== ''</code> oder <code>typeFilter !== 'all'</code>. Ein Klick setzt
+            beide Variablen auf ihren Defaultwert zur&uuml;ck. Nutze <code>[class.visible]</code>
+            oder <code>@if</code> f&uuml;r die Sichtbarkeit.
+          </p>
+        </div>
+
+        <div class="aufgabe">
+          <div class="aufgabe-header">
+            <span class="aufgabe-num">Aufgabe 4</span>
+            <span class="aufgabe-title">Versp&auml;tungs-Indikator</span>
+          </div>
+          <p>
+            Zeige in jeder Flugzeile einen visuellen Versp&auml;tungs-Indikator an.
+            Wenn <code>flight.expectedTime</code> vorhanden ist und sp&auml;ter als
+            <code>flight.scheduledTime</code>, berechne die Versp&auml;tung in Minuten
+            und zeige <em>&bdquo;+X min&ldquo;</em> an. Nutze daf&uuml;r eine Methode
+            <code>getDelay(flight: Flight): number | null</code>.
+          </p>
+        </div>
+
+        <div class="aufgabe aufgabe-bonus">
+          <div class="aufgabe-header">
+            <span class="aufgabe-num">Bonus</span>
+            <span class="aufgabe-title">Signals statt Getter</span>
+          </div>
+          <p>
+            Lies die Angular-Dokumentation zu <strong>Signals</strong> (Angular 16+) und
+            refaktoriere den <code>searchTerm</code> und <code>typeFilter</code> zu
+            <code>signal()</code>-Variablen. Nutze <code>computed()</code> statt eines Getters
+            f&uuml;r <code>filteredFlights</code>. Beobachte den Unterschied im Profiler.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+  </div><!-- /content-area -->
+
+  <nav class="lesson-nav">
+    <a class="nav-btn" href="1.2-komponenten-templates.html">&larr; Lektion 1.2: Komponenten &amp; Templates</a>
+    <span class="nav-center-info">Lektion 1.3</span>
+    <a class="nav-btn primary" href="1.4-listen-filter-pipes.html">Lektion 1.4: Listen, Filter &amp; Pipes &rarr;</a>
+  </nav>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/bash.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/json.min.js"></script>
+<script>
+  const ham = document.getElementById('hamburger');
+  const sb  = document.getElementById('sidebar');
+  const ov  = document.getElementById('overlay');
+  ham.addEventListener('click', () => { sb.classList.toggle('open'); ov.classList.toggle('visible'); });
+  ov.addEventListener('click',  () => { sb.classList.remove('open'); ov.classList.remove('visible'); });
+  const cur = window.location.pathname.split('/').pop() || 'index.html';
+  document.querySelectorAll('.nav-link').forEach(l => {
+    if (l.getAttribute('href') === cur) l.classList.add('active');
+  });
+  const themeBtn = document.getElementById('theme-toggle');
+  const applyTheme = (t) => {
+    document.documentElement.setAttribute('data-theme', t);
+    if (themeBtn) themeBtn.innerHTML = t === 'dark' ? '&#9728;' : '&#9790;';
+  };
+  applyTheme(localStorage.getItem('kurs-theme') || 'dark');
+  setTimeout(() => document.documentElement.classList.add('theme-transitions'), 50);
+  if (themeBtn) themeBtn.addEventListener('click', () => {
+    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('kurs-theme', next);
+    applyTheme(next);
+  });
+  hljs.highlightAll();
+</script>
+</body>
+</html>

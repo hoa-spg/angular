@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2.3 &ndash; Observables &amp; RxJS | Angular Kurs</title>
+  <script>(function(){var t=localStorage.getItem('kurs-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();</script>
+  <link rel="stylesheet" href="assets/kurs.css">
+  <link rel="stylesheet" id="hljs-theme" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+</head>
+<body>
+
+<button class="hamburger" id="hamburger" aria-label="Navigation &ouml;ffnen">&#9776;</button>
+<div class="sidebar-overlay" id="overlay"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <a href="index.html">
+      <span class="brand-icon">&#9992;</span>
+      <div>
+        <div class="brand-name">Angular Kurs</div>
+        <div class="brand-sub">FlugBoard</div>
+      </div>
+    </a>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Dark/Light Mode" title="Theme wechseln">&#9728;</button>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-group">
+      <div class="nav-group-label angular-label">Teil 1 &mdash; Grundlagen</div>
+      <a class="nav-link" href="1.1-einfuehrung-setup.html"><span class="ln">1.1</span>Einstieg &amp; Setup</a>
+      <a class="nav-link" href="1.2-komponenten-templates.html"><span class="ln">1.2</span>Komponenten &amp; Templates</a>
+      <a class="nav-link" href="1.3-datenbindung-events.html"><span class="ln">1.3</span>Datenbindung &amp; Events</a>
+      <a class="nav-link" href="1.4-listen-filter-pipes.html"><span class="ln">1.4</span>Listen, Filter &amp; Pipes</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label angular-label">Teil 2 &mdash; Praxis &amp; Fullstack</div>
+      <a class="nav-link" href="2.1-formulare-validierung.html"><span class="ln">2.1</span>Formulare &amp; Validierung</a>
+      <a class="nav-link" href="2.2-services-http.html"><span class="ln">2.2</span>Services &amp; HTTP</a>
+      <a class="nav-link" href="2.3-observables-rxjs.html"><span class="ln">2.3</span>Observables &amp; RxJS</a>
+      <a class="nav-link" href="2.4-fullstack-flugboard.html"><span class="ln">2.4</span>Fullstack FlugBoard</a>
+    </div>
+  </nav>
+</aside>
+
+<main class="main-content">
+  <header class="lesson-header">
+    <p class="lesson-eyebrow">Lektion 2.3 &mdash; Teil 2: Praxis &amp; Fullstack</p>
+    <h1>Observables &amp; RxJS</h1>
+    <div class="lesson-tags">
+      <span class="tag tag-angular">Angular</span>
+      <span class="tag tag-rxjs">RxJS</span>
+      <span class="tag tag-time">ca. 90 min</span>
+      <span class="tag tag-level">Fortgeschritten</span>
+    </div>
+  </header>
+
+  <div class="content-area">
+
+    <section class="section section-lernziele">
+      <h2>Lernziele</h2>
+      <ul class="lernziele-list">
+        <li>Observable vs. Promise ausf&uuml;hrlich erkl&auml;ren k&ouml;nnen (mehrere Werte, lazy, cancellbar)</li>
+        <li><code>Subject</code> und <code>BehaviorSubject</code> verstehen und sinnvoll einsetzen</li>
+        <li>Die wichtigsten RxJS-Operatoren kennen: <code>map</code>, <code>filter</code>, <code>switchMap</code>, <code>debounceTime</code>, <code>combineLatest</code>, <code>catchError</code>, <code>takeUntil</code></li>
+        <li>Den Unterschied zwischen <code>switchMap</code> und <code>mergeMap</code> verstehen</li>
+        <li>Memory Leaks durch das <code>takeUntil</code>-Pattern verhindern</li>
+        <li>Eine reaktive Stream-Architektur f&uuml;r das FlugBoard aufbauen</li>
+      </ul>
+    </section>
+
+    <!-- Section 1: Observable vs Promise -->
+    <section class="section">
+      <h2>Observable vs. Promise &mdash; der vollst&auml;ndige Vergleich</h2>
+
+      <p>
+        Promises sind das bekannte Werkzeug f&uuml;r asynchrone Operationen: Ein Promise liefert
+        <strong>einmal</strong> einen Wert oder einen Fehler und ist danach abgeschlossen.
+        Observables k&ouml;nnen dagegen <strong>viele Werte</strong> &uuml;ber die Zeit emittieren &mdash;
+        wie ein kontinuierlicher Strom (Stream).
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Eigenschaft</th>
+              <th>Promise</th>
+              <th>Observable</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Anzahl Werte</td><td>Genau 1</td><td>0 bis unendlich</td></tr>
+            <tr><td>Ausf&uuml;hrung</td><td>Eager (sofort)</td><td>Lazy (erst bei subscribe)</td></tr>
+            <tr><td>Abbrechen</td><td>Nicht m&ouml;glich</td><td><code>subscription.unsubscribe()</code></td></tr>
+            <tr><td>Fehlerbehandlung</td><td><code>.catch()</code></td><td><code>catchError()</code> Operator</td></tr>
+            <tr><td>Komposition</td><td><code>.then().then()</code></td><td>Pipe mit Operatoren</td></tr>
+            <tr><td>Mehrere Werte</td><td>Nein</td><td>Ja (Polling, Keystrokes, WebSocket)</td></tr>
+            <tr><td>Template-Integration</td><td>Kein native Support</td><td><code>async</code>-Pipe</td></tr>
+            <tr><td>Kombinieren</td><td><code>Promise.all()</code></td><td><code>combineLatest()</code>, <code>forkJoin()</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Marble-Diagramm-Erkl&auml;rung</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">Marble-Diagramme (ASCII)</span>
+          <span class="code-lang">bash</span>
+        </div>
+        <pre><code class="language-bash"># Promise: liefert genau einen Wert, dann fertig
+# ---[...warten...]--(Wert)--| (Complete)
+#                             ^--- nur dieser eine Wert
+
+# Observable (HTTP):
+# ---[...warten...]--(Wert)--| (Complete)  ← identisch mit Promise
+
+# Observable (Tastatureingaben):
+# --(a)--(b)--(c)--(BACKSPACE)--(d)---->  (nie complete)
+#   jeder Tastendruck = ein emittierter Wert
+
+# Observable (Polling, jede 30 Sek):
+# ------(Flüge)------(Flüge)------(Flüge)------>
+# ^---- alle 30s ein neues Array
+
+# Subject.next() zum manuellen Emittieren:
+# (klick)-------(klick)-------(klick)---->
+#   jeder Klick auf "Refresh" = neuer Wert</code></pre>
+      </div>
+    </section>
+
+    <!-- Section 2: Subject und BehaviorSubject -->
+    <section class="section">
+      <h2>Subject und BehaviorSubject</h2>
+
+      <p>
+        Ein <strong>Subject</strong> ist gleichzeitig Observable (man kann subscriben) und Observer
+        (man kann mit <code>.next()</code> Werte hineinschicken). Es ist der Weg, um Werte manuell
+        in einen Stream zu injizieren.
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Typ</th>
+              <th>Initialer Wert?</th>
+              <th>Neuer Subscriber bekommt&hellip;</th>
+              <th>Typischer Einsatz</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><code>Subject</code></td><td>Nein</td><td>Nichts (nur k&uuml;nftige Werte)</td><td>Events, manuelle Trigger</td></tr>
+            <tr><td><code>BehaviorSubject</code></td><td>Ja (Pflicht)</td><td>Den letzten Wert sofort</td><td>State, aktueller Filterwert</td></tr>
+            <tr><td><code>ReplaySubject</code></td><td>Nein</td><td>Die letzten N Werte</td><td>Cache, History</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">Subject vs BehaviorSubject</span>
+          <span class="code-lang">typescript</span>
+        </div>
+        <pre><code class="language-typescript">import { Subject, BehaviorSubject } from 'rxjs';
+
+// Subject – kein Initialwert, neuer Subscriber bekommt nichts
+const search$ = new Subject&lt;string&gt;();
+search$.next('Wien');          // nur aktive Subscriber bekommen 'Wien'
+search$.subscribe(v =&gt; console.log(v));  // bekommt NICHT 'Wien' (zu spät)
+search$.next('Berlin');        // → 'Berlin' ← dieser Subscriber kriegt es
+
+// BehaviorSubject – hat Initialwert, neuer Subscriber bekommt letzten Wert
+const filter$ = new BehaviorSubject&lt;string&gt;('all');
+filter$.next('departure');
+filter$.subscribe(v =&gt; console.log(v));  // → 'departure' sofort!
+filter$.next('arrival');                  // → 'arrival'
+
+// Wichtig: Subjects nicht direkt nach außen exponieren!
+// In Services: private subject, öffentliches Observable:
+export class FlightStateService {
+  private searchSubject$ = new BehaviorSubject&lt;string&gt;('');
+  readonly search$       = this.searchSubject$.asObservable(); // ← read-only!
+
+  setSearch(term: string): void {
+    this.searchSubject$.next(term);
+  }
+}
+</code></pre>
+      </div>
+    </section>
+
+    <!-- Section 3: Operatoren -->
+    <section class="section">
+      <h2>Die wichtigsten RxJS-Operatoren</h2>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Operator</th>
+              <th>Beschreibung</th>
+              <th>FlugBoard-Beispiel</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><code>map(fn)</code></td><td>Transformiert jeden Wert</td><td>Response-Objekt → Flight-Array extrahieren</td></tr>
+            <tr><td><code>filter(pred)</code></td><td>Nur Werte weitergeben, die Bedingung erf&uuml;llen</td><td>Nur Abfl&uuml;ge aus Stream</td></tr>
+            <tr><td><code>tap(fn)</code></td><td>Seiteneffekt ohne &Auml;nderung (Logging)</td><td>Request ins Console loggen</td></tr>
+            <tr><td><code>switchMap(fn)</code></td><td>Inneren Observable wechseln, alten abbrechen</td><td>Neue Suchanfrage cancelt alte</td></tr>
+            <tr><td><code>mergeMap(fn)</code></td><td>Innere Observables parallel</td><td>Mehrere unabh&auml;ngige DELETE-Requests</td></tr>
+            <tr><td><code>concatMap(fn)</code></td><td>Innere Observables sequenziell</td><td>Requests der Reihe nach senden</td></tr>
+            <tr><td><code>combineLatest([a$, b$])</code></td><td>Kombiniert letzte Werte mehrerer Streams</td><td>Suche + Typ-Filter kombinieren</td></tr>
+            <tr><td><code>merge(a$, b$)</code></td><td>Alle Werte aus mehreren Streams</td><td>Manueller Refresh + Intervall</td></tr>
+            <tr><td><code>startWith(v)</code></td><td>Stream mit Initialwert beginnen</td><td>Erste Anfrage sofort feuern</td></tr>
+            <tr><td><code>debounceTime(ms)</code></td><td>Warte N ms nach letztem Wert</td><td>Nicht bei jedem Tastendruck suchen</td></tr>
+            <tr><td><code>distinctUntilChanged()</code></td><td>Gleiche aufeinanderfolgende Werte ignorieren</td><td>Nur neue Suchterms senden</td></tr>
+            <tr><td><code>catchError(fn)</code></td><td>Fehler abfangen und Fallback liefern</td><td>API-Fehler → leeres Array</td></tr>
+            <tr><td><code>takeUntil(signal$)</code></td><td>Stream beenden, wenn Signal feuert</td><td>Beim ngOnDestroy unsubscribieren</td></tr>
+            <tr><td><code>interval(ms)</code></td><td>Periodisch Werte emittieren</td><td>Alle 30s Polling</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Section 4: switchMap vs mergeMap -->
+    <section class="section">
+      <h2>switchMap vs. mergeMap &mdash; der entscheidende Unterschied</h2>
+
+      <h3>switchMap: Alte Anfrage abbrechen</h3>
+      <p>
+        Wenn ein neuer Wert kommt, <strong>bricht switchMap den laufenden inneren Observable ab</strong>
+        und startet einen neuen. Das ist der richtige Operator f&uuml;r <strong>Suchanfragen</strong>:
+        Wenn der Nutzer schnell tippt, soll nur die letzte Anfrage ausgef&uuml;hrt werden.
+      </p>
+
+      <h3>mergeMap: Alle parallel</h3>
+      <p>
+        <code>mergeMap</code> f&uuml;hrt alle inneren Observables <strong>parallel</strong> aus
+        und gibt alle Ergebnisse weiter. Richtig f&uuml;r unabh&auml;ngige Operationen wie das
+        gleichzeitige L&ouml;schen mehrerer Fl&uuml;ge.
+      </p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">switchMap f&uuml;r Suchanfragen</span>
+          <span class="code-lang">typescript</span>
+        </div>
+        <pre><code class="language-typescript">import { Component, inject, OnInit, OnDestroy } from '@angular/core';
+import { Subject, BehaviorSubject, combineLatest, interval, merge } from 'rxjs';
+import {
+  switchMap, map, debounceTime, distinctUntilChanged,
+  startWith, catchError, takeUntil,
+} from 'rxjs/operators';
+import { of } from 'rxjs';
+import { FlightApiService } from './services/flight-api.service';
+import { Flight }           from './models/flight';
+
+@Component({ /* ... */ })
+export class FlightBoardPageComponent implements OnInit, OnDestroy {
+  private flightApi = inject(FlightApiService);
+
+  // Eingabe-Streams (Subjects):
+  searchInput$  = new BehaviorSubject&lt;string&gt;('');
+  typeFilter$   = new BehaviorSubject&lt;string&gt;('all');
+  manualRefresh$ = new Subject&lt;void&gt;();
+
+  // Ausgabe-State:
+  flights:   Flight[] = [];
+  isLoading: boolean  = false;
+  error:     string   = '';
+
+  // Destroy-Signal für takeUntil:
+  private destroy$ = new Subject&lt;void&gt;();
+
+  ngOnInit(): void {
+    // Suche mit Debounce optimieren:
+    const debouncedSearch$ = this.searchInput$.pipe(
+      debounceTime(250),          // 250ms nach letztem Tastendruck warten
+      distinctUntilChanged(),     // gleicher Wert: nicht erneut senden
+    );
+
+    // Trigger: Suche, Filter, manueller Refresh oder alle 30s
+    const trigger$ = merge(
+      combineLatest([debouncedSearch$, this.typeFilter$]),
+      this.manualRefresh$.pipe(
+        map(() =&gt; [this.searchInput$.value, this.typeFilter$.value]),
+      ),
+      interval(30_000).pipe(
+        map(() =&gt; [this.searchInput$.value, this.typeFilter$.value]),
+      ),
+    ).pipe(startWith([this.searchInput$.value, this.typeFilter$.value]));
+
+    trigger$.pipe(
+      switchMap(([search, type]) =&gt; {
+        this.isLoading = true;
+        return this.flightApi.getFlights().pipe(
+          map(flights =&gt; this.applyFilters(flights, search, type)),
+          catchError(err =&gt; {
+            this.error     = err.message;
+            this.isLoading = false;
+            return of([] as Flight[]);  // Fallback: leeres Array
+          }),
+        );
+      }),
+      takeUntil(this.destroy$),   // automatisch bei ngOnDestroy beenden
+    ).subscribe(flights =&gt; {
+      this.flights   = flights;
+      this.isLoading = false;
+      this.error     = '';
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();   // Signal senden → alle takeUntil-Streams enden
+    this.destroy$.complete();
+  }
+
+  private applyFilters(
+    flights: Flight[],
+    search:  string,
+    type:    string,
+  ): Flight[] {
+    return flights.filter(f =&gt; {
+      if (type !== 'all' &amp;&amp; f.type !== type) return false;
+      if (!search) return true;
+      const term = search.toLowerCase();
+      return (
+        f.flightNumber.toLowerCase().includes(term) ||
+        f.airline.toLowerCase().includes(term)
+      );
+    });
+  }
+}
+</code></pre>
+      </div>
+    </section>
+
+    <!-- Section 5: Memory Leaks und takeUntil -->
+    <section class="section">
+      <h2>Memory Leaks &mdash; das takeUntil-Pattern</h2>
+
+      <p>
+        Wenn eine Komponente zerst&ouml;rt wird (Routing, <code>*ngIf false</code>), werden ihre
+        Subscriptions <em>nicht automatisch beendet</em>. Das f&uuml;hrt zu Memory Leaks:
+        Die Komponente existiert noch im Speicher, weil der Observable sie noch referenziert.
+      </p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">takeUntil-Pattern (empfohlen)</span>
+          <span class="code-lang">typescript</span>
+        </div>
+        <pre><code class="language-typescript">import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+
+export class MyComponent implements OnDestroy {
+  private destroy$ = new Subject&lt;void&gt;();  // Destroy-Signal
+
+  ngOnInit(): void {
+    // takeUntil: Stream beendet sich, wenn destroy$ emittiert
+    someInfiniteObservable$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(value =&gt; this.doSomething(value));
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();      // Signal feuern
+    this.destroy$.complete();  // Subject aufräumen
+  }
+}
+</code></pre>
+      </div>
+
+      <div class="callout callout-tip">
+        <div class="callout-icon">&#10003;</div>
+        <div class="callout-body">
+          <div class="callout-title">async-Pipe als Alternative zu takeUntil</div>
+          <p>
+            Die <code>async</code>-Pipe im Template subscribed und unsubscribed automatisch beim
+            Zerst&ouml;ren der Komponente. Sie ist die einfachste Methode, Memory Leaks zu
+            vermeiden: <code>@if (flights$ | async; as flights) { ... }</code>. Angular
+            k&uuml;mmert sich um den gesamten Lebenszyklus der Subscription.
+          </p>
+        </div>
+      </div>
+
+      <h3>Suchoptimierung im Template</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">Template mit reaktivem Suchfeld</span>
+          <span class="code-lang">html</span>
+        </div>
+        <pre><code class="language-html">&lt;div class="controls"&gt;
+  &lt;input
+    type="text"
+    [value]="searchInput$.value"
+    (input)="searchInput$.next($any($event.target).value)"
+    placeholder="Flug, Airline, Flughafen..."
+  &gt;
+  &lt;div class="type-filter"&gt;
+    &lt;button
+      [class.active]="typeFilter$.value === 'all'"
+      (click)="typeFilter$.next('all')"
+    &gt;Alle&lt;/button&gt;
+    &lt;button
+      [class.active]="typeFilter$.value === 'departure'"
+      (click)="typeFilter$.next('departure')"
+    &gt;Abflüge&lt;/button&gt;
+    &lt;button
+      [class.active]="typeFilter$.value === 'arrival'"
+      (click)="typeFilter$.next('arrival')"
+    &gt;Ankünfte&lt;/button&gt;
+  &lt;/div&gt;
+  &lt;button (click)="manualRefresh$.next()"&gt;&#8635; Aktualisieren&lt;/button&gt;
+&lt;/div&gt;
+
+@if (isLoading) { &lt;div class="spinner"&gt;...&lt;/div&gt; }
+@if (error) { &lt;div class="error"&gt;{{ error }}&lt;/div&gt; }
+@for (flight of flights; track flight.id) {
+  &lt;app-flight-card [flight]="flight" /&gt;
+}
+</code></pre>
+      </div>
+    </section>
+
+    <!-- Projektschritt -->
+    <section class="section section-projekt">
+      <h2>Projektschritt</h2>
+      <div class="projekt-box">
+        <div class="projekt-box-header">
+          <span class="projekt-step">Projektschritt 2.3</span>
+          <h3>Stream-Architektur f&uuml;r das FlugBoard</h3>
+        </div>
+        <p>
+          Refaktoriere die Lektion-2.2-L&ouml;sung auf die reaktive Stream-Architektur:
+        </p>
+        <ol style="margin:.75rem 0 0 1.25rem;line-height:2">
+          <li><code>searchInput$</code> und <code>typeFilter$</code> als <code>BehaviorSubject</code> anlegen</li>
+          <li><code>manualRefresh$</code> als <code>Subject&lt;void&gt;</code> f&uuml;r den Refresh-Button</li>
+          <li>Suchfeld mit <code>debounceTime(250)</code> und <code>distinctUntilChanged()</code> optimieren</li>
+          <li><code>combineLatest</code> + <code>merge</code> f&uuml;r kombinierten Trigger-Stream</li>
+          <li><code>switchMap</code> f&uuml;r HTTP-Requests (alte Anfragen werden gecancelt)</li>
+          <li><code>takeUntil(destroy$)</code> in <code>ngOnDestroy</code> s&auml;ubern</li>
+          <li>Polling mit <code>interval(30_000)</code> hinzuf&uuml;gen</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- Häufige Fehler -->
+    <section class="section section-fehler">
+      <h2>H&auml;ufige Fehler</h2>
+
+      <div class="fehler-item">
+        <div class="fehler-title"><code>ExpressionChangedAfterItHasBeenChecked</code></div>
+        <p>
+          Angular erkennt, dass ein Wert sich nach dem Change-Detection-Durchlauf ge&auml;ndert hat
+          (meistens durch asynchrone Operationen ohne Zone.js).
+        </p>
+        <p class="fehler-fix">
+          <strong>Fix:</strong> Den Wert in <code>ngOnInit</code> setzen (nicht im Konstruktor),
+          oder <code>ChangeDetectorRef.detectChanges()</code> nach der &Auml;nderung aufrufen.
+          Bei <code>async</code>-Pipe tritt dieser Fehler seltener auf.
+        </p>
+      </div>
+
+      <div class="fehler-item">
+        <div class="fehler-title">switchMap bricht HTTP-Anfragen nicht ab</div>
+        <p>
+          Angular&apos;s <code>HttpClient</code> cancelt XHR-Requests automatisch, wenn das
+          innere Observable unsubscribed wird. Aber es gibt eine Ausnahme: Wenn der Server-
+          Handler bereits gestartet ist, wird die Verarbeitung serverseitig nicht abgebrochen &mdash;
+          nur der Client h&ouml;rt auf zu warten.
+        </p>
+        <p class="fehler-fix">
+          <strong>Fix (kein Bug):</strong> Das ist normales HTTP-Verhalten. switchMap verhindert,
+          dass veraltete Antworten die UI aktualisieren. Das ist ausreichend.
+        </p>
+      </div>
+
+      <div class="fehler-item">
+        <div class="fehler-title"><code>Subject</code> direkt als <code>@Output</code> verwendet</div>
+        <p>
+          Subjects als <code>@Output()</code> zu deklarieren ist ein Anti-Pattern: der Elternteil
+          k&ouml;nnte <code>.next()</code> von au&szlig;en aufrufen.
+        </p>
+        <p class="fehler-fix">
+          <strong>Fix:</strong> <code>EventEmitter</code> f&uuml;r <code>@Output()</code> verwenden.
+          Subjects geh&ouml;ren in Services oder in private Klassenfelder.
+        </p>
+      </div>
+
+      <div class="fehler-item">
+        <div class="fehler-title">takeUntil kommt an der falschen Stelle in der Pipe</div>
+        <p>
+          <code>takeUntil</code> muss an <strong>letzter Stelle</strong> in der Operator-Kette stehen.
+          Wenn es vor <code>catchError</code> steht, werden Fehler nicht mehr behandelt. Wenn es vor
+          <code>switchMap</code> steht, k&ouml;nnte der innere Observable weiterl&auml;ufen.
+        </p>
+        <p class="fehler-fix">
+          <strong>Fix:</strong> <code>takeUntil(destroy$)</code> immer als letzten Operator in der
+          <code>pipe()</code>-Kette platzieren, direkt vor <code>.subscribe()</code>.
+        </p>
+      </div>
+    </section>
+
+    <!-- Aufgaben -->
+    <section class="section section-aufgaben">
+      <h2>Aufgaben</h2>
+      <div class="aufgaben-list">
+
+        <div class="aufgabe">
+          <div class="aufgabe-header">
+            <span class="aufgabe-num">Aufgabe 1</span>
+            <span class="aufgabe-title">combineLatest mit Status-Filter</span>
+          </div>
+          <p>
+            Erweitere den kombinierten Trigger-Stream um einen dritten Filter:
+            <code>statusFilter$</code> als <code>BehaviorSubject&lt;string&gt;('all')</code>.
+            Nutze <code>combineLatest([searchInput$, typeFilter$, statusFilter$])</code>
+            und pass die <code>applyFilters</code>-Methode entsprechend an.
+          </p>
+        </div>
+
+        <div class="aufgabe">
+          <div class="aufgabe-header">
+            <span class="aufgabe-num">Aufgabe 2</span>
+            <span class="aufgabe-title">Letzter Aktualisierungs-Timestamp</span>
+          </div>
+          <p>
+            Nutze den <code>tap()</code>-Operator, um vor dem Senden jeder Anfrage einen
+            Timestamp zu loggen und zu speichern:
+            <code>.pipe(tap(() =&gt; this.lastUpdated = new Date()))</code>.
+            Zeige im Template an: <em>&bdquo;Zuletzt aktualisiert: HH:MM:SS&ldquo;</em>.
+          </p>
+        </div>
+
+        <div class="aufgabe">
+          <div class="aufgabe-header">
+            <span class="aufgabe-num">Aufgabe 3</span>
+            <span class="aufgabe-title">async-Pipe implementieren</span>
+          </div>
+          <p>
+            Refaktoriere die Komponente so, dass <code>flights</code> als
+            <code>Observable&lt;Flight[]&gt;</code> (nicht als Array) gespeichert wird.
+            Nutze im Template die <code>async</code>-Pipe:
+            <code>@if (flights$ | async; as flights) { ... }</code>.
+            Vergleiche den Code-Umfang mit der manuellen Subscription-Variante.
+          </p>
+        </div>
+
+        <div class="aufgabe">
+          <div class="aufgabe-header">
+            <span class="aufgabe-num">Aufgabe 4</span>
+            <span class="aufgabe-title">forkJoin f&uuml;r parallele Initialisierung</span>
+          </div>
+          <p>
+            Statt <code>getFlights()</code> allein soll beim Start <em>gleichzeitig</em>
+            <code>getFlights()</code> und <code>getAirports()</code> (eine neue API-Methode, die
+            eine Liste von Airports zur&uuml;ckgibt) aufgerufen werden. Nutze
+            <code>forkJoin([this.flightApi.getFlights(), this.flightApi.getAirports()])</code>
+            und destrukturiere das Ergebnis.
+          </p>
+        </div>
+
+        <div class="aufgabe aufgabe-bonus">
+          <div class="aufgabe-header">
+            <span class="aufgabe-num">Bonus</span>
+            <span class="aufgabe-title">WebSocket-Stream simulieren</span>
+          </div>
+          <p>
+            Erstelle einen <code>FlightMockSocketService</code>, der mit
+            <code>interval(5000)</code> alle 5 Sekunden einen zuf&auml;lligen Status-Update
+            emittiert (ein bestehendes Flight-Objekt mit neuem Status). Subscribiere in der
+            Hauptkomponente auf diesen Stream und aktualisiere das entsprechende Objekt im
+            <code>flights</code>-Array. Beobachte, wie Angular die &Auml;nderung erkennt.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+  </div><!-- /content-area -->
+
+  <nav class="lesson-nav">
+    <a class="nav-btn" href="2.2-services-http.html">&larr; Lektion 2.2: Services &amp; HTTP</a>
+    <span class="nav-center-info">Lektion 2.3</span>
+    <a class="nav-btn primary" href="2.4-fullstack-flugboard.html">Lektion 2.4: Fullstack FlugBoard &rarr;</a>
+  </nav>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/bash.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/json.min.js"></script>
+<script>
+  const ham = document.getElementById('hamburger');
+  const sb  = document.getElementById('sidebar');
+  const ov  = document.getElementById('overlay');
+  ham.addEventListener('click', () => { sb.classList.toggle('open'); ov.classList.toggle('visible'); });
+  ov.addEventListener('click',  () => { sb.classList.remove('open'); ov.classList.remove('visible'); });
+  const cur = window.location.pathname.split('/').pop() || 'index.html';
+  document.querySelectorAll('.nav-link').forEach(l => {
+    if (l.getAttribute('href') === cur) l.classList.add('active');
+  });
+  const themeBtn = document.getElementById('theme-toggle');
+  const applyTheme = (t) => {
+    document.documentElement.setAttribute('data-theme', t);
+    if (themeBtn) themeBtn.innerHTML = t === 'dark' ? '&#9728;' : '&#9790;';
+  };
+  applyTheme(localStorage.getItem('kurs-theme') || 'dark');
+  setTimeout(() => document.documentElement.classList.add('theme-transitions'), 50);
+  if (themeBtn) themeBtn.addEventListener('click', () => {
+    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('kurs-theme', next);
+    applyTheme(next);
+  });
+  hljs.highlightAll();
+</script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<div class="page-content">
+  <div class="page-head">
+    <div>
+      <h1 class="page-title">FlugBoard</h1>
+      <p class="page-meta">Lektion 2.1 &middot; Reactive Forms &amp; Validierung</p>
+    </div>
+    <div class="head-actions">
+      <button
+        class="btn-primary"
+        (click)="showForm = !showForm"
+      >
+        {{ showForm ? 'Formular schlie&szlig;en' : '+ Flug hinzuf&uuml;gen' }}
+      </button>
+    </div>
+  </div>
+
+  @if (showForm) {
+    <app-add-flight-form
+      (add)="addFlight($event)"
+      (cancel)="showForm = false"
+    />
+  }
+
+  <table class="flight-table">
+    <thead>
+      <tr>
+        <th>Flug</th>
+        <th>Airline</th>
+        <th>Typ</th>
+        <th>Planzeit</th>
+        <th>Airport</th>
+        <th>Status</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (flight of flights; track flight.id) {
+        <tr>
+          <td class="flight-num">{{ flight.flightNumber }}</td>
+          <td>{{ flight.airline }}</td>
+          <td>{{ flight.type === 'departure' ? '↑ Abflug' : '↓ Ankunft' }}</td>
+          <td>{{ flight.scheduledTime }}</td>
+          <td>{{ flight.airport }}</td>
+          <td>
+            <span class="status-badge status-{{ flight.status }}">
+              {{ flight.status }}
+            </span>
+          </td>
+          <td>
+            <button
+              class="btn-danger"
+              type="button"
+              (click)="deleteFlight(flight.id)"
+            >Löschen</button>
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="7" class="empty-state">
+            Keine Flüge. F&uuml;ge einen neuen Flug hinzu.
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

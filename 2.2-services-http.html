@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2.2 &ndash; Services &amp; HTTP | Angular Kurs</title>
+  <script>(function(){var t=localStorage.getItem('kurs-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();</script>
+  <link rel="stylesheet" href="assets/kurs.css">
+  <link rel="stylesheet" id="hljs-theme" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+</head>
+<body>
+
+<button class="hamburger" id="hamburger" aria-label="Navigation &ouml;ffnen">&#9776;</button>
+<div class="sidebar-overlay" id="overlay"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <a href="index.html">
+      <span class="brand-icon">&#9992;</span>
+      <div>
+        <div class="brand-name">Angular Kurs</div>
+        <div class="brand-sub">FlugBoard</div>
+      </div>
+    </a>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Dark/Light Mode" title="Theme wechseln">&#9728;</button>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-group">
+      <div class="nav-group-label angular-label">Teil 1 &mdash; Grundlagen</div>
+      <a class="nav-link" href="1.1-einfuehrung-setup.html"><span class="ln">1.1</span>Einstieg &amp; Setup</a>
+      <a class="nav-link" href="1.2-komponenten-templates.html"><span class="ln">1.2</span>Komponenten &amp; Templates</a>
+      <a class="nav-link" href="1.3-datenbindung-events.html"><span class="ln">1.3</span>Datenbindung &amp; Events</a>
+      <a class="nav-link" href="1.4-listen-filter-pipes.html"><span class="ln">1.4</span>Listen, Filter &amp; Pipes</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label angular-label">Teil 2 &mdash; Praxis &amp; Fullstack</div>
+      <a class="nav-link" href="2.1-formulare-validierung.html"><span class="ln">2.1</span>Formulare &amp; Validierung</a>
+      <a class="nav-link" href="2.2-services-http.html"><span class="ln">2.2</span>Services &amp; HTTP</a>
+      <a class="nav-link" href="2.3-observables-rxjs.html"><span class="ln">2.3</span>Observables &amp; RxJS</a>
+      <a class="nav-link" href="2.4-fullstack-flugboard.html"><span class="ln">2.4</span>Fullstack FlugBoard</a>
+    </div>
+  </nav>
+</aside>
+
+<main class="main-content">
+  <header class="lesson-header">
+    <p class="lesson-eyebrow">Lektion 2.2 &mdash; Teil 2: Praxis &amp; Fullstack</p>
+    <h1>Services &amp; HTTP</h1>
+    <div class="lesson-tags">
+      <span class="tag tag-angular">Angular</span>
+      <span class="tag tag-rxjs">RxJS</span>
+      <span class="tag tag-time">ca. 80 min</span>
+      <span class="tag tag-level">Fortgeschritten</span>
+    </div>
+  </header>
+
+  <div class="content-area">
+
+    <section class="section section-lernziele">
+      <h2>Lernziele</h2>
+      <ul class="lernziele-list">
+        <li>Das Konzept der Dependency Injection (DI) in Angular verstehen und erkl&auml;ren k&ouml;nnen</li>
+        <li>Einen Service mit <code>@Injectable</code> erstellen und per <code>inject()</code> verwenden</li>
+        <li>Den <code>HttpClient</code> einrichten und HTTP-GET/POST/DELETE-Anfragen ausf&uuml;hren</li>
+        <li>Den Unterschied zwischen Observable und Promise kennen und Observables subscriben</li>
+        <li>Loading-, Error- und Success-Zust&auml;nde im Template sauber darstellen</li>
+        <li>Die statischen Seed-Daten durch echte API-Aufrufe ersetzen</li>
+      </ul>
+    </section>
+
+    <!-- Section 1: DI -->
+    <section class="section">
+      <h2>Dependency Injection &mdash; Angulars eingebautes IoC-System</h2>
+
+      <p>
+        Dependency Injection (DI) ist ein Entwurfsmuster, bei dem Abh&auml;ngigkeiten
+        (<em>Dependencies</em>) nicht selbst instantiiert werden, sondern von au&szlig;en
+        injiziert werden. Angular hat DI tief ins Framework integriert: Es gibt einen
+        <strong>Injektor-Baum</strong>, der Services bereitstellt und ihre Lebensdauer verwaltet.
+      </p>
+
+      <h3>providedIn: 'root' &mdash; Application-Singleton</h3>
+      <p>
+        Wenn ein Service mit <code>providedIn: 'root'</code> konfiguriert wird, erstellt Angular
+        genau <strong>eine Instanz</strong> des Services f&uuml;r die gesamte Anwendung
+        (Singleton-Pattern). Jede Komponente, die diesen Service anfordert, bekommt dieselbe Instanz.
+      </p>
+
+      <h3>inject() vs. Constructor-Injection</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">inject() vs. Constructor-Injection</span>
+          <span class="code-lang">typescript</span>
+        </div>
+        <pre><code class="language-typescript">// Moderner Ansatz: inject() (Angular 14+, empfohlen)
+import { Component, inject, OnInit } from '@angular/core';
+import { FlightApiService }          from '../services/flight-api.service';
+
+export class AppComponent implements OnInit {
+  private flightApi = inject(FlightApiService); // ← inject() Funktion
+
+  ngOnInit(): void {
+    this.flightApi.getFlights().subscribe(/* ... */);
+  }
+}
+
+// Klassischer Ansatz: Constructor-Injection
+export class AppComponent implements OnInit {
+  constructor(private flightApi: FlightApiService) {}  // ← Konstruktor
+
+  ngOnInit(): void {
+    this.flightApi.getFlights().subscribe(/* ... */);
+  }
+}
+</code></pre>
+      </div>
+
+      <div class="callout callout-info">
+        <div class="callout-icon">&#8505;</div>
+        <div class="callout-body">
+          <div class="callout-title">inject() &mdash; warum moderner?</div>
+          <p>
+            <code>inject()</code> funktioniert auch in Funktionen und Custom Hooks (ähnlich React),
+            die in einem Injektionskontext aufgerufen werden. Das erlaubt Muster wie
+            <em>Function-based Services</em> und vereinfacht Code im Gegensatz zu langen Konstruktor-
+            Parameterlisten. In neuen Angular-Projekten (17+) ist <code>inject()</code> die
+            empfohlene Methode.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: Service erstellen -->
+    <section class="section">
+      <h2>Services erstellen &mdash; @Injectable</h2>
+
+      <p>
+        Services sind normale TypeScript-Klassen, dekoriert mit <code>@Injectable</code>.
+        Sie kapseln Gesch&auml;ftslogik, HTTP-Aufrufe und gemeinsamen State, den mehrere
+        Komponenten ben&ouml;tigen.
+      </p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">src/app/services/flight-api.service.ts</span>
+          <span class="code-lang">typescript</span>
+        </div>
+        <pre><code class="language-typescript">import { Injectable, inject }    from '@angular/core';
+import { HttpClient }             from '@angular/common/http';
+import { Observable }             from 'rxjs';
+import { Flight }                 from '../models/flight';
+
+@Injectable({
+  providedIn: 'root',  // Application-Singleton
+})
+export class FlightApiService {
+  private http = inject(HttpClient);
+
+  // Basis-URL des Deno+Hono-Backends
+  private readonly apiUrl = 'http://localhost:8000/api';
+
+  /**
+   * Alle Flüge abrufen
+   */
+  getFlights(): Observable&lt;Flight[]&gt; {
+    return this.http.get&lt;Flight[]&gt;(`${this.apiUrl}/flights`);
+  }
+
+  /**
+   * Einzelnen Flug nach ID abrufen
+   */
+  getFlightById(id: number): Observable&lt;Flight&gt; {
+    return this.http.get&lt;Flight&gt;(`${this.apiUrl}/flights/${id}`);
+  }
+
+  /**
+   * Neuen Flug anlegen
+   */
+  createFlight(flight: Omit&lt;Flight, 'id'&gt;): Observable&lt;Flight&gt; {
+    return this.http.post&lt;Flight&gt;(`${this.apiUrl}/flights`, flight);
+  }
+
+  /**
+   * Flug löschen
+   */
+  deleteFlight(id: number): Observable&lt;void&gt; {
+    return this.http.delete&lt;void&gt;(`${this.apiUrl}/flights/${id}`);
+  }
+
+  /**
+   * Status eines Flugs aktualisieren
+   */
+  updateStatus(id: number, status: Flight['status']): Observable&lt;Flight&gt; {
+    return this.http.patch&lt;Flight&gt;(`${this.apiUrl}/flights/${id}`, { status });
+  }
+}
+</code></pre>
+      </div>
+    </section>
+
+    <!-- Section 3: HttpClient -->
+    <section class="section">
+      <h2>HttpClient einrichten &mdash; provideHttpClient()</h2>
+
+      <p>
+        Der <code>HttpClient</code> muss in <code>main.ts</code> &uuml;ber
+        <code>provideHttpClient()</code> bereitgestellt werden.
+        Mit Angular&nbsp;17 ist das die empfohlene Methode &mdash; kein Import von
+        <code>HttpClientModule</code> mehr n&ouml;tig.
+      </p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">src/app/app.config.ts</span>
+          <span class="code-lang">typescript</span>
+        </div>
+        <pre><code class="language-typescript">import { ApplicationConfig }         from '@angular/core';
+import { provideRouter }             from '@angular/router';
+import { provideHttpClient }         from '@angular/common/http';
+import { provideAnimations }         from '@angular/platform-browser/animations';
+import { routes }                    from './app.routes';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideRouter(routes),
+    provideHttpClient(),      // ← HTTP-Client für die gesamte App
+    provideAnimations(),
+  ],
+};
+</code></pre>
+      </div>
+    </section>
+
+    <!-- Section 4: Observable Einstieg -->
+    <section class="section">
+      <h2>Observable &mdash; kurzer Einstieg (tiefer in Lektion 2.3)</h2>
+
+      <p>
+        Angulars <code>HttpClient</code>-Methoden geben <strong>Observables</strong> zur&uuml;ck,
+        keine Promises. Ein Observable repr&auml;sentiert eine Sequenz von Werten &uuml;ber die Zeit.
+        Um an die Daten zu kommen, muss man <code>subscribe()</code> aufrufen.
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Eigenschaft</th>
+              <th>Promise</th>
+              <th>Observable</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Werte</td><td>Einmalig (1 Wert)</td><td>Mehrfach (0-n Werte)</td></tr>
+            <tr><td>Lazy</td><td>Startet sofort</td><td>Startet erst bei subscribe()</td></tr>
+            <tr><td>Abbrechen</td><td>Nicht cancellbar</td><td>Cancellbar via unsubscribe()</td></tr>
+            <tr><td>Operatoren</td><td>then/catch/finally</td><td>map, filter, switchMap, &hellip;</td></tr>
+            <tr><td>Mehrere Werte</td><td>Nein</td><td>Ja (Streams, Polling)</td></tr>
+            <tr><td>Angular-Integration</td><td>Ja (toPromise / firstValueFrom)</td><td>Nativ (HttpClient, Router)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">Observable subscriben &mdash; Grundmuster</span>
+          <span class="code-lang">typescript</span>
+        </div>
+        <pre><code class="language-typescript">// Observable subscriben:
+this.flightApi.getFlights().subscribe({
+  next:     (flights) =&gt; { this.flights = flights; },
+  error:    (err)     =&gt; { this.error   = err.message; },
+  complete: ()        =&gt; { console.log('Stream beendet'); },
+});
+
+// Alternativ (nur next-Handler):
+this.flightApi.getFlights().subscribe(flights =&gt; {
+  this.flights = flights;
+});
+</code></pre>
+      </div>
+    </section>
+
+    <!-- Section 5: Loading/Error/Success -->
+    <section class="section">
+      <h2>Das Drei-Zustands-Modell: Loading / Error / Success</h2>
+
+      <p>
+        Jede HTTP-Anfrage durchl&auml;uft drei Zust&auml;nde. Diese sauber im Template
+        darzustellen ist essenziell f&uuml;r eine gute User Experience.
+      </p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">AppComponent &mdash; Loading/Error/Success Pattern</span>
+          <span class="code-lang">typescript</span>
+        </div>
+        <pre><code class="language-typescript">import { Component, inject, OnInit }  from '@angular/core';
+import { FlightApiService }           from './services/flight-api.service';
+import { FlightListComponent }        from './components/flight-list/flight-list.component';
+import { Flight }                     from './models/flight';
+
+@Component({
+  selector: 'app-root',
+  standalone: true,
+  imports: [FlightListComponent],
+  template: `
+    @if (isLoading) {
+      &lt;div class="loading-spinner"&gt;
+        &lt;span class="spinner"&gt;&lt;/span&gt;
+        Flugdaten werden geladen...
+      &lt;/div&gt;
+    }
+
+    @if (errorMessage) {
+      &lt;div class="error-banner"&gt;
+        &lt;strong&gt;Fehler:&lt;/strong&gt; {{ errorMessage }}
+        &lt;button (click)="loadFlights()"&gt;Erneut versuchen&lt;/button&gt;
+      &lt;/div&gt;
+    }
+
+    @if (!isLoading &amp;&amp; !errorMessage) {
+      &lt;app-flight-list [flights]="flights" /&gt;
+    }
+  `,
+})
+export class AppComponent implements OnInit {
+  private flightApi = inject(FlightApiService);
+
+  flights:      Flight[] = [];
+  isLoading:    boolean  = false;
+  errorMessage: string   = '';
+
+  ngOnInit(): void {
+    this.loadFlights();
+  }
+
+  loadFlights(): void {
+    this.isLoading    = true;
+    this.errorMessage = '';
+
+    this.flightApi.getFlights().subscribe({
+      next: (flights) =&gt; {
+        this.flights   = flights;
+        this.isLoading = false;
+      },
+      error: (err) =&gt; {
+        this.errorMessage = `API nicht erreichbar: ${err.message}`;
+        this.isLoading    = false;
+      },
+    });
+  }
+}
+</code></pre>
+      </div>
+
+      <div class="callout callout-warning">
+        <div class="callout-icon">&#9888;</div>
+        <div class="callout-body">
+          <div class="callout-title">Memory Leak: Subscription nicht aufger&auml;umt</div>
+          <p>
+            Wenn man <code>subscribe()</code> aufruft und die Subscription nie beendet, kann es
+            zu Memory Leaks kommen &mdash; besonders wenn Komponenten zerst&ouml;rt und neu erstellt
+            werden. F&uuml;r HTTP-Anfragen ist das in der Regel kein Problem (HTTP-Observables
+            completen nach einem Wert), aber f&uuml;r Intervalle oder unendliche Streams ist
+            <code>takeUntil(this.destroy$)</code> oder die <code>async</code>-Pipe unverzichtbar.
+            Lektion&nbsp;2.3 behandelt dieses Thema ausf&uuml;hrlich.
+          </p>
+        </div>
+      </div>
+
+      <div class="callout callout-warning">
+        <div class="callout-icon">&#9888;</div>
+        <div class="callout-body">
+          <div class="callout-title">CORS-Probleme beim Entwickeln</div>
+          <p>
+            Beim Aufruf von <code>http://localhost:8000</code> aus der Angular-App auf
+            <code>http://localhost:4200</code> blockiert der Browser die Anfrage, wenn das Backend
+            keinen <code>Access-Control-Allow-Origin</code>-Header setzt. Das Deno+Hono-Backend
+            muss CORS explizit aktivieren:
+          </p>
+          <p>
+            Im Hono-Backend: <code>app.use('*', cors({ origin: 'http://localhost:4200' }))</code>.
+            Oder w&auml;hrend der Entwicklung im Angular <code>proxy.conf.json</code> einen Proxy
+            konfigurieren.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 6: ngOnInit -->
+    <section class="section">
+      <h2>Lifecycle Hooks &mdash; ngOnInit()</h2>
+
+      <p>
+        Angular-Komponenten haben <strong>Lifecycle Hooks</strong> &auml;hnlich wie React&apos;s
+        <code>useEffect</code>. Der wichtigste f&uuml;r Datenladung ist <code>ngOnInit()</code>,
+        der einmal nach der ersten Darbietung der Komponente aufgerufen wird.
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Hook</th>
+              <th>Zeitpunkt</th>
+              <th>Verwendung</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><code>ngOnInit()</code></td><td>Nach erstem Rendern</td><td>HTTP-Abruf, Initialisierung</td></tr>
+            <tr><td><code>ngOnChanges()</code></td><td>Wenn Inputs sich &auml;ndern</td><td>Auf neue @Input()-Werte reagieren</td></tr>
+            <tr><td><code>ngOnDestroy()</code></td><td>Vor Zerst&ouml;rung der Komponente</td><td>Subscriptions beenden, Cleanup</td></tr>
+            <tr><td><code>ngAfterViewInit()</code></td><td>Nach View-Initialisierung</td><td>DOM-Elemente via ViewChild ansprechen</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">ngOnInit + ngOnDestroy Grundmuster</span>
+          <span class="code-lang">typescript</span>
+        </div>
+        <pre><code class="language-typescript">import { Component, inject, OnInit, OnDestroy } from '@angular/core';
+import { Subscription }                         from 'rxjs';
+import { FlightApiService }                     from './services/flight-api.service';
+
+export class FlightPageComponent implements OnInit, OnDestroy {
+  private flightApi    = inject(FlightApiService);
+  private subscription = new Subscription();
+
+  ngOnInit(): void {
+    // Subscription zur Sammlung hinzufügen
+    this.subscription.add(
+      this.flightApi.getFlights().subscribe(flights =&gt; {
+        this.flights = flights;
+      })
+    );
+  }
+
+  ngOnDestroy(): void {
+    // Alle Subscriptions beenden (verhindert Memory Leaks)
+    this.subscription.unsubscribe();
+  }
+}
+</code></pre>
+      </div>
+    </section>
+
+    <!-- Projektschritt -->
+    <section class="section section-projekt">
+      <h2>Projektschritt</h2>
+      <div class="projekt-box">
+        <div class="projekt-box-header">
+          <span class="projekt-step">Projektschritt 2.2</span>
+          <h3>Statische Daten durch API ersetzen</h3>
+        </div>
+        <p>
+          Verbinde das FlugBoard mit dem Deno+Hono-Backend:
+        </p>
+        <ol style="margin:.75rem 0 0 1.25rem;line-height:2">
+          <li><code>provideHttpClient()</code> in <code>app.config.ts</code> einbinden</li>
+          <li><code>FlightApiService</code> mit <code>getFlights()</code> und <code>getFlightById()</code> erstellen</li>
+          <li><code>AppComponent</code> oder <code>FlightListComponent</code> so anpassen, dass Daten via <code>ngOnInit</code> + <code>subscribe</code> geladen werden</li>
+          <li>Loading-Spinner und Error-Banner im Template implementieren</li>
+          <li>Backend starten (<code>deno task dev</code>) und Verbindung testen</li>
+          <li>CORS im Backend konfigurieren, falls n&ouml;tig</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- Häufige Fehler -->
+    <section class="section section-fehler">
+      <h2>H&auml;ufige Fehler</h2>
+
+      <div class="fehler-item">
+        <div class="fehler-title"><code>NullInjectorError: No provider for HttpClient!</code></div>
+        <p>
+          <code>HttpClient</code> ist nicht verf&uuml;gbar, weil <code>provideHttpClient()</code>
+          fehlt.
+        </p>
+        <p class="fehler-fix">
+          <strong>Fix:</strong> In <code>app.config.ts</code> unter <code>providers</code>
+          <code>provideHttpClient()</code> einf&uuml;gen.
+        </p>
+      </div>
+
+      <div class="fehler-item">
+        <div class="fehler-title">HTTP-Request wird nicht ausgef&uuml;hrt (kein Netzwerk-Tab-Eintrag)</div>
+        <p>
+          Observables sind <em>lazy</em> &mdash; ohne <code>subscribe()</code> passiert nichts.
+        </p>
+        <p class="fehler-fix">
+          <strong>Fix:</strong> <code>this.flightApi.getFlights().subscribe(fn)</code> aufrufen.
+          Oder die <code>async</code>-Pipe im Template verwenden: <code>{{ flights$ | async }}</code>.
+        </p>
+      </div>
+
+      <div class="fehler-item">
+        <div class="fehler-title">CORS-Fehler in der Browser-Konsole</div>
+        <p>
+          <em>&bdquo;Access to fetch at '...' from origin '...' has been blocked by CORS policy&ldquo;</em>
+        </p>
+        <p class="fehler-fix">
+          <strong>Fix:</strong> Im Deno+Hono-Backend den CORS-Middleware einrichten:
+          <code>import { cors } from 'hono/cors'; app.use('*', cors());</code>
+        </p>
+      </div>
+
+      <div class="fehler-item">
+        <div class="fehler-title">TypeScript-Fehler: Typ <code>unknown</code> bei HTTP-Response</div>
+        <p>
+          <code>this.http.get('/api/flights')</code> ohne Typparameter gibt <code>Observable&lt;unknown&gt;</code>
+          zur&uuml;ck.
+        </p>
+        <p class="fehler-fix">
+          <strong>Fix:</strong> Typparameter angeben: <code>this.http.get&lt;Flight[]&gt;('/api/flights')</code>.
+          TypeScript pr&uuml;ft dann, ob das API-Response-Format mit dem Interface &uuml;bereinstimmt.
+        </p>
+      </div>
+    </section>
+
+    <!-- Aufgaben -->
+    <section class="section section-aufgaben">
+      <h2>Aufgaben</h2>
+      <div class="aufgaben-list">
+
+        <div class="aufgabe">
+          <div class="aufgabe-header">
+            <span class="aufgabe-num">Aufgabe 1</span>
+            <span class="aufgabe-title">Flug l&ouml;schen per HTTP DELETE</span>
+          </div>
+          <p>
+            Implementiere in <code>FlightApiService</code> die Methode <code>deleteFlight(id: number)</code>.
+            F&uuml;ge in <code>FlightCardComponent</code> einen &bdquo;L&ouml;schen&ldquo;-Button hinzu,
+            der den Service aufruft und danach die Liste neu l&auml;dt. Nutze <code>switchMap</code>
+            oder rufe nach dem L&ouml;schen einfach <code>this.loadFlights()</code> erneut auf.
+          </p>
+        </div>
+
+        <div class="aufgabe">
+          <div class="aufgabe-header">
+            <span class="aufgabe-num">Aufgabe 2</span>
+            <span class="aufgabe-title">Loading-Skeleton statt Spinner</span>
+          </div>
+          <p>
+            Ersetze den einfachen Spinner durch einen <strong>Skeleton-Loader</strong>: Eine Liste
+            von 4 leeren Zeilen mit einem pulsierenden CSS-Effekt (<code>@keyframes pulse</code>),
+            die w&auml;hrend des Ladevorgangs angezeigt werden. Nutze <code>@if (isLoading)</code>
+            und erstelle eine eigene <code>SkeletonRowComponent</code>.
+          </p>
+        </div>
+
+        <div class="aufgabe">
+          <div class="aufgabe-header">
+            <span class="aufgabe-num">Aufgabe 3</span>
+            <span class="aufgabe-title">Auto-Refresh alle 30 Sekunden</span>
+          </div>
+          <p>
+            Nutze <code>setInterval(() =&gt; this.loadFlights(), 30_000)</code> in <code>ngOnInit</code>,
+            um die Flugliste automatisch zu aktualisieren. Stelle sicher, dass das Intervall in
+            <code>ngOnDestroy</code> mit <code>clearInterval</code> gestoppt wird. Zeige einen
+            kleinen Timestamp an, wann zuletzt aktualisiert wurde.
+          </p>
+        </div>
+
+        <div class="aufgabe">
+          <div class="aufgabe-header">
+            <span class="aufgabe-num">Aufgabe 4</span>
+            <span class="aufgabe-title">async-Pipe kennenlernen</span>
+          </div>
+          <p>
+            Refaktoriere <code>loadFlights()</code>: Anstatt manuell zu subscriben und
+            <code>this.flights</code> zu setzen, erstelle eine <code>flights$</code>-Eigenschaft
+            vom Typ <code>Observable&lt;Flight[]&gt;</code> und nutze die
+            <code>async</code>-Pipe im Template: <code>@if (flights$ | async; as flights) { ... }</code>.
+            Was sind die Vorteile? (Automatisches Unsubscribe, kein Boilerplate)
+          </p>
+        </div>
+
+        <div class="aufgabe aufgabe-bonus">
+          <div class="aufgabe-header">
+            <span class="aufgabe-num">Bonus</span>
+            <span class="aufgabe-title">Retry-Logik mit catchError + retry</span>
+          </div>
+          <p>
+            Verwende RxJS-Operatoren, um bei einem HTTP-Fehler automatisch drei Mal zu wiederholen:
+            <code>this.http.get&lt;Flight[]&gt;(url).pipe(retry(3), catchError(e =&gt; of([])))</code>.
+            Erkunde die Dokumentation von <code>retry</code>, <code>retryWhen</code> und
+            <code>catchError</code> und implementiere einen exponentiellen Backoff.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+  </div><!-- /content-area -->
+
+  <nav class="lesson-nav">
+    <a class="nav-btn" href="2.1-formulare-validierung.html">&larr; Lektion 2.1: Formulare &amp; Pipes</a>
+    <span class="nav-center-info">Lektion 2.2</span>
+    <a class="nav-btn primary" href="2.3-observables-rxjs.html">Lektion 2.3: Observables &amp; RxJS &rarr;</a>
+  </nav>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/bash.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/json.min.js"></script>
+<script>
+  const ham = document.getElementById('hamburger');
+  const sb  = document.getElementById('sidebar');
+  const ov  = document.getElementById('overlay');
+  ham.addEventListener('click', () => { sb.classList.toggle('open'); ov.classList.toggle('visible'); });
+  ov.addEventListener('click',  () => { sb.classList.remove('open'); ov.classList.remove('visible'); });
+  const cur = window.location.pathname.split('/').pop() || 'index.html';
+  document.querySelectorAll('.nav-link').forEach(l => {
+    if (l.getAttribute('href') === cur) l.classList.add('active');
+  });
+  const themeBtn = document.getElementById('theme-toggle');
+  const applyTheme = (t) => {
+    document.documentElement.setAttribute('data-theme', t);
+    if (themeBtn) themeBtn.innerHTML = t === 'dark' ? '&#9728;' : '&#9790;';
+  };
+  applyTheme(localStorage.getItem('kurs-theme') || 'dark');
+  setTimeout(() => document.documentElement.classList.add('theme-transitions'), 50);
+  if (themeBtn) themeBtn.addEventListener('click', () => {
+    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('kurs-theme', next);
+    applyTheme(next);
+  });
+  hljs.highlightAll();
+</script>
+</body>
+</html>

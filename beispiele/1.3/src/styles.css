@@ -1,0 +1,596 @@
+/* ============================================================
+   Angular FlugBoard – Beispielprojekt Stylesheet
+   Dunkles Design analog zu den React-Kurs-Beispielen
+   ============================================================ */
+
+/* --- Design-Tokens ----------------------------------------- */
+:root {
+  --bg:          #0d1117;
+  --bg-sidebar:  #161b22;
+  --bg-card:     #1c2128;
+  --bg-elevated: #21262d;
+  --border:      #30363d;
+
+  --text:        #e6edf3;
+  --text-muted:  #8b949e;
+
+  --accent:      #dd0031;   /* Angular-Rot */
+  --accent-soft: rgba(221, 0, 49, 0.15);
+
+  --success:     #238636;
+  --warning:     #d29922;
+  --danger:      #f85149;
+  --info:        #388bfd;
+
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'SF Mono', 'Fira Code', Consolas, 'Courier New', monospace;
+}
+
+/* --- Reset -------------------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 16px; }
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+/* --- Scrollbar --------------------------------------------- */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* --- Top Navigation --------------------------------------- */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  height: 52px;
+  padding: 0 1.5rem;
+  background: var(--bg-sidebar);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.brand {
+  color: var(--accent);
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-decoration: none;
+  letter-spacing: -0.01em;
+}
+
+.topbar-nav {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.topbar-nav a {
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 0.3rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  transition: color 0.12s, background 0.12s;
+}
+
+.topbar-nav a:hover {
+  color: var(--text);
+  background: rgba(255,255,255,0.05);
+}
+
+.topbar-nav a.active {
+  color: var(--text);
+  background: var(--accent-soft);
+}
+
+.topbar-spacer { margin-left: auto; }
+
+/* --- Seiten-Inhalt ---------------------------------------- */
+.page-content {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.page-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.2rem;
+}
+
+.page-meta {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.head-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* --- Buttons ----------------------------------------------- */
+button, .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+  white-space: nowrap;
+  border: 1px solid var(--border);
+}
+
+.btn-neutral, .action-btn--neutral {
+  padding: 7px 14px;
+  background: var(--bg-card);
+  color: var(--text);
+}
+
+.btn-neutral:hover, .action-btn--neutral:hover {
+  background: var(--bg-elevated);
+  border-color: var(--text-muted);
+}
+
+.btn-primary, .action-btn--primary {
+  padding: 8px 16px;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+.btn-primary:hover, .action-btn--primary:hover {
+  background: #c0002a;
+  border-color: #c0002a;
+}
+
+.btn-success {
+  padding: 8px 16px;
+  background: var(--success);
+  border-color: var(--success);
+  color: #fff;
+  font-weight: 600;
+}
+
+.btn-danger {
+  padding: 4px 10px;
+  background: none;
+  border-color: var(--danger);
+  color: var(--danger);
+  font-size: 0.78rem;
+}
+
+.btn-danger:hover {
+  background: rgba(248,81,73,0.08);
+}
+
+/* --- Toolbar (Suche + Filter) ------------------------------ */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+/* --- Formularelemente -------------------------------------- */
+input, select, textarea {
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.875rem;
+  padding: 7px 10px;
+  transition: border-color 0.12s;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+input::placeholder { color: var(--text-muted); }
+
+input.is-invalid, select.is-invalid {
+  border-color: var(--danger);
+}
+
+.search-input {
+  min-width: 220px;
+  flex: 1;
+  max-width: 380px;
+}
+
+/* --- Flug-Tabelle ------------------------------------------ */
+.flight-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.flight-table thead th {
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.6rem 0.9rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+.flight-table tbody tr {
+  border-left: 3px solid transparent;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.flight-table tbody tr:hover {
+  background: rgba(255,255,255,0.03);
+}
+
+.flight-table tbody tr.is-selected {
+  border-left-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.flight-table td {
+  padding: 0.65rem 0.9rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  vertical-align: middle;
+}
+
+.flight-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.flight-table .cancelled-row {
+  opacity: 0.55;
+}
+
+.flight-num {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.flight-num a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.flight-num a:hover {
+  color: var(--accent);
+}
+
+.time-delayed {
+  color: var(--warning);
+  font-weight: 500;
+}
+
+.time-old {
+  color: var(--text-muted);
+  text-decoration: line-through;
+  margin-right: 4px;
+  font-size: 0.8em;
+}
+
+/* --- Status Badge ----------------------------------------- */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 20px;
+  border: 1px solid;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  padding: 0.18em 0.6em;
+  white-space: nowrap;
+}
+
+.status-on-time   { color: #3fb950; border-color: rgba(63,185,80,0.35);  background: rgba(63,185,80,0.1);  }
+.status-boarding  { color: #388bfd; border-color: rgba(56,139,253,0.35); background: rgba(56,139,253,0.1); }
+.status-delayed   { color: #d29922; border-color: rgba(210,153,34,0.35); background: rgba(210,153,34,0.1); }
+.status-departed  { color: #8b949e; border-color: rgba(139,148,158,0.35);background: rgba(139,148,158,0.1);}
+.status-landed    { color: #8b949e; border-color: rgba(139,148,158,0.35);background: rgba(139,148,158,0.1);}
+.status-cancelled { color: #f85149; border-color: rgba(248,81,73,0.35);  background: rgba(248,81,73,0.1);  }
+
+/* --- Status-Select in Tabelle ----------------------------- */
+.status-select {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font-size: 0.78rem;
+  padding: 3px 6px;
+}
+
+/* --- Add-Flight-Formular ---------------------------------- */
+.add-form {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--success);
+  border-radius: 8px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.add-form h3 {
+  font-size: 1rem;
+  color: #3fb950;
+  margin-bottom: 1rem;
+}
+
+.add-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.form-field { display: flex; flex-direction: column; gap: 0.3rem; }
+
+.form-label {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.form-input  { width: 100%; }
+.form-select { width: 100%; }
+
+.form-input--error { border-color: var(--danger) !important; }
+
+.form-error {
+  color: var(--danger);
+  font-size: 0.75rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+/* --- Ladeindikator + Fehler ------------------------------- */
+.board-loading {
+  background: var(--bg-card);
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  padding: 4rem 2rem;
+  text-align: center;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+.loading-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 0.75rem;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.error-block {
+  background: rgba(248,81,73,0.07);
+  border: 1px solid rgba(248,81,73,0.3);
+  border-radius: 8px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1rem;
+  color: var(--danger);
+}
+
+.error-block p { color: inherit; margin-bottom: 0.5rem; }
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* --- Detailansicht ---------------------------------------- */
+.flight-detail {
+  max-width: 680px;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.875rem;
+  margin-bottom: 1.25rem;
+}
+
+.back-link:hover { color: var(--text); }
+
+.detail-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.detail-card-header {
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.detail-flight-num {
+  font-size: 1.6rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--text);
+}
+
+.detail-airline {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-top: 0.2rem;
+}
+
+.detail-body {
+  padding: 1.25rem 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+}
+
+.detail-field {}
+
+.detail-field-label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.25rem;
+}
+
+.detail-field-value {
+  font-size: 0.95rem;
+  color: var(--text);
+  font-weight: 500;
+}
+
+/* --- Inline-Code ------------------------------------------ */
+code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  background: var(--bg-elevated);
+  color: var(--accent);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+/* --- Responsive ------------------------------------------- */
+@media (max-width: 700px) {
+  .page-head { flex-direction: column; }
+  .toolbar { flex-direction: column; align-items: stretch; }
+  .search-input { max-width: 100%; }
+  .add-form-grid { grid-template-columns: 1fr; }
+  .detail-body { grid-template-columns: 1fr 1fr; }
+  .topbar-nav a { padding: 0.3rem 0.5rem; }
+}
+
+@media (max-width: 480px) {
+  .page-content { padding: 1rem; }
+  .flight-table { font-size: 0.8rem; }
+  .flight-table thead th,
+  .flight-table td { padding: 0.5rem 0.6rem; }
+  .detail-body { grid-template-columns: 1fr; }
+}
+
+/* --- Karten-Grid (Lektion 1.2) ----------------------------- */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.flight-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.flight-card:hover {
+  background: var(--bg-elevated);
+  border-color: var(--text-muted);
+}
+
+.flight-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+}
+
+.flight-card-airline {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-bottom: 0.3rem;
+}
+
+.flight-card-meta {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+/* --- Auswahl-Info ------------------------------------------ */
+.selected-info {
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.875rem;
+}
+
+/* --- Typ-Filter-Buttons (Lektion 1.3) ---------------------- */
+.type-filter {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.type-filter button {
+  padding: 6px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  border-radius: 6px;
+}
+
+.type-filter button.active,
+.type-filter button:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--text);
+}

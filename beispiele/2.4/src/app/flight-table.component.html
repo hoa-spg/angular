@@ -1,0 +1,64 @@
+<section>
+  <h3 class="section-title">{{ title }} ({{ flights.length }})</h3>
+
+  @if (flights.length === 0) {
+    <div class="empty-state">Keine Fl&uuml;ge gefunden.</div>
+  } @else {
+    <table class="flight-table">
+      <thead>
+        <tr>
+          <th>Flug</th>
+          <th>Airline</th>
+          <th>Airport</th>
+          <th>Planzeit</th>
+          <th>Status</th>
+          <th>Terminal / Gate</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (flight of flights; track flight.id) {
+          <tr [class.cancelled-row]="flight.status === 'cancelled'">
+            <td class="flight-num">
+              <a [routerLink]="['/flight', flight.id]">{{ flight.flightNumber }}</a>
+            </td>
+            <td>{{ flight.airline }}</td>
+            <td>{{ flight.airport }}</td>
+            <td>
+              @if (flight.expectedTime) {
+                <span class="time-old">{{ flight.scheduledTime }}</span>
+                <span class="time-delayed">{{ flight.expectedTime }}</span>
+              } @else {
+                {{ flight.scheduledTime }}
+              }
+            </td>
+            <td>
+              <select
+                class="status-select"
+                [ngModel]="flight.status"
+                (ngModelChange)="statusChange.emit({ id: flight.id, status: $event })"
+              >
+                <option value="on-time">Pünktlich</option>
+                <option value="delayed">Verspätet</option>
+                <option value="boarding">Boarding</option>
+                <option value="departed">Abgeflogen</option>
+                <option value="landed">Gelandet</option>
+                <option value="cancelled">Storniert</option>
+              </select>
+            </td>
+            <td>
+              {{ flight.terminal }}{{ flight.gate ? ' / ' + flight.gate : '' }}
+            </td>
+            <td>
+              <button
+                class="btn-danger"
+                type="button"
+                (click)="remove.emit(flight.id)"
+              >Löschen</button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>

@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>1.1 &ndash; Einstieg &amp; Setup | Angular Kurs</title>
+  <script>(function(){var t=localStorage.getItem('kurs-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();</script>
+  <link rel="stylesheet" href="assets/kurs.css">
+  <link rel="stylesheet" id="hljs-theme" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+</head>
+<body>
+
+<button class="hamburger" id="hamburger" aria-label="Navigation &ouml;ffnen">&#9776;</button>
+<div class="sidebar-overlay" id="overlay"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <a href="index.html">
+      <span class="brand-icon">&#9992;</span>
+      <div>
+        <div class="brand-name">Angular Kurs</div>
+        <div class="brand-sub">FlugBoard</div>
+      </div>
+    </a>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Dark/Light Mode" title="Theme wechseln">&#9728;</button>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-group">
+      <div class="nav-group-label angular-label">Teil 1 &mdash; Grundlagen</div>
+      <a class="nav-link" href="1.1-einfuehrung-setup.html"><span class="ln">1.1</span>Einstieg &amp; Setup</a>
+      <a class="nav-link" href="1.2-komponenten-templates.html"><span class="ln">1.2</span>Komponenten &amp; Templates</a>
+      <a class="nav-link" href="1.3-datenbindung-events.html"><span class="ln">1.3</span>Datenbindung &amp; Events</a>
+      <a class="nav-link" href="1.4-listen-filter-pipes.html"><span class="ln">1.4</span>Listen, Filter &amp; Pipes</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label angular-label">Teil 2 &mdash; Praxis &amp; Fullstack</div>
+      <a class="nav-link" href="2.1-formulare-validierung.html"><span class="ln">2.1</span>Formulare &amp; Validierung</a>
+      <a class="nav-link" href="2.2-services-http.html"><span class="ln">2.2</span>Services &amp; HTTP</a>
+      <a class="nav-link" href="2.3-observables-rxjs.html"><span class="ln">2.3</span>Observables &amp; RxJS</a>
+      <a class="nav-link" href="2.4-fullstack-flugboard.html"><span class="ln">2.4</span>Fullstack FlugBoard</a>
+    </div>
+  </nav>
+</aside>
+
+<main class="main-content">
+  <header class="lesson-header">
+    <p class="lesson-eyebrow">Lektion 1.1 &mdash; Teil 1: Grundlagen</p>
+    <h1>Einstieg &amp; Setup</h1>
+    <div class="lesson-tags">
+      <span class="tag tag-angular">Angular</span>
+      <span class="tag tag-time">ca. 60 min</span>
+      <span class="tag tag-level">Einsteiger</span>
+    </div>
+  </header>
+
+  <div class="content-area">
+
+    <section class="section section-lernziele">
+      <h2>Lernziele</h2>
+      <ul class="lernziele-list">
+        <li>Verstehen, was Angular von React und Vue unterscheidet und wann es die richtige Wahl ist</li>
+        <li>Die Angular-Architektur (Komponenten, Services, DI, Change Detection) im &Uuml;berblick kennen</li>
+        <li>Ein neues Angular-Projekt mit der CLI und der Standalone-API anlegen k&ouml;nnen</li>
+        <li>Die Projektstruktur und die wichtigsten Konfigurationsdateien verstehen</li>
+        <li>Eine erste statische FlugBoard-Ansicht mit dem Datenmodell aufbauen</li>
+      </ul>
+    </section>
+
+    <!-- Section 1: Was ist Angular -->
+    <section class="section">
+      <h2>Was ist Angular?</h2>
+
+      <p>
+        Angular ist ein vollst&auml;ndiges, <strong>meinungsstarkes Frontend-Framework</strong>, das
+        von Google entwickelt und gepflegt wird. Im Unterschied zu React (eine UI-Library) oder
+        Vue (ein progressives Framework) liefert Angular <em>alles mitgeliefert</em>: Router,
+        HTTP-Client, Formular-Handling, Dependency Injection, Testing-Utilities &mdash; alles
+        aufeinander abgestimmt und als ein einheitliches System konzipiert.
+      </p>
+
+      <h3>Framework vs. Library &mdash; der entscheidende Unterschied</h3>
+      <ul>
+        <li>
+          <strong>Library (React):</strong> Du rufst Code der Library auf. Du entscheidest, wie du
+          Routing, HTTP, State-Management l&ouml;st. Gro&szlig;e Freiheit, aber viele Entscheidungen.
+        </li>
+        <li>
+          <strong>Framework (Angular):</strong> Das Framework ruft deinen Code auf (&bdquo;Inversion of
+          Control&ldquo;). Alles hat seinen festen Platz. Weniger Freiheit, aber klare Konventionen
+          und geringere Entscheidungsm&uuml;digkeit im Team.
+        </li>
+      </ul>
+
+      <h3>TypeScript-First</h3>
+      <p>
+        Angular wurde von Grund auf f&uuml;r <strong>TypeScript</strong> entwickelt &mdash; nicht
+        nachtr&auml;glich angepasst wie React. Das bedeutet: vollst&auml;ndige Typisierung des Cores,
+        typisierte Template-Pr&uuml;fung, generierte Typen f&uuml;r Services. In gro&szlig;en Teams
+        zahlt sich das durch fr&uuml;hzeitige Fehlererkennung aus.
+      </p>
+
+      <div class="callout callout-info">
+        <div class="callout-icon">&#8505;</div>
+        <div class="callout-body">
+          <div class="callout-title">Angular-Versionsgeschichte</div>
+          <p>
+            Angular 1.x (&bdquo;AngularJS&ldquo;, 2010) und Angular 2+ sind <strong>komplett
+            verschiedene Frameworks</strong>. Ab Angular&nbsp;2 (2016) wurde alles neu geschrieben.
+            Wenn jemand &bdquo;Angular&ldquo; sagt, meint er heute immer Angular&nbsp;2+.
+            Dieser Kurs verwendet Angular&nbsp;17+ mit der modernen Standalone-API und der
+            neuen Control-Flow-Syntax.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: Framework-Vergleich -->
+    <section class="section">
+      <h2>Framework-Vergleich: React vs. Angular vs. Vue</h2>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Merkmal</th>
+              <th>React</th>
+              <th>Angular</th>
+              <th>Vue</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Typ</td><td>UI-Library</td><td>Full Framework</td><td>Progressives Framework</td></tr>
+            <tr><td>Entwickler</td><td>Meta</td><td>Google</td><td>Community</td></tr>
+            <tr><td>Prim&auml;rsprache</td><td>JSX / TSX</td><td>TypeScript</td><td>SFC + Options / Composition</td></tr>
+            <tr><td>Dependency Injection</td><td>Nein (Kontext / Hooks)</td><td>Eingebaut</td><td>Provide/Inject</td></tr>
+            <tr><td>Router</td><td>Extern (React Router)</td><td>Eingebaut</td><td>Eingebaut</td></tr>
+            <tr><td>HTTP-Client</td><td>Extern (fetch / Axios)</td><td>Eingebaut</td><td>Extern</td></tr>
+            <tr><td>Forms</td><td>Extern oder eigene L&ouml;sung</td><td>Eingebaut (Template + Reactive)</td><td>Eingebaut (v-model)</td></tr>
+            <tr><td>Lernkurve</td><td>Mittel</td><td>Hoch</td><td>Niedrig</td></tr>
+            <tr><td>Einsatzbereich</td><td>Alles; sehr flexibel</td><td>Enterprise, gro&szlig;e Teams</td><td>Kleine-mittlere Projekte</td></tr>
+            <tr><td>State Management</td><td>Extern (Redux, Zustand)</td><td>Services + RxJS / NgRx</td><td>Pinia</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Wann Angular w&auml;hlen?</h3>
+      <ul>
+        <li>Gro&szlig;e Teams, bei denen Konventionen wichtiger sind als Flexibilit&auml;t</li>
+        <li>Enterprise-Projekte mit langen Lebenszyklen und striktem TypeScript-Einsatz</li>
+        <li>Wenn vollst&auml;ndige Framework-Unterst&uuml;tzung ohne Bibliothekswahl-Overhead erw&uuml;nscht ist</li>
+        <li>Backend-Entwickler, die ein strukturiertes Frontend bevorzugen (Angular &auml;hnelt Spring/NestJS)</li>
+      </ul>
+    </section>
+
+    <!-- Section 3: Angular Architektur -->
+    <section class="section">
+      <h2>Angular Architektur &mdash; die Kernbausteine</h2>
+
+      <h3>Komponenten</h3>
+      <p>
+        Die UI besteht aus einem Baum von <strong>Komponenten</strong>. Jede Komponente hat ein
+        TypeScript-Klasse (Logik), ein HTML-Template (Darstellung) und optional CSS-Styles.
+        Der <code>@Component</code>-Decorator verbindet diese drei Teile.
+      </p>
+
+      <h3>Services &amp; Dependency Injection</h3>
+      <p>
+        Gesch&auml;ftslogik, HTTP-Aufrufe und gemeinsamer State geh&ouml;ren in <strong>Services</strong>.
+        Angular&apos;s eingebautes <strong>Dependency-Injection-System</strong> stellt Services
+        automatisch dort bereit, wo sie ben&ouml;tigt werden &mdash; ohne manuelles Instanziieren
+        (<code>new FlightService()</code> ist falsch, <code>inject(FlightService)</code> ist richtig).
+      </p>
+
+      <h3>NgModule (alt) vs. Standalone (neu)</h3>
+      <p>
+        Bis Angular&nbsp;14 musste jede Komponente in einem <strong>NgModule</strong> registriert werden
+        &mdash; ein zus&auml;tzlicher Boilerplate-Container. Seit Angular&nbsp;14 gibt es
+        <strong>Standalone-Komponenten</strong>, die direkt mit <code>standalone: true</code> markiert
+        werden und ihre Abh&auml;ngigkeiten selbst im <code>imports</code>-Array angeben.
+        Dieser Kurs verwendet ausschlie&szlig;lich die Standalone-API.
+      </p>
+
+      <h3>Change Detection</h3>
+      <p>
+        Angular&apos;s Change-Detection-Mechanismus pr&uuml;ft nach jeder asynchronen Operation
+        (User-Events, HTTP, Timers), ob sich Daten ge&auml;ndert haben, und aktualisiert das DOM.
+        Standardm&auml;&szlig;ig pr&uuml;ft Angular alle Komponenten (<em>Default Strategy</em>).
+        Mit <code>ChangeDetectionStrategy.OnPush</code> wird eine Komponente nur beim Eingang
+        neuer Input-Referenzen gepr&uuml;ft &mdash; deutlich effizienter bei gro&szlig;en Anwendungen.
+      </p>
+
+      <div class="callout callout-tip">
+        <div class="callout-icon">&#10003;</div>
+        <div class="callout-body">
+          <div class="callout-title">Standalone vs. NgModule: Was soll ich lernen?</div>
+          <p>
+            In neuen Projekten verwende immer <strong>Standalone</strong>. NgModule wirst du in
+            Legacy-Code und &auml;lteren Tutorials begegnen. Es lohnt sich, das Konzept zu verstehen,
+            aber nicht, es aktiv zu verwenden. Die Angular CLI erzeugt seit Angular&nbsp;17 standardm&auml;&szlig;ig
+            Standalone-Projekte.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 4: Setup -->
+    <section class="section">
+      <h2>Setup &mdash; Das FlugBoard-Projekt anlegen</h2>
+
+      <h3>Angular CLI installieren</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">Terminal</span>
+          <span class="code-lang">bash</span>
+        </div>
+        <pre><code class="language-bash"># Angular CLI global installieren (einmalig)
+npm install -g @angular/cli
+
+# Version prüfen
+ng version
+# Angular CLI: 17.x.x  Node: 20.x.x</code></pre>
+      </div>
+
+      <h3>Projekt anlegen</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">Terminal</span>
+          <span class="code-lang">bash</span>
+        </div>
+        <pre><code class="language-bash"># Neues Projekt – Standalone, Routing, CSS
+ng new flugboard --standalone --routing --style css
+
+# Prompts:
+# ? Which stylesheet format would you like to use? CSS
+# ? Do you want to enable Server-Side Rendering (SSR)? No
+
+cd flugboard
+ng serve
+# → http://localhost:4200</code></pre>
+      </div>
+
+      <h3>Projektstruktur verstehen</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">Projektstruktur</span>
+          <span class="code-lang">bash</span>
+        </div>
+        <pre><code class="language-bash">flugboard/
+├── src/
+│   ├── app/
+│   │   ├── app.component.ts    ← Root-Komponente (Klasse + Template + Style)
+│   │   ├── app.component.html  ← Template (wenn templateUrl verwendet wird)
+│   │   ├── app.component.css   ← Komponentenstyle
+│   │   └── app.routes.ts       ← Routing-Konfiguration
+│   ├── main.ts                 ← Einstiegspunkt; bootstrapApplication()
+│   ├── index.html              ← Host-HTML (enthält &lt;app-root&gt;)
+│   └── styles.css              ← Globale Styles
+├── angular.json                ← CLI-Konfiguration (Build, Serve, Test)
+├── tsconfig.json               ← TypeScript-Konfiguration
+└── package.json</code></pre>
+      </div>
+
+      <h3>main.ts &mdash; der Einstiegspunkt</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">src/main.ts</span>
+          <span class="code-lang">typescript</span>
+        </div>
+        <pre><code class="language-typescript">import { bootstrapApplication } from '@angular/platform-browser';
+import { appConfig }            from './app/app.config';
+import { AppComponent }         from './app/app.component';
+
+bootstrapApplication(AppComponent, appConfig)
+  .catch(err =&gt; console.error(err));
+</code></pre>
+      </div>
+    </section>
+
+    <!-- Section 5: Standalone-Komponente -->
+    <section class="section">
+      <h2>Standalone-Komponenten &mdash; der @Component-Decorator</h2>
+
+      <p>
+        Jede Angular-Komponente wird mit dem <code>@Component</code>-Decorator dekoriert.
+        Bei Standalone-Komponenten setzt du <code>standalone: true</code> und listest alle
+        ben&ouml;tigten Imports (andere Komponenten, Direktiven, Pipes) direkt im
+        <code>imports</code>-Array auf.
+      </p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">src/app/app.component.ts</span>
+          <span class="code-lang">typescript</span>
+        </div>
+        <pre><code class="language-typescript">import { Component } from '@angular/core';
+import { FLIGHTS }   from './data/flights';
+import { Flight }    from './models/flight';
+
+@Component({
+  selector: 'app-root',       // HTML-Tag: &lt;app-root&gt;
+  standalone: true,
+  imports: [],                // Hier kommen benötigte Imports rein
+  template: `
+    &lt;header&gt;
+      &lt;h1&gt;&#9992; FlugBoard Wien&lt;/h1&gt;
+    &lt;/header&gt;
+
+    &lt;main&gt;
+      &lt;table&gt;
+        &lt;thead&gt;
+          &lt;tr&gt;
+            &lt;th&gt;Flugnummer&lt;/th&gt;
+            &lt;th&gt;Airline&lt;/th&gt;
+            &lt;th&gt;Typ&lt;/th&gt;
+            &lt;th&gt;Zeit&lt;/th&gt;
+            &lt;th&gt;Status&lt;/th&gt;
+            &lt;th&gt;Flughafen&lt;/th&gt;
+          &lt;/tr&gt;
+        &lt;/thead&gt;
+        &lt;tbody&gt;
+          @for (flight of flights; track flight.id) {
+            &lt;tr&gt;
+              &lt;td&gt;{{ flight.flightNumber }}&lt;/td&gt;
+              &lt;td&gt;{{ flight.airline }}&lt;/td&gt;
+              &lt;td&gt;{{ flight.type }}&lt;/td&gt;
+              &lt;td&gt;{{ flight.scheduledTime }}&lt;/td&gt;
+              &lt;td&gt;{{ flight.status }}&lt;/td&gt;
+              &lt;td&gt;{{ flight.airport }}&lt;/td&gt;
+            &lt;/tr&gt;
+          }
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    &lt;/main&gt;
+  `,
+})
+export class AppComponent {
+  flights: Flight[] = FLIGHTS;
+}
+</code></pre>
+      </div>
+
+      <h3>Das Datenmodell</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">src/app/models/flight.ts</span>
+          <span class="code-lang">typescript</span>
+        </div>
+        <pre><code class="language-typescript">export type FlightType =
+  | 'arrival'
+  | 'departure';
+
+export type FlightStatus =
+  | 'on-time'
+  | 'delayed'
+  | 'boarding'
+  | 'departed'
+  | 'landed'
+  | 'cancelled';
+
+export interface Flight {
+  id:            number;
+  flightNumber:  string;
+  airline:       string;
+  type:          FlightType;
+  scheduledTime: string;       // "HH:MM"
+  expectedTime?: string;       // nur wenn verspätet
+  status:        FlightStatus;
+  airport:       string;       // Herkunft (arrival) / Ziel (departure)
+  terminal:      string;       // "T1", "T2", "T3"
+  gate?:         string;       // z.B. "B12"
+}
+</code></pre>
+      </div>
+
+      <h3>Seed-Daten</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">src/app/data/flights.ts</span>
+          <span class="code-lang">typescript</span>
+        </div>
+        <pre><code class="language-typescript">import { Flight } from '../models/flight';
+
+export const FLIGHTS: Flight[] = [
+  {
+    id: 1,
+    flightNumber: 'OS123',
+    airline: 'Austrian Airlines',
+    type: 'departure',
+    scheduledTime: '08:15',
+    status: 'boarding',
+    airport: 'Berlin BER',
+    terminal: 'T3',
+    gate: 'B12',
+  },
+  {
+    id: 2,
+    flightNumber: 'LH456',
+    airline: 'Lufthansa',
+    type: 'arrival',
+    scheduledTime: '09:30',
+    expectedTime: '09:55',
+    status: 'delayed',
+    airport: 'Frankfurt FRA',
+    terminal: 'T2',
+  },
+  {
+    id: 3,
+    flightNumber: 'FR789',
+    airline: 'Ryanair',
+    type: 'departure',
+    scheduledTime: '10:00',
+    status: 'on-time',
+    airport: 'London STN',
+    terminal: 'T1',
+    gate: 'A05',
+  },
+  {
+    id: 4,
+    flightNumber: 'EW201',
+    airline: 'Eurowings',
+    type: 'arrival',
+    scheduledTime: '11:45',
+    status: 'landed',
+    airport: 'Düsseldorf DUS',
+    terminal: 'T2',
+    gate: 'C08',
+  },
+];
+</code></pre>
+      </div>
+
+      <div class="callout callout-info">
+        <div class="callout-icon">&#8505;</div>
+        <div class="callout-body">
+          <div class="callout-title">Angular 17+: Neue Control-Flow-Syntax</div>
+          <p>
+            Angular&nbsp;17 hat eine v&ouml;llig neue Template-Syntax f&uuml;r Kontrollstrukturen
+            eingef&uuml;hrt: <code>@for</code>, <code>@if</code>, <code>@else</code>, <code>@switch</code>.
+            Sie ersetzt die bisherigen strukturellen Direktiven <code>*ngFor</code> und <code>*ngIf</code>
+            und ist direkt in den Angular-Compiler integriert &mdash; kein Import von
+            <code>CommonModule</code> oder <code>NgIf</code> mehr n&ouml;tig. Lektion 1.4 erkl&auml;rt
+            sie im Detail.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Projektschritt -->
+    <section class="section section-projekt">
+      <h2>Projektschritt</h2>
+      <div class="projekt-box">
+        <div class="projekt-box-header">
+          <span class="projekt-step">Projektschritt 1.1</span>
+          <h3>Statische Flugliste aufbauen</h3>
+        </div>
+        <p>
+          Lege das Angular-Projekt an und implementiere die statische Flugliste:
+        </p>
+        <ol style="margin:.75rem 0 0 1.25rem;line-height:2">
+          <li>Angular CLI installieren und Projekt <code>flugboard</code> anlegen (Standalone, Routing, CSS)</li>
+          <li>Ordner <code>src/app/models/</code> anlegen und <code>flight.ts</code> mit dem Datenmodell erstellen</li>
+          <li>Ordner <code>src/app/data/</code> anlegen und <code>flights.ts</code> mit 4 Seed-Fl&uuml;gen erstellen</li>
+          <li><code>AppComponent</code> so anpassen, dass die 4 Fl&uuml;ge als HTML-Tabelle mit <code>@for</code> ausgegeben werden</li>
+          <li><code>ng serve</code> starten und im Browser pr&uuml;fen, ob alle 4 Zeilen erscheinen</li>
+        </ol>
+        <p style="margin-top:.75rem">
+          <strong>Ziel:</strong> Im Browser ist eine Tabelle mit 4 Fl&uuml;gen sichtbar. Noch kein Styling n&ouml;tig.
+        </p>
+      </div>
+    </section>
+
+    <!-- Häufige Fehler -->
+    <section class="section section-fehler">
+      <h2>H&auml;ufige Fehler</h2>
+
+      <div class="fehler-item">
+        <div class="fehler-title"><code>ng: command not found</code></div>
+        <p>Die Angular CLI wurde nicht global installiert oder der npm-Bin-Pfad ist nicht im PATH.</p>
+        <p class="fehler-fix">
+          <strong>Fix:</strong> <code>npm install -g @angular/cli</code> erneut ausf&uuml;hren.
+          Danach im Terminal pr&uuml;fen: <code>echo $PATH</code> sollte <code>~/.npm-global/bin</code>
+          oder den npm-Bin-Ordner enthalten. Alternativ: <code>npx ng new flugboard</code> verwenden.
+        </p>
+      </div>
+
+      <div class="fehler-item">
+        <div class="fehler-title">Port 4200 bereits belegt</div>
+        <p><code>ng serve</code> schreibt <em>Address already in use</em> und startet nicht.</p>
+        <p class="fehler-fix">
+          <strong>Fix:</strong> <code>ng serve --port 4201</code> oder den laufenden Prozess beenden:
+          <code>lsof -ti:4200 | xargs kill</code> (macOS/Linux) bzw. im Task-Manager (Windows).
+        </p>
+      </div>
+
+      <div class="fehler-item">
+        <div class="fehler-title"><code>Cannot find name 'Flight'</code></div>
+        <p>
+          Der TypeScript-Compiler findet das Interface nicht, weil der Import fehlt oder der Pfad
+          falsch ist.
+        </p>
+        <p class="fehler-fix">
+          <strong>Fix:</strong> In <code>app.component.ts</code> den Import hinzuf&uuml;gen:
+          <code>import { Flight } from './models/flight';</code>. Pfad pr&uuml;fen: der Dateiname
+          muss exakt <code>flight.ts</code> hei&szlig;en (ohne <code>.ts</code> im Import).
+        </p>
+      </div>
+    </section>
+
+    <!-- Aufgaben -->
+    <section class="section section-aufgaben">
+      <h2>Aufgaben</h2>
+      <div class="aufgaben-list">
+
+        <div class="aufgabe">
+          <div class="aufgabe-header">
+            <span class="aufgabe-num">Aufgabe 1</span>
+            <span class="aufgabe-title">Seed-Daten erweitern</span>
+          </div>
+          <p>
+            F&uuml;ge zwei weitere Fl&uuml;ge zu <code>flights.ts</code> hinzu: einen mit Status
+            <code>cancelled</code> und einen mit Status <code>departed</code>. Stelle sicher, dass
+            alle Pflichtfelder des <code>Flight</code>-Interface ausgef&uuml;llt sind und TypeScript
+            keinen Fehler meldet.
+          </p>
+        </div>
+
+        <div class="aufgabe">
+          <div class="aufgabe-header">
+            <span class="aufgabe-num">Aufgabe 2</span>
+            <span class="aufgabe-title">Tabellenspalte Terminal und Gate</span>
+          </div>
+          <p>
+            Erg&auml;nze die HTML-Tabelle um die Spalten <em>Terminal</em> und <em>Gate</em>.
+            Da <code>gate</code> optional ist, soll in der Zelle &bdquo;&mdash;&ldquo; erscheinen,
+            wenn kein Gate vorhanden ist. Verwende dazu den Nullish-Coalescing-Operator in der
+            Interpolation: <code>{{ flight.gate ?? '&mdash;' }}</code>.
+          </p>
+        </div>
+
+        <div class="aufgabe">
+          <div class="aufgabe-header">
+            <span class="aufgabe-num">Aufgabe 3</span>
+            <span class="aufgabe-title">Framework-Vergleich reflektieren</span>
+          </div>
+          <p>
+            Du hast bereits React (oder ein anderes Framework) kennengelernt. Notiere drei
+            konkrete Unterschiede zwischen Angular und deinem bisherigen Framework, die dir
+            beim Lesen dieser Lektion aufgefallen sind. Gibt es etwas, das dir bei Angular
+            intuitiver vorkommt? Was wirkt komplexer?
+          </p>
+        </div>
+
+        <div class="aufgabe aufgabe-bonus">
+          <div class="aufgabe-header">
+            <span class="aufgabe-num">Bonus</span>
+            <span class="aufgabe-title">Angular DevTools erkunden</span>
+          </div>
+          <p>
+            Installiere die <strong>Angular DevTools</strong> als Browser-Extension (Chrome). Starte
+            <code>ng serve</code> und &ouml;ffne die DevTools. Erkunde den Komponentenbaum:
+            Welche Komponenten siehst du? Kannst du die Eigenschaft <code>flights</code> in der
+            <code>AppComponent</code> sehen und live &auml;ndern?
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+  </div><!-- /content-area -->
+
+  <nav class="lesson-nav">
+    <span class="nav-btn" style="opacity:0.4;cursor:default;">&larr; Kursanfang</span>
+    <span class="nav-center-info">Lektion 1.1</span>
+    <a class="nav-btn primary" href="1.2-komponenten-templates.html">Lektion 1.2: Komponenten &amp; Templates &rarr;</a>
+  </nav>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/bash.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/json.min.js"></script>
+<script>
+  const ham = document.getElementById('hamburger');
+  const sb  = document.getElementById('sidebar');
+  const ov  = document.getElementById('overlay');
+  ham.addEventListener('click', () => { sb.classList.toggle('open'); ov.classList.toggle('visible'); });
+  ov.addEventListener('click',  () => { sb.classList.remove('open'); ov.classList.remove('visible'); });
+  const cur = window.location.pathname.split('/').pop() || 'index.html';
+  document.querySelectorAll('.nav-link').forEach(l => {
+    if (l.getAttribute('href') === cur) l.classList.add('active');
+  });
+  const themeBtn = document.getElementById('theme-toggle');
+  const applyTheme = (t) => {
+    document.documentElement.setAttribute('data-theme', t);
+    if (themeBtn) themeBtn.innerHTML = t === 'dark' ? '&#9728;' : '&#9790;';
+  };
+  applyTheme(localStorage.getItem('kurs-theme') || 'dark');
+  setTimeout(() => document.documentElement.classList.add('theme-transitions'), 50);
+  if (themeBtn) themeBtn.addEventListener('click', () => {
+    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('kurs-theme', next);
+    applyTheme(next);
+  });
+  hljs.highlightAll();
+</script>
+</body>
+</html>

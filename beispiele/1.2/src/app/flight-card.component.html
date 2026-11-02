@@ -1,0 +1,22 @@
+<article class="flight-card" (click)="select.emit(flight)">
+  <div class="flight-card-head">
+    <span class="flight-num">{{ flight.flightNumber }}</span>
+    <span class="status-badge status-{{ flight.status }}">{{ flight.status }}</span>
+  </div>
+  <p class="flight-card-airline">{{ flight.airline }}</p>
+  <p class="flight-card-meta">
+    {{ flight.type === 'departure' ? '↑' : '↓' }}
+    {{ flight.airport }}
+  </p>
+  <p class="flight-card-meta">
+    {{ flight.scheduledTime }}
+    @if (flight.expectedTime) {
+      <span class="time-delayed">&rarr; {{ flight.expectedTime }}</span>
+    }
+    &nbsp;&middot;&nbsp;
+    {{ flight.terminal }}
+    @if (flight.gate) {
+      / Gate {{ flight.gate }}
+    }
+  </p>
+</article>
