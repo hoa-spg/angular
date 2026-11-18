@@ -1,0 +1,63 @@
+<form class="add-form" [formGroup]="form" (ngSubmit)="submit()">
+  <h3>Neuen Flug hinzufügen</h3>
+
+  <div class="add-form-grid">
+    <div class="form-field">
+      <label class="form-label" for="flightNumber">Flugnummer *</label>
+      <input id="flightNumber" class="form-input" formControlName="flightNumber" placeholder="z.B. OS123" />
+      @if (showError('flightNumber')) {
+        <span class="form-error">2 Buchstaben und 3–4 Ziffern, z.B. OS123</span>
+      }
+    </div>
+
+    <div class="form-field">
+      <label class="form-label" for="airline">Airline *</label>
+      <input id="airline" class="form-input" formControlName="airline" />
+      @if (showError('airline')) {
+        <span class="form-error">Pflichtfeld</span>
+      }
+    </div>
+
+    <div class="form-field">
+      <label class="form-label" for="type">Typ</label>
+      <select id="type" class="form-select" formControlName="type">
+        <option value="departure">↑ Abflug</option>
+        <option value="arrival">↓ Ankunft</option>
+      </select>
+    </div>
+
+    <div class="form-field">
+      <label class="form-label" for="scheduledTime">Planzeit *</label>
+      <input id="scheduledTime" type="time" class="form-input" formControlName="scheduledTime" />
+      @if (showError('scheduledTime')) {
+        <span class="form-error">Pflichtfeld</span>
+      }
+    </div>
+
+    <div class="form-field">
+      <label class="form-label" for="airport">Airport *</label>
+      <input id="airport" class="form-input" formControlName="airport" placeholder="z.B. Paris (CDG)" />
+      @if (showError('airport')) {
+        <span class="form-error">Pflichtfeld</span>
+      }
+    </div>
+
+    <div class="form-field">
+      <label class="form-label" for="terminal">Terminal</label>
+      <select id="terminal" class="form-select" formControlName="terminal">
+        <option value="T1">T1</option>
+        <option value="T2">T2</option>
+        <option value="T3">T3</option>
+      </select>
+    </div>
+
+    <div class="form-field">
+      <label class="form-label" for="gate">Gate</label>
+      <input id="gate" class="form-input" formControlName="gate" placeholder="z.B. B12" />
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <button type="submit" class="btn-success">Flug hinzufügen</button>
+  </div>
+</form>

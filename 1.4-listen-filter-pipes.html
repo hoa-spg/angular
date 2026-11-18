@@ -56,448 +56,238 @@
 
     <section class="section section-lernziele">
       <h2>Lernziele</h2>
-      <ul class="lernziele-list">
-        <li>Die neue Control-Flow-Syntax (<code>@for</code>, <code>@if</code>, <code>@else</code>, <code>@empty</code>, <code>@switch</code>) sicher einsetzen</li>
-        <li>Den Zweck von <code>track</code> verstehen und korrekt anwenden</li>
-        <li>Eingebaute Pipes (<code>date</code>, <code>uppercase</code>, <code>titlecase</code>, <code>number</code>) im Template nutzen</li>
-        <li>Eine eigene Pure Pipe mit <code>@Pipe</code> und <code>PipeTransform</code> implementieren</li>
-        <li>Eine wiederverwendbare <code>FlightStatusBadge</code>-Komponente mit Pipes bauen</li>
+      <ul>
+        <li>Listen mit <code>@for</code>, <code>track</code> und <code>@empty</code> anzeigen</li>
+        <li><code>@if</code>/<code>@else</code> (mit <code>as</code>) und <code>@switch</code> einsetzen</li>
+        <li>Eingebaute Pipes wie <code>date</code> verwenden und importieren</li>
+        <li>Eine eigene Pipe mit <code>ng generate pipe</code> schreiben</li>
       </ul>
     </section>
 
-    <!-- Section 1: Control Flow Syntax -->
+    <!-- Section 1: Control Flow -->
     <section class="section">
-      <h2>Angular 17+: Die neue Control-Flow-Syntax</h2>
-
+      <h2>1 &mdash; Kontrollstrukturen im Template</h2>
       <p>
-        Angular&nbsp;17 hat die bisher als &bdquo;strukturelle Direktiven&ldquo; implementierten
-        Kontrollstrukturen <code>*ngFor</code> und <code>*ngIf</code> durch eine native
-        Template-Syntax ersetzt. Die neue Syntax ist direkter im Compiler verankert &mdash;
-        kein Import von <code>CommonModule</code> oder <code>NgIf</code>/<code>NgFor</code>
-        mehr n&ouml;tig.
+        <code>@for</code> und <code>@if</code> haben wir schon kurz verwendet. Angular kennt im Template drei
+        Kontrollstrukturen; sie sind fest eingebaut und m&uuml;ssen nicht importiert werden.
       </p>
 
-      <h3>Vergleich: Alt vs. Neu</h3>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Zweck</th>
-              <th>Alt (Angular &lt; 17)</th>
-              <th>Neu (Angular 17+)</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td>Bedingtes Rendern</td><td><code>*ngIf="cond"</code></td><td><code>@if (cond) { ... }</code></td></tr>
-            <tr><td>If/Else</td><td><code>*ngIf="c; else tpl"</code> + <code>#tpl</code></td><td><code>@if (c) { } @else { }</code></td></tr>
-            <tr><td>Liste rendern</td><td><code>*ngFor="let x of list"</code></td><td><code>@for (x of list; track x.id) { }</code></td></tr>
-            <tr><td>Leere Liste</td><td>Separates <code>*ngIf</code></td><td><code>@empty { }</code> innerhalb @for</td></tr>
-            <tr><td>Switch</td><td><code>[ngSwitch]</code> + <code>*ngSwitchCase</code></td><td><code>@switch (val) { @case (x) { } }</code></td></tr>
-          </tbody>
-        </table>
-      </div>
+      <h3>@for mit track und @empty</h3>
+      <ul>
+        <li><code>track flight.id</code> ist Pflicht: Daran erkennt Angular jedes Element wieder und muss bei &Auml;nderungen nur die betroffenen Karten neu zeichnen &ndash; wie <code>key</code> in React.</li>
+        <li><code>@empty</code> folgt direkt auf den <code>@for</code>-Block und erscheint, wenn die Liste leer ist &ndash; im FlugBoard, wenn die Suche nichts findet.</li>
+        <li>Innerhalb der Schleife gibt es Hilfsvariablen wie <code>$index</code>, <code>$first</code> oder <code>$last</code>.</li>
+      </ul>
 
-      <h3>@for &mdash; Listen rendern</h3>
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-filename">@for mit track und @empty</span>
-          <span class="code-lang">html</span>
-        </div>
-        <pre><code class="language-html">@for (flight of filteredFlights; track flight.id) {
-  &lt;app-flight-card [flight]="flight" /&gt;
-} @empty {
-  &lt;p class="empty-state"&gt;Keine Flüge gefunden.&lt;/p&gt;
-}
-
-&lt;!-- Lokale Variablen im @for-Block: --&gt;
-@for (flight of flights; track flight.id; let i = $index) {
-  &lt;div&gt;{{ i + 1 }}. {{ flight.flightNumber }}&lt;/div&gt;
-}
-&lt;!-- $index  – 0-basierter Index --&gt;
-&lt;!-- $first  – true beim ersten Element --&gt;
-&lt;!-- $last   – true beim letzten Element --&gt;
-&lt;!-- $even   – true bei geraden Indizes --&gt;
-&lt;!-- $odd    – true bei ungeraden Indizes --&gt;
-&lt;!-- $count  – Gesamtanzahl der Elemente --&gt;
-</code></pre>
-      </div>
-
-      <h3>@if / @else if / @else</h3>
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-filename">@if mit @else if und @else</span>
-          <span class="code-lang">html</span>
-        </div>
-        <pre><code class="language-html">@if (flight.status === 'boarding') {
-  &lt;span class="badge boarding"&gt;Boarding&lt;/span&gt;
-} @else if (flight.status === 'delayed') {
-  &lt;span class="badge delayed"&gt;Verspätet&lt;/span&gt;
-} @else if (flight.status === 'cancelled') {
-  &lt;span class="badge cancelled"&gt;Storniert&lt;/span&gt;
-} @else {
-  &lt;span class="badge"&gt;{{ flight.status }}&lt;/span&gt;
-}
-</code></pre>
-      </div>
+      <h3>@if mit @else und as</h3>
+      <p>
+        <code>@else</code> zeigt einen Block, wenn die Bedingung nicht zutrifft. Mit <code>as flight</code>
+        bekommt der gepr&uuml;fte Wert einen Namen: Innerhalb des Blocks ist <code>flight</code> sicher nicht
+        <code>null</code>, das <code>?.</code> aus Lektion&nbsp;1.2 entf&auml;llt.
+      </p>
 
       <h3>@switch</h3>
+      <p>
+        <code>@switch</code> w&auml;hlt einen von mehreren Bl&ouml;cken nach dem Wert eines Ausdrucks &ndash; wie
+        <code>switch</code> in TypeScript, aber ohne <code>break</code>. Ein <code>@default</code>-Block ist
+        m&ouml;glich; fehlt er, wird bei keinem Treffer nichts angezeigt.
+      </p>
+
+      <p>Die Auswahl-Box und die leere Liste in <code>app.html</code>:</p>
       <div class="code-block">
         <div class="code-header">
-          <span class="code-filename">@switch f&uuml;r Status-Varianten</span>
+          <span class="code-filename">src/app/app.html</span>
           <span class="code-lang">html</span>
         </div>
-        <pre><code class="language-html">@switch (flight.status) {
-  @case ('on-time')   { &lt;span class="badge on-time"&gt;P&uuml;nktlich&lt;/span&gt; }
-  @case ('delayed')   { &lt;span class="badge delayed"&gt;Versp&auml;tet&lt;/span&gt; }
-  @case ('boarding')  { &lt;span class="badge boarding"&gt;Boarding&lt;/span&gt; }
-  @case ('departed')  { &lt;span class="badge departed"&gt;Abgeflogen&lt;/span&gt; }
-  @case ('landed')    { &lt;span class="badge landed"&gt;Gelandet&lt;/span&gt; }
-  @case ('cancelled') { &lt;span class="badge cancelled"&gt;Storniert&lt;/span&gt; }
-  @default            { &lt;span class="badge"&gt;{{ flight.status }}&lt;/span&gt; }
-}
-</code></pre>
+        <pre><code class="language-xml">&lt;div class="page-content"&gt;
+  &lt;app-airport-header airportName="Wien" /&gt;
+
+  &lt;div class="toolbar"&gt;
+    &lt;!-- Two-Way-Binding: Eingabe und Signal bleiben synchron --&gt;
+    &lt;input
+      class="search-input"
+      [(ngModel)]="searchText"
+      placeholder="Flug, Airline, Airport ..."
+    /&gt;
+
+    &lt;!-- Property-Binding auf eine CSS-Klasse + Event-Binding --&gt;
+    &lt;div class="type-filter"&gt;
+      &lt;button [class.active]="activeType() === 'all'" (click)="activeType.set('all')"&gt;Alle&lt;/button&gt;
+      &lt;button [class.active]="activeType() === 'departure'" (click)="activeType.set('departure')"&gt;
+        Abflüge
+      &lt;/button&gt;
+      &lt;button [class.active]="activeType() === 'arrival'" (click)="activeType.set('arrival')"&gt;
+        Ankünfte
+      &lt;/button&gt;
+    &lt;/div&gt;
+
+    &lt;span class="page-meta"&gt;{{ filteredFlights().length }} Treffer&lt;/span&gt;
+  &lt;/div&gt;
+
+  &lt;div class="selected-info"&gt;
+    @if (selectedFlight(); as flight) {
+      &lt;strong&gt;Ausgewählt:&lt;/strong&gt; {{ flight.flightNumber }} – {{ flight.airline }}
+    } @else {
+      Klicke auf einen Flug, um ihn auszuwählen.
+    }
+  &lt;/div&gt;
+
+  &lt;div class="card-grid"&gt;
+    @for (flight of filteredFlights(); track flight.id) {
+      &lt;app-flight-card [flight]="flight" (selected)="onFlightSelect($event)" /&gt;
+    } @empty {
+      &lt;p class="empty-state"&gt;Keine Flüge gefunden.&lt;/p&gt;
+    }
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
       </div>
     </section>
 
-    <!-- Section 2: track -->
+    <!-- Section 2: Eingebaute Pipes -->
     <section class="section">
-      <h2>track &mdash; das &Auml;quivalent zu <code>key</code> in React</h2>
-
+      <h2>2 &mdash; Pipes: Werte f&uuml;r die Anzeige umwandeln</h2>
       <p>
-        Die <code>track</code>-Expression in <code>@for</code> teilt Angular mit, wie es
-        Listenelemente <strong>eindeutig identifizieren</strong> soll. Das ist notwendig, damit
-        Angular beim Neurendern einer Liste nicht alle DOM-Elemente neu erstellt, sondern nur
-        die ge&auml;nderten aktualisiert.
+        Eine <strong>Pipe</strong> formatiert einen Wert im Template: <code>{{ wert | pipe }}</code>.
+        Argumente folgen nach einem Doppelpunkt: <code>{{ today | date: 'dd.MM.yyyy' }}</code>.
+        Angular bringt Pipes f&uuml;r h&auml;ufige F&auml;lle mit, z.&nbsp;B. <code>date</code>,
+        <code>uppercase</code>, <code>number</code> oder <code>currency</code>. Wie Komponenten m&uuml;ssen
+        sie im <code>imports</code>-Array stehen &ndash; die <code>date</code>-Pipe hei&szlig;t dort
+        <code>DatePipe</code>.
       </p>
-
       <div class="code-block">
         <div class="code-header">
-          <span class="code-filename">track korrekt verwenden</span>
-          <span class="code-lang">html</span>
-        </div>
-        <pre><code class="language-html">&lt;!-- Gut: eindeutige ID --&gt;
-@for (flight of flights; track flight.id) { ... }
-
-&lt;!-- Gut: falls kein id-Feld vorhanden (Fallback, weniger optimal) --&gt;
-@for (item of items; track $index) { ... }
-
-&lt;!-- Gut: zusammengesetzte ID --&gt;
-@for (flight of flights; track flight.flightNumber + flight.scheduledTime) { ... }
-
-&lt;!-- Schlecht: kein track – Angular zeigt Warnung und kann DOM nicht optimieren --&gt;
-@for (flight of flights) { ... }  &lt;!-- ← TypeScript-Fehler ab Angular 17! --&gt;
-</code></pre>
-      </div>
-
-      <div class="callout callout-info">
-        <div class="callout-icon">&#8505;</div>
-        <div class="callout-body">
-          <div class="callout-title">track ist in Angular 17 Pflicht</div>
-          <p>
-            Seit Angular&nbsp;17 ist <code>track</code> in <code>@for</code> <strong>verpflichtend</strong>.
-            Das ist eine Designentscheidung, um Performance-Probleme durch fehlendes Tracking zu verhindern
-            &mdash; anders als in React, wo <code>key</code> optional (aber empfohlen) ist.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Section 3: Eingebaute Pipes -->
-    <section class="section">
-      <h2>Eingebaute Pipes &mdash; Datentransformation im Template</h2>
-
-      <p>
-        Pipes sind reine Transformationsfunktionen f&uuml;r Template-Ausdr&uuml;cke.
-        Sie werden mit dem Pipe-Operator <code>|</code> verkn&uuml;pft und k&ouml;nnen
-        Argumente mit <code>:argument</code> erhalten.
-      </p>
-
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-filename">Pipes in imports[] registrieren</span>
+          <span class="code-filename">src/app/airport-header/airport-header.ts</span>
           <span class="code-lang">typescript</span>
         </div>
-        <pre><code class="language-typescript">// Pipes müssen einzeln in imports[] der Komponente stehen:
-import { DatePipe, UpperCasePipe, LowerCasePipe,
-         TitleCasePipe, DecimalPipe, CurrencyPipe,
-         SlicePipe, JsonPipe } from '@angular/common';
-</code></pre>
-      </div>
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-filename">Eingebaute Pipes im Einsatz</span>
-          <span class="code-lang">html</span>
-        </div>
-        <pre><code class="language-html">&lt;!-- uppercase / lowercase / titlecase --&gt;
-{{ flight.airline | uppercase }}    &lt;!-- → "AUSTRIAN AIRLINES" --&gt;
-{{ flight.status  | lowercase }}    &lt;!-- → "on-time" --&gt;
-{{ 'wien flughafen' | titlecase }}  &lt;!-- → "Wien Flughafen" --&gt;
-
-&lt;!-- date: Datumsformatierung (locale-sensitiv) --&gt;
-{{ today | date:'dd.MM.yyyy' }}                    &lt;!-- → "15.03.2024" --&gt;
-{{ today | date:'EEEE, d. MMMM y':'':'de' }}       &lt;!-- → "Freitag, 15. März 2024" --&gt;
-
-&lt;!-- number: Zahlenformatierung ({minInt}.{minFrac}-{maxFrac}) --&gt;
-{{ 1234567.89 | number:'1.2-2' }}  &lt;!-- → "1,234,567.89" --&gt;
-
-&lt;!-- currency: Währungsformatierung --&gt;
-{{ price | currency:'EUR':'symbol':'1.2-2':'de' }}  &lt;!-- → "1.234,56 €" --&gt;
-
-&lt;!-- slice: Array/String slicen --&gt;
-{{ flight.flightNumber | slice:0:2 }}  &lt;!-- → "OS" (Airline-Code) --&gt;
-
-&lt;!-- json: Objekt als JSON ausgeben (nützlich für Debugging) --&gt;
-{{ flight | json }}
-</code></pre>
-      </div>
-
-      <h3>Pipes importieren (Standalone-Komponenten)</h3>
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-filename">Pipes in Standalone-Komponenten importieren</span>
-          <span class="code-lang">typescript</span>
-        </div>
-        <pre><code class="language-typescript">import { Component }                from '@angular/core';
-import { DatePipe, UpperCasePipe }  from '@angular/common';
+        <pre><code class="language-typescript">import { DatePipe } from '@angular/common';
+import { Component, input } from '@angular/core';
 
 @Component({
-  selector: 'app-flight-row',
-  standalone: true,
-  imports: [DatePipe, UpperCasePipe],  // ← jede Pipe einzeln importieren
-  template: `
-    &lt;span&gt;{{ flight.airline | uppercase }}&lt;/span&gt;
-    &lt;span&gt;{{ today | date:'HH:mm' }}&lt;/span&gt;
-  `,
+  imports: [DatePipe],
+  selector: 'app-airport-header',
+  styleUrl: './airport-header.css',
+  templateUrl: './airport-header.html',
 })
-export class FlightRowComponent {
+export class AirportHeader {
+  // Input: Der Wert kommt von der Eltern-Komponente
+  airportName = input.required&lt;string&gt;();
   today = new Date();
-  // ...
-}
-</code></pre>
+}</code></pre>
+      </div>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">src/app/airport-header/airport-header.html</span>
+          <span class="code-lang">html</span>
+        </div>
+        <pre><code class="language-xml">&lt;h1 class="page-title"&gt;✈ FlugBoard {{ airportName() }}&lt;/h1&gt;
+&lt;!-- Eingebaute Pipe mit Argument: Datumsformat --&gt;
+&lt;p class="page-meta"&gt;{{ today | date: 'dd.MM.yyyy' }}&lt;/p&gt;</code></pre>
       </div>
     </section>
 
-    <!-- Section 4: Custom Pipe -->
+    <!-- Section 3: Custom Pipe -->
     <section class="section">
-      <h2>Custom Pipes &mdash; eigene Transformationen</h2>
-
+      <h2>3 &mdash; Eine eigene Pipe</h2>
       <p>
-        Wenn keine eingebaute Pipe passt, kann man eigene implementieren. Eine Pipe ist eine
-        Klasse, die <code>PipeTransform</code> implementiert und mit <code>@Pipe</code>
-        dekoriert wird. Sie sollte <strong>pure</strong> sein (kein Seiteneffekt, gleiche
-        Eingabe liefert immer gleiche Ausgabe), damit Angular sie effizient cachen kann.
+        Bisher zeigt das Abzeichen den internen Status-Code wie <code>on-time</code>. Eine eigene Pipe
+        macht daraus lesbaren Text. Die CLI legt sie an:
       </p>
-
       <div class="code-block">
         <div class="code-header">
-          <span class="code-filename">src/app/pipes/status-color.pipe.ts</span>
-          <span class="code-lang">typescript</span>
+          <span class="code-filename">Terminal</span>
+          <span class="code-lang">bash</span>
         </div>
-        <pre><code class="language-typescript">import { Pipe, PipeTransform } from '@angular/core';
-import { FlightStatus }        from '../models/flight';
-
-/**
- * Gibt die CSS-Klasse für einen Flugstatus zurück.
- * Verwendung: [class]="flight.status | statusColor"
- */
-@Pipe({
-  name: 'statusColor',
-  standalone: true,  // Standalone Pipe (Angular 14+)
-  pure: true,        // Default: true; Angular cached den Output
-})
-export class StatusColorPipe implements PipeTransform {
-  transform(status: FlightStatus): string {
-    const colorMap: Record&lt;FlightStatus, string&gt; = {
-      'on-time':   'badge-green',
-      'delayed':   'badge-orange',
-      'boarding':  'badge-blue',
-      'departed':  'badge-gray',
-      'landed':    'badge-teal',
-      'cancelled': 'badge-red',
-    };
-    return colorMap[status] ?? 'badge-default';
-  }
-}
-</code></pre>
+        <pre><code class="language-bash">ng generate pipe status-label</code></pre>
       </div>
-
       <div class="code-block">
         <div class="code-header">
-          <span class="code-filename">src/app/pipes/status-label.pipe.ts</span>
+          <span class="code-filename">src/app/status-label-pipe.ts</span>
           <span class="code-lang">typescript</span>
         </div>
         <pre><code class="language-typescript">import { Pipe, PipeTransform } from '@angular/core';
-import { FlightStatus }        from '../models/flight';
+import { FlightStatus } from './flight';
 
-/**
- * Gibt den deutschen Label-Text für einen Flugstatus zurück.
- * Verwendung: {{ flight.status | statusLabel }}
- */
 @Pipe({
   name: 'statusLabel',
-  standalone: true,
-  pure: true,
 })
 export class StatusLabelPipe implements PipeTransform {
   private readonly labels: Record&lt;FlightStatus, string&gt; = {
-    'on-time':   'Pünktlich',
-    'delayed':   'Verspätet',
-    'boarding':  'Boarding',
-    'departed':  'Abgeflogen',
-    'landed':    'Gelandet',
-    'cancelled': 'Gestrichen',
+    'on-time': 'Pünktlich',
+    delayed: 'Verspätet',
+    boarding: 'Boarding',
+    departed: 'Gestartet',
+    landed: 'Gelandet',
+    cancelled: 'Gestrichen',
   };
 
+  // transform: Eingabewert → angezeigter Text
   transform(status: FlightStatus): string {
-    return this.labels[status] ?? status;
+    return this.labels[status];
   }
-}
-</code></pre>
+}</code></pre>
       </div>
-
-      <h3>FlightStatusBadge-Komponente</h3>
+      <ul>
+        <li><code>name: 'statusLabel'</code> ist der Name im Template: <code>{{ flight().status | statusLabel }}</code>.</li>
+        <li><code>transform</code> bekommt den Wert links vom <code>|</code> und liefert den angezeigten Text.</li>
+        <li><code>Record&lt;FlightStatus, string&gt;</code> verlangt f&uuml;r jeden Status einen Eintrag &ndash; fehlt einer, meldet TypeScript einen Fehler.</li>
+      </ul>
+      <p>In <code>FlightCard</code> kommen die Pipe, <code>@if</code> f&uuml;r das Gate und <code>@switch</code> f&uuml;r statusabh&auml;ngige Hinweise dazu:</p>
       <div class="code-block">
         <div class="code-header">
-          <span class="code-filename">src/app/components/flight-status-badge/flight-status-badge.component.ts</span>
+          <span class="code-filename">src/app/flight-card/flight-card.ts</span>
           <span class="code-lang">typescript</span>
         </div>
-        <pre><code class="language-typescript">import { Component, Input }  from '@angular/core';
-import { FlightStatus }      from '../../models/flight';
-import { StatusColorPipe }   from '../../pipes/status-color.pipe';
-import { StatusLabelPipe }   from '../../pipes/status-label.pipe';
+        <pre><code class="language-typescript">import { Component, input, output } from '@angular/core';
+import { Flight } from '../flight';
+import { StatusLabelPipe } from '../status-label-pipe';
 
 @Component({
-  selector: 'app-flight-status-badge',
-  standalone: true,
-  imports: [StatusColorPipe, StatusLabelPipe],
-  template: `
-    &lt;span [class]="'badge ' + (status | statusColor)"&gt;
-      {{ status | statusLabel }}
-    &lt;/span&gt;
-  `,
-  styles: [`
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      padding: .2rem .65rem;
-      border-radius: 999px;
-      font-size: .78rem;
-      font-weight: 600;
-      letter-spacing: .03em;
+  imports: [StatusLabelPipe],
+  selector: 'app-flight-card',
+  styleUrl: './flight-card.css',
+  templateUrl: './flight-card.html',
+})
+export class FlightCard {
+  flight = input.required&lt;Flight&gt;();
+  // Output: meldet der Eltern-Komponente, dass die Karte angeklickt wurde
+  selected = output&lt;Flight&gt;();
+}</code></pre>
+      </div>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">src/app/flight-card/flight-card.html</span>
+          <span class="code-lang">html</span>
+        </div>
+        <pre><code class="language-xml">&lt;article class="flight-card" (click)="selected.emit(flight())"&gt;
+  &lt;div class="flight-card-head"&gt;
+    &lt;span class="flight-num"&gt;{{ flight().flightNumber }}&lt;/span&gt;
+    &lt;!-- Eigene Pipe: Status-Code → lesbarer Text --&gt;
+    &lt;span class="status-badge status-{{ flight().status }}"&gt;{{ flight().status | statusLabel }}&lt;/span&gt;
+  &lt;/div&gt;
+  &lt;p class="flight-card-airline"&gt;{{ flight().airline }}&lt;/p&gt;
+  &lt;p class="flight-card-meta"&gt;
+    {{ flight().type === 'departure' ? '↑' : '↓' }} {{ flight().airport }}
+  &lt;/p&gt;
+  &lt;p class="flight-card-meta"&gt;
+    {{ flight().scheduledTime }} · {{ flight().terminal }}
+    @if (flight().gate) {
+      · Gate {{ flight().gate }}
     }
-    .badge-green   { background: #1a7f37; color: #fff; }
-    .badge-orange  { background: #d29922; color: #000; }
-    .badge-blue    { background: #0969da; color: #fff; }
-    .badge-gray    { background: #6e7781; color: #fff; }
-    .badge-teal    { background: #0e8a7a; color: #fff; }
-    .badge-red     { background: #cf222e; color: #fff; }
-  `],
-})
-export class FlightStatusBadgeComponent {
-  @Input({ required: true }) status!: FlightStatus;
-}
-</code></pre>
-      </div>
+  &lt;/p&gt;
 
-      <h3>Vollst&auml;ndige Flugliste mit @for, @if und Pipes</h3>
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-filename">flight-list.component.ts (komplett)</span>
-          <span class="code-lang">typescript</span>
-        </div>
-        <pre><code class="language-typescript">import { Component }                   from '@angular/core';
-import { FormsModule }                  from '@angular/forms';
-import { UpperCasePipe }                from '@angular/common';
-import { FlightStatusBadgeComponent }   from '../flight-status-badge/flight-status-badge.component';
-import { Flight }                       from '../../models/flight';
-import { FLIGHTS }                      from '../../data/flights';
-
-@Component({
-  selector: 'app-flight-list',
-  standalone: true,
-  imports: [FormsModule, UpperCasePipe, FlightStatusBadgeComponent],
-  template: `
-    &lt;div class="controls"&gt;
-      &lt;input [(ngModel)]="searchTerm" placeholder="Suche..."&gt;
-    &lt;/div&gt;
-
-    &lt;table class="flight-table"&gt;
-      &lt;thead&gt;
-        &lt;tr&gt;
-          &lt;th&gt;Flug&lt;/th&gt;
-          &lt;th&gt;Airline&lt;/th&gt;
-          &lt;th&gt;Typ&lt;/th&gt;
-          &lt;th&gt;Zeit (geplant)&lt;/th&gt;
-          &lt;th&gt;Status&lt;/th&gt;
-          &lt;th&gt;Flughafen&lt;/th&gt;
-          &lt;th&gt;Terminal&lt;/th&gt;
-        &lt;/tr&gt;
-      &lt;/thead&gt;
-      &lt;tbody&gt;
-        @for (flight of filteredFlights; track flight.id; let i = $index) {
-          &lt;tr [class.even-row]="i % 2 === 0"&gt;
-            &lt;td&gt;&lt;strong&gt;{{ flight.flightNumber }}&lt;/strong&gt;&lt;/td&gt;
-            &lt;td&gt;{{ flight.airline }}&lt;/td&gt;
-            &lt;td&gt;
-              @if (flight.type === 'departure') {
-                &lt;span&gt;&#9650; Abflug&lt;/span&gt;
-              } @else {
-                &lt;span&gt;&#9660; Ankunft&lt;/span&gt;
-              }
-            &lt;/td&gt;
-            &lt;td&gt;
-              {{ flight.scheduledTime }}
-              @if (flight.expectedTime) {
-                &lt;span class="delayed-time"&gt;(erw. {{ flight.expectedTime }})&lt;/span&gt;
-              }
-            &lt;/td&gt;
-            &lt;td&gt;
-              &lt;app-flight-status-badge [status]="flight.status" /&gt;
-            &lt;/td&gt;
-            &lt;td&gt;{{ flight.airport }}&lt;/td&gt;
-            &lt;td&gt;{{ flight.terminal }}{{ flight.gate ? ' / ' + flight.gate : '' }}&lt;/td&gt;
-          &lt;/tr&gt;
-        } @empty {
-          &lt;tr&gt;
-            &lt;td colspan="7" class="empty-state"&gt;
-              Kein Flug für &bdquo;{{ searchTerm }}&ldquo; gefunden.
-            &lt;/td&gt;
-          &lt;/tr&gt;
-        }
-      &lt;/tbody&gt;
-    &lt;/table&gt;
-  `,
-})
-export class FlightListComponent {
-  flights: Flight[]  = FLIGHTS;
-  searchTerm: string = '';
-
-  get filteredFlights(): Flight[] {
-    const term = this.searchTerm.toLowerCase().trim();
-    if (!term) return this.flights;
-    return this.flights.filter(f =&gt;
-      f.flightNumber.toLowerCase().includes(term) ||
-      f.airline.toLowerCase().includes(term)      ||
-      f.airport.toLowerCase().includes(term)
-    );
+  &lt;!-- @switch: je nach Status ein anderer Hinweis --&gt;
+  @switch (flight().status) {
+    @case ('delayed') {
+      &lt;p class="time-delayed"&gt;Neue Zeit: {{ flight().expectedTime }}&lt;/p&gt;
+    }
+    @case ('boarding') {
+      &lt;p class="flight-card-meta"&gt;Boarding läuft&lt;/p&gt;
+    }
+    @case ('cancelled') {
+      &lt;p class="flight-card-meta"&gt;Flug gestrichen&lt;/p&gt;
+    }
   }
-}
-</code></pre>
-      </div>
-
-      <div class="callout callout-tip">
-        <div class="callout-icon">&#10003;</div>
-        <div class="callout-body">
-          <div class="callout-title">Pipe vs. Methode &mdash; wann welches?</div>
-          <p>
-            <strong>Pipes</strong> f&uuml;r reine Datentransformationen im Template (Formatierung,
-            Label-Mapping, Farb-Mapping). Angular kann <code>pure</code> Pipes cachen.
-            <strong>Methoden</strong> f&uuml;r komplexe Logik mit Seiteneffekten oder mehreren
-            Parametern. Vermeide teure Methodenaufrufe direkt im Template (jeder
-            Change-Detection-Durchlauf ruft sie auf) &mdash; nutze stattdessen Getter oder
-            berechnete Eigenschaften.
-          </p>
-        </div>
+&lt;/article&gt;</code></pre>
       </div>
     </section>
 
@@ -507,18 +297,14 @@ export class FlightListComponent {
       <div class="projekt-box">
         <div class="projekt-box-header">
           <span class="projekt-step">Projektschritt 1.4</span>
-          <h3>StatusBadge-Komponente mit Pipes</h3>
+          <h3>Status-Texte, Hinweise und leere Liste</h3>
         </div>
-        <p>
-          Erstelle die Pipe- und Badge-Infrastruktur f&uuml;r das FlugBoard:
-        </p>
         <ol style="margin:.75rem 0 0 1.25rem;line-height:2">
-          <li>Erstelle <code>StatusColorPipe</code> in <code>src/app/pipes/</code></li>
-          <li>Erstelle <code>StatusLabelPipe</code> mit deutschen Bezeichnungen</li>
-          <li>Erstelle <code>FlightStatusBadgeComponent</code> die beide Pipes kombiniert</li>
-          <li>Binde <code>FlightStatusBadgeComponent</code> in <code>FlightCardComponent</code> ein</li>
-          <li>Ersetze alle manuellen Status-Strings im Template durch die Pipe-Ausgaben</li>
-          <li>Verifiziere, dass alle 6 Status-Varianten korrekt eingef&auml;rbt dargestellt werden</li>
+          <li><code>app.html</code>: <code>@empty</code> an die Kartenliste h&auml;ngen, Auswahl-Box mit <code>@if … as</code> und <code>@else</code> (Abschnitt&nbsp;1)</li>
+          <li><code>AirportHeader</code>: Datum mit der <code>date</code>-Pipe anzeigen (Abschnitt&nbsp;2)</li>
+          <li><code>StatusLabelPipe</code> mit <code>ng generate pipe</code> anlegen (Abschnitt&nbsp;3)</li>
+          <li><code>FlightCard</code>: Pipe importieren und verwenden, Gate mit <code>@if</code>, Hinweise mit <code>@switch</code></li>
+          <li>Testen: Suche nach &bdquo;xyz&ldquo; zeigt &bdquo;Keine Fl&uuml;ge gefunden.&ldquo;</li>
         </ol>
       </div>
     </section>
@@ -526,43 +312,20 @@ export class FlightListComponent {
     <!-- Häufige Fehler -->
     <section class="section section-fehler">
       <h2>H&auml;ufige Fehler</h2>
-
       <div class="fehler-item">
-        <div class="fehler-title"><code>track</code> in @for vergessen</div>
-        <p>
-          Angular&nbsp;17 macht <code>track</code> obligatorisch. Ein fehlender <code>track</code>-Ausdruck
-          f&uuml;hrt zu einem Kompilierfehler.
-        </p>
-        <p class="fehler-fix">
-          <strong>Fix:</strong> Immer <code>track item.id</code> (oder <code>track $index</code> als
-          Fallback) angeben: <code>@for (x of list; track x.id) { }</code>.
-        </p>
+        <div class="fehler-title"><code>@for</code> ohne <code>track</code></div>
+        <p>Der Compiler meldet einen Fehler: <code>track</code> ist bei <code>@for</code> Pflicht.</p>
+        <p class="fehler-fix"><strong>Fix:</strong> Eine eindeutige Eigenschaft angeben: <code>track flight.id</code>.</p>
       </div>
-
       <div class="fehler-item">
-        <div class="fehler-title">Pipe nicht importiert &mdash; Template-Fehler</div>
-        <p>
-          <code>InvalidPipeArgument</code> oder <em>&bdquo;The pipe 'statusColor' could not be
-          found&ldquo;</em>, weil die Pipe nicht im <code>imports</code>-Array steht.
-        </p>
-        <p class="fehler-fix">
-          <strong>Fix:</strong> Pipe-Klasse im <code>imports</code>-Array der Komponente eintragen,
-          die sie nutzt: <code>imports: [StatusColorPipe]</code>.
-        </p>
+        <div class="fehler-title"><code>No pipe found with name 'statusLabel'</code></div>
+        <p>Die Pipe ist angelegt, steht aber nicht im <code>imports</code>-Array der Komponente, die sie verwendet.</p>
+        <p class="fehler-fix"><strong>Fix:</strong> In <code>flight-card.ts</code>: <code>imports: [StatusLabelPipe]</code>. Gleiches gilt f&uuml;r eingebaute Pipes wie <code>DatePipe</code>.</p>
       </div>
-
       <div class="fehler-item">
-        <div class="fehler-title">Impure Pipe wird zu oft aufgerufen</div>
-        <p>
-          Eine Pipe mit <code>pure: false</code> wird bei <em>jedem</em> Change-Detection-Durchlauf
-          aufgerufen &mdash; auch wenn der Eingabewert unver&auml;ndert ist. Das kann Performance-
-          Probleme verursachen.
-        </p>
-        <p class="fehler-fix">
-          <strong>Fix:</strong> Immer <code>pure: true</code> (der Default) verwenden, wenn m&ouml;glich.
-          Impure Pipes nur dann einsetzen, wenn die Transformation von externem State abh&auml;ngt, der
-          sich au&szlig;erhalb des Eingabewerts &auml;ndern kann (z.B. aktueller Timestamp).
-        </p>
+        <div class="fehler-title"><code>@empty</code> an der falschen Stelle</div>
+        <p><code>@empty</code> steht in einem eigenen Block statt direkt nach der schlie&szlig;enden Klammer von <code>@for</code>.</p>
+        <p class="fehler-fix"><strong>Fix:</strong> <code>} @empty {</code> &ndash; der Block geh&ouml;rt unmittelbar zu <code>@for</code>, wie <code>@else</code> zu <code>@if</code>.</p>
       </div>
     </section>
 
@@ -570,60 +333,34 @@ export class FlightListComponent {
     <section class="section section-aufgaben">
       <h2>Aufgaben</h2>
       <div class="aufgaben-list">
-
         <div class="aufgabe">
           <div class="aufgabe-header">
             <span class="aufgabe-num">Aufgabe 1</span>
-            <span class="aufgabe-title">FlightTypePipe implementieren</span>
+            <span class="aufgabe-title">FlightTypePipe</span>
           </div>
-          <p>
-            Erstelle eine Pipe <code>FlightTypePipe</code>, die <code>'departure'</code> in
-            <em>&bdquo;&#9650; Abflug&ldquo;</em> und <code>'arrival'</code> in
-            <em>&bdquo;&#9660; Ankunft&ldquo;</em> umwandelt. Verwende sie im
-            <code>FlightCard</code>-Template statt des bisherigen <code>@if</code>-Blocks.
-          </p>
+          <p>Schreibe eine Pipe <code>flightType</code>, die aus <code>departure</code>/<code>arrival</code> den Text &bdquo;&uarr; Abflug&ldquo; bzw. &bdquo;&darr; Ankunft&ldquo; macht, und ersetze damit den Bedingungsoperator in der Karte.</p>
         </div>
-
         <div class="aufgabe">
           <div class="aufgabe-header">
             <span class="aufgabe-num">Aufgabe 2</span>
-            <span class="aufgabe-title">Verz&ouml;gerungsminuten mit Pipe</span>
+            <span class="aufgabe-title">Pipe mit Argument</span>
           </div>
-          <p>
-            Erstelle eine Pipe <code>DelayMinutesPipe</code>, die ein <code>Flight</code>-Objekt
-            entgegennimmt und die Verz&ouml;gerung in Minuten als String zur&uuml;ckgibt
-            (z.B. <em>&bdquo;+25 min&ldquo;</em> oder <em>&bdquo;&mdash;&ldquo;</em> wenn keine
-            Verz&ouml;gerung). Verwende sie in der Flugtabelle.
-          </p>
+          <p>Erweitere <code>statusLabel</code> um ein optionales Argument <code>kurz</code>: <code>{{ status | statusLabel: true }}</code> liefert nur ein Symbol (&#10003;, &#9201;, &#10005; &hellip;). Das Argument kommt als zweiter Parameter in <code>transform</code> an.</p>
         </div>
-
         <div class="aufgabe">
           <div class="aufgabe-header">
             <span class="aufgabe-num">Aufgabe 3</span>
-            <span class="aufgabe-title">Zebra-Streifen mit $index</span>
+            <span class="aufgabe-title">Nummerierung mit $index</span>
           </div>
-          <p>
-            Nutze die lokale Variable <code>$index</code> im <code>@for</code>-Block, um jeder
-            zweiten Zeile die CSS-Klasse <code>row-even</code> zuzuweisen. Verwende
-            <code>[class.row-even]="$index % 2 === 0"</code>. Definiere passende Styles direkt
-            in der Komponente (<code>styles</code> oder <code>styleUrl</code>).
-          </p>
+          <p>Zeige vor jeder Karte ihre Position in der gefilterten Liste an (1, 2, 3 &hellip;). Verwende <code>$index</code>; der Index beginnt bei 0.</p>
         </div>
-
         <div class="aufgabe aufgabe-bonus">
           <div class="aufgabe-header">
             <span class="aufgabe-num">Bonus</span>
-            <span class="aufgabe-title">Pipe mit Argument: Zeitformat</span>
+            <span class="aufgabe-title">Versp&auml;tung in Minuten</span>
           </div>
-          <p>
-            Erstelle eine Pipe <code>FlightTimePipe</code>, die einen <code>HH:MM</code>-String
-            entgegennimmt. Per optionalem Argument <code>:format</code> soll sie entweder
-            <em>&bdquo;HH:MM Uhr&ldquo;</em> (default) oder <em>&bdquo;H.MM Uhr&ldquo;</em> (Format
-            <code>'short'</code>) ausgeben. Implementiere die Pipe mit PipeTransform und
-            Argument&uuml;bergabe via <code>transform(value: string, format = 'long')</code>.
-          </p>
+          <p>Eine Pipe <code>delayMinutes</code> bekommt einen Flug und liefert z.&nbsp;B. &bdquo;+30 min&ldquo; aus <code>scheduledTime</code> und <code>expectedTime</code>. Verwende sie im <code>@case ('delayed')</code>.</p>
         </div>
-
       </div>
     </section>
 

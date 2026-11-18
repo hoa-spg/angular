@@ -1,0 +1,29 @@
+<div class="page-content">
+  <h1 class="page-title">✈ FlugBoard Wien</h1>
+
+  <table class="flight-table">
+    <thead>
+      <tr>
+        <th>Flug</th>
+        <th>Airline</th>
+        <th>Typ</th>
+        <th>Zeit</th>
+        <th>Airport</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- @for wiederholt die Zeile für jeden Flug -->
+      @for (flight of flights; track flight.id) {
+        <tr>
+          <td class="flight-num">{{ flight.flightNumber }}</td>
+          <td>{{ flight.airline }}</td>
+          <td>{{ flight.type }}</td>
+          <td>{{ flight.scheduledTime }}</td>
+          <td>{{ flight.airport }}</td>
+          <td>{{ flight.status }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

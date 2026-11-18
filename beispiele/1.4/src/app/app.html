@@ -1,0 +1,41 @@
+<div class="page-content">
+  <app-airport-header airportName="Wien" />
+
+  <div class="toolbar">
+    <!-- Two-Way-Binding: Eingabe und Signal bleiben synchron -->
+    <input
+      class="search-input"
+      [(ngModel)]="searchText"
+      placeholder="Flug, Airline, Airport ..."
+    />
+
+    <!-- Property-Binding auf eine CSS-Klasse + Event-Binding -->
+    <div class="type-filter">
+      <button [class.active]="activeType() === 'all'" (click)="activeType.set('all')">Alle</button>
+      <button [class.active]="activeType() === 'departure'" (click)="activeType.set('departure')">
+        Abflüge
+      </button>
+      <button [class.active]="activeType() === 'arrival'" (click)="activeType.set('arrival')">
+        Ankünfte
+      </button>
+    </div>
+
+    <span class="page-meta">{{ filteredFlights().length }} Treffer</span>
+  </div>
+
+  <div class="selected-info">
+    @if (selectedFlight(); as flight) {
+      <strong>Ausgewählt:</strong> {{ flight.flightNumber }} – {{ flight.airline }}
+    } @else {
+      Klicke auf einen Flug, um ihn auszuwählen.
+    }
+  </div>
+
+  <div class="card-grid">
+    @for (flight of filteredFlights(); track flight.id) {
+      <app-flight-card [flight]="flight" (selected)="onFlightSelect($event)" />
+    } @empty {
+      <p class="empty-state">Keine Flüge gefunden.</p>
+    }
+  </div>
+</div>

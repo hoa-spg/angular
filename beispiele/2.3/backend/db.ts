@@ -1,4 +1,4 @@
-import { createClient } from 'npm:@libsql/client';
+import { createClient } from 'npm:@libsql/client/node';
 import { and, eq }       from 'npm:drizzle-orm';
 import { drizzle }       from 'npm:drizzle-orm/libsql';
 import {

@@ -1,0 +1,16 @@
+<div class="page-content">
+  <app-airport-header airportName="Wien" />
+
+  @if (selectedFlight()) {
+    <div class="selected-info">
+      <strong>Ausgewählt:</strong>
+      {{ selectedFlight()?.flightNumber }} – {{ selectedFlight()?.airline }}
+    </div>
+  }
+
+  <div class="card-grid">
+    @for (flight of flights; track flight.id) {
+      <app-flight-card [flight]="flight" (selected)="onFlightSelect($event)" />
+    }
+  </div>
+</div>

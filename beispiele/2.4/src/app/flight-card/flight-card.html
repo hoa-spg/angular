@@ -1,0 +1,30 @@
+<article class="flight-card" (click)="selected.emit(flight())">
+  <div class="flight-card-head">
+    <span class="flight-num">{{ flight().flightNumber }}</span>
+    <!-- Eigene Pipe: Status-Code → lesbarer Text -->
+    <span class="status-badge status-{{ flight().status }}">{{ flight().status | statusLabel }}</span>
+  </div>
+  <p class="flight-card-airline">{{ flight().airline }}</p>
+  <p class="flight-card-meta">
+    {{ flight().type === 'departure' ? '↑' : '↓' }} {{ flight().airport }}
+  </p>
+  <p class="flight-card-meta">
+    {{ flight().scheduledTime }} · {{ flight().terminal }}
+    @if (flight().gate) {
+      · Gate {{ flight().gate }}
+    }
+  </p>
+
+  <!-- @switch: je nach Status ein anderer Hinweis -->
+  @switch (flight().status) {
+    @case ('delayed') {
+      <p class="time-delayed">Neue Zeit: {{ flight().expectedTime }}</p>
+    }
+    @case ('boarding') {
+      <p class="flight-card-meta">Boarding läuft</p>
+    }
+    @case ('cancelled') {
+      <p class="flight-card-meta">Flug gestrichen</p>
+    }
+  }
+</article>

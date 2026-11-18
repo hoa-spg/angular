@@ -58,574 +58,304 @@
 
     <section class="section section-lernziele">
       <h2>Lernziele</h2>
-      <ul class="lernziele-list">
-        <li>Den Angular Router konfigurieren: provideRouter, RouterOutlet, RouterLink, Lazy Loading</li>
-        <li>Route-Parameter mit <code>ActivatedRoute</code> lesen (snapshot vs. Observable)</li>
-        <li>Reactive Forms mit <code>FormBuilder</code>, <code>FormGroup</code>, <code>Validators</code> und Fehlerbehandlung implementieren</li>
-        <li>Das vollst&auml;ndige CRUD-Bild: Flugliste, Detail, Hinzuf&uuml;gen, L&ouml;schen, Status &auml;ndern</li>
-        <li>Ein Deno+Hono+Drizzle+SQLite-Backend aufsetzen und mit Angular verbinden</li>
-        <li>Das fertige Fullstack-Projekt <em>FlugBoard</em> pr&auml;sentieren k&ouml;nnen</li>
+      <ul>
+        <li>Den Angular Router einrichten und Routen definieren</li>
+        <li>Seiten mit <code>&lt;router-outlet&gt;</code>, <code>routerLink</code> und <code>Router.navigate</code> wechseln</li>
+        <li>Routen-Parameter als <code>input()</code> empfangen</li>
+        <li>Seiten mit <code>loadComponent</code> erst bei Bedarf laden (Lazy Loading)</li>
+        <li>Den Aufbau des fertigen Fullstack-FlugBoards erkl&auml;ren</li>
       </ul>
     </section>
 
-    <!-- Section 1: Angular Router -->
+    <!-- Section 1: Routing -->
     <section class="section">
-      <h2>Angular Router &mdash; Client-Side Routing</h2>
-
+      <h2>1 &mdash; Client-Side Routing</h2>
       <p>
-        Der Angular Router erm&ouml;glicht Navigation zwischen verschiedenen Ansichten, ohne die Seite
-        neu zu laden. Jede Route wird einer Komponente zugeordnet. Der Router rendert die aktive
-        Komponente in <code>&lt;router-outlet&gt;</code>.
+        Bisher hat das FlugBoard genau eine Ansicht. Jetzt bekommt jeder Flug eine eigene Detailseite mit eigener
+        URL, z.&nbsp;B. <code>/flight/2</code>. Der <strong>Angular Router</strong> wechselt die angezeigte
+        Komponente passend zur URL &ndash; ohne die Seite neu vom Server zu laden. Das Prinzip kennst du aus
+        React Router:
       </p>
+      <div style="overflow-x:auto;">
+        <table class="compare-table">
+          <thead><tr><th>React Router</th><th>Angular Router</th></tr></thead>
+          <tbody>
+            <tr><td><code>&lt;Route path="/flight/:id" element={…} /&gt;</code></td><td>Eintrag in <code>routes</code>: <code>{ path: 'flight/:id', … }</code></td></tr>
+            <tr><td><code>&lt;Outlet /&gt;</code></td><td><code>&lt;router-outlet /&gt;</code></td></tr>
+            <tr><td><code>&lt;Link to="/"&gt;</code></td><td><code>&lt;a routerLink="/"&gt;</code></td></tr>
+            <tr><td><code>useNavigate()</code></td><td><code>inject(Router).navigate(…)</code></td></tr>
+            <tr><td><code>useParams()</code></td><td>Routen-Parameter als <code>input()</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
 
+    <!-- Section 2: Router einrichten -->
+    <section class="section">
+      <h2>2 &mdash; Den Router einrichten</h2>
+      <p>
+        Das Projekt wurde in Lektion&nbsp;1.1 ohne Router angelegt. Wir erg&auml;nzen ihn von Hand. Die Routen
+        stehen in einer eigenen Datei:
+      </p>
       <div class="code-block">
         <div class="code-header">
           <span class="code-filename">src/app/app.routes.ts</span>
           <span class="code-lang">typescript</span>
         </div>
         <pre><code class="language-typescript">import { Routes } from '@angular/router';
+import { FlightBoard } from './flight-board/flight-board';
 
 export const routes: Routes = [
+  { path: '', component: FlightBoard },
   {
-    path: '',
-    redirectTo: 'flights',
-    pathMatch: 'full',
+    path: 'flight/:id',
+    // Lazy Loading: der Code der Detailseite wird erst beim ersten Aufruf geladen
+    loadComponent: () =&gt; import('./flight-detail/flight-detail').then((m) =&gt; m.FlightDetail),
   },
-  {
-    path: 'flights',
-    // Lazy Loading: Komponente wird erst geladen, wenn Route besucht wird
-    loadComponent: () =&gt;
-      import('./pages/flight-board/flight-board.component').then(
-        m =&gt; m.FlightBoardComponent,
-      ),
-    data: { title: 'Flugbord Wien' },
-  },
-  {
-    path: 'flights/:id',
-    loadComponent: () =&gt;
-      import('./pages/flight-detail/flight-detail.component').then(
-        m =&gt; m.FlightDetailComponent,
-      ),
-  },
-  {
-    path: 'flights/new',
-    loadComponent: () =&gt;
-      import('./pages/add-flight/add-flight.component').then(
-        m =&gt; m.AddFlightComponent,
-      ),
-  },
-  {
-    path: '**',
-    loadComponent: () =&gt;
-      import('./pages/not-found/not-found.component').then(
-        m =&gt; m.NotFoundComponent,
-      ),
-  },
-];
-</code></pre>
+  { path: '**', redirectTo: '' },
+];</code></pre>
       </div>
-
-      <div class="callout callout-info">
-        <div class="callout-icon">&#8505;</div>
-        <div class="callout-body">
-          <div class="callout-title">Lazy Loading &mdash; Vorteile</div>
-          <p>
-            Mit <code>loadComponent</code> wird der JavaScript-Code einer Route erst heruntergeladen,
-            wenn der Nutzer diese Route besucht. Das bedeutet: Kleineres initiales Bundle,
-            schnelleres erstes Laden. Besonders bei gro&szlig;en Apps (viele Seiten) macht
-            Lazy Loading einen erheblichen Performance-Unterschied.
-          </p>
-        </div>
-      </div>
-
-      <h3>Router im AppComponent einrichten</h3>
+      <ul>
+        <li><code>path: ''</code> ist die Startseite, <code>flight/:id</code> eine Route mit Parameter: <code>:id</code> passt auf jeden Wert, etwa <code>/flight/2</code>.</li>
+        <li><code>path: '**'</code> f&auml;ngt alle unbekannten URLs ab und leitet zur Startseite um.</li>
+        <li><code>loadComponent</code> l&auml;dt die Detailseite erst, wenn sie gebraucht wird (Abschnitt&nbsp;5).</li>
+      </ul>
+      <p>In <code>app.config.ts</code> wird der Router mit diesen Routen bereitgestellt:</p>
       <div class="code-block">
         <div class="code-header">
-          <span class="code-filename">src/app/app.component.ts (mit Router)</span>
+          <span class="code-filename">src/app/app.config.ts</span>
           <span class="code-lang">typescript</span>
         </div>
-        <pre><code class="language-typescript">import { Component }                          from '@angular/core';
-import { RouterOutlet, RouterLink,
-         RouterLinkActive }                   from '@angular/router';
+        <pre><code class="language-typescript">import { provideHttpClient } from '@angular/common/http';
+import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { provideRouter, withComponentInputBinding } from '@angular/router';
+import { routes } from './app.routes';
 
-@Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
-  template: `
-    &lt;nav class="main-nav"&gt;
-      &lt;a routerLink="/flights"
-         routerLinkActive="active"
-         [routerLinkActiveOptions]="{ exact: false }"&gt;
-        Flugboard
-      &lt;/a&gt;
-      &lt;a routerLink="/flights/new"
-         routerLinkActive="active"&gt;
-        + Flug hinzufügen
-      &lt;/a&gt;
-    &lt;/nav&gt;
-
-    &lt;!-- Hier rendert der Router die aktive Seiten-Komponente: --&gt;
-    &lt;router-outlet /&gt;
-  `,
-})
-export class AppComponent {}
-</code></pre>
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideBrowserGlobalErrorListeners(),
+    provideHttpClient(),
+    // withComponentInputBinding: Routen-Parameter wie :id kommen als input() an
+    provideRouter(routes, withComponentInputBinding()),
+  ],
+};</code></pre>
       </div>
     </section>
 
-    <!-- Section 2: Route Parameter -->
+    <!-- Section 3: App und Board -->
     <section class="section">
-      <h2>Route-Parameter &mdash; ActivatedRoute</h2>
-
+      <h2>3 &mdash; App als H&uuml;lle, das Board als Seite</h2>
       <p>
-        Wenn die Route <code>/flights/:id</code> aufgerufen wird, enth&auml;lt <code>:id</code>
-        den Wert aus der URL. <code>ActivatedRoute</code> gibt Zugriff auf diese Parameter.
+        Der bisherige Inhalt von <code>App</code> wird zur Seite <code>FlightBoard</code>. Dazu eine neue Komponente
+        anlegen und Klasse und Template aus <code>app.ts</code>/<code>app.html</code> hin&uuml;berverschieben &ndash;
+        mit angepassten Importpfaden (<code>../flight</code> statt <code>./flight</code>).
       </p>
-
       <div class="code-block">
         <div class="code-header">
-          <span class="code-filename">src/app/pages/flight-detail/flight-detail.component.ts</span>
+          <span class="code-filename">Terminal</span>
+          <span class="code-lang">bash</span>
+        </div>
+        <pre><code class="language-bash">ng generate component flight-board
+ng generate component flight-detail</code></pre>
+      </div>
+      <p><code>App</code> beh&auml;lt nur die Kopfzeile und den Platz f&uuml;r die aktuelle Seite:</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">src/app/app.ts</span>
           <span class="code-lang">typescript</span>
         </div>
-        <pre><code class="language-typescript">import { Component, inject, OnInit } from '@angular/core';
-import { ActivatedRoute, Router }    from '@angular/router';
-import { FlightApiService }          from '../../services/flight-api.service';
-import { Flight }                    from '../../models/flight';
-import { AsyncPipe }                 from '@angular/common';
-import { Observable, switchMap }     from 'rxjs';
+        <pre><code class="language-typescript">import { Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
+import { AirportHeader } from './airport-header/airport-header';
 
 @Component({
-  selector: 'app-flight-detail',
-  standalone: true,
-  imports: [AsyncPipe],
-  template: `
-    @if (flight$ | async; as flight) {
-      &lt;article class="flight-detail"&gt;
-        &lt;header&gt;
-          &lt;h2&gt;{{ flight.flightNumber }}&lt;/h2&gt;
-          &lt;p&gt;{{ flight.airline }}&lt;/p&gt;
-        &lt;/header&gt;
-        &lt;dl class="flight-data"&gt;
-          &lt;dt&gt;Typ&lt;/dt&gt;
-          &lt;dd&gt;{{ flight.type === 'departure' ? 'Abflug' : 'Ankunft' }}&lt;/dd&gt;
-          &lt;dt&gt;Geplante Zeit&lt;/dt&gt;
-          &lt;dd&gt;{{ flight.scheduledTime }}&lt;/dd&gt;
-          &lt;dt&gt;Status&lt;/dt&gt;
-          &lt;dd&gt;{{ flight.status }}&lt;/dd&gt;
-          &lt;dt&gt;Flughafen&lt;/dt&gt;
-          &lt;dd&gt;{{ flight.airport }}&lt;/dd&gt;
-          &lt;dt&gt;Terminal&lt;/dt&gt;
-          &lt;dd&gt;{{ flight.terminal }}&lt;/dd&gt;
-          @if (flight.gate) {
-            &lt;dt&gt;Gate&lt;/dt&gt;
-            &lt;dd&gt;{{ flight.gate }}&lt;/dd&gt;
-          }
-        &lt;/dl&gt;
-        &lt;div class="actions"&gt;
-          &lt;button (click)="onDelete(flight.id)"&gt;Flug löschen&lt;/button&gt;
-          &lt;a [routerLink]="['/flights']"&gt;&#8592; Zurück&lt;/a&gt;
-        &lt;/div&gt;
-      &lt;/article&gt;
-    } @else {
-      &lt;p&gt;Lade Flugdaten...&lt;/p&gt;
-    }
-  `,
+  imports: [RouterOutlet, AirportHeader],
+  selector: 'app-root',
+  styleUrl: './app.css',
+  templateUrl: './app.html',
 })
-export class FlightDetailComponent implements OnInit {
-  private route     = inject(ActivatedRoute);
-  private flightApi = inject(FlightApiService);
-  private router    = inject(Router);
+export class App {}</code></pre>
+      </div>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">src/app/app.html</span>
+          <span class="code-lang">html</span>
+        </div>
+        <pre><code class="language-xml">&lt;div class="page-content"&gt;
+  &lt;app-airport-header airportName="Wien" /&gt;
 
-  flight$!: Observable&lt;Flight&gt;;
+  &lt;!-- Hier setzt der Router die Komponente der aktuellen Route ein --&gt;
+  &lt;router-outlet /&gt;
+&lt;/div&gt;</code></pre>
+      </div>
+      <h3>Navigieren aus dem Code</h3>
+      <p>
+        Im Board ersetzt die Detailseite die Auswahl-Box: Ein Klick auf eine Karte f&uuml;hrt zu
+        <code>/flight/:id</code>. Dazu holt sich <code>FlightBoard</code> den <code>Router</code> mit
+        <code>inject(Router)</code>; <code>selectedFlight</code> und die Auswahl-Box entfallen.
+      </p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">src/app/flight-board/flight-board.ts (Ausschnitt)</span>
+          <span class="code-lang">typescript</span>
+        </div>
+        <pre><code class="language-typescript">  // Klick auf eine Karte öffnet die Detailseite
+  onFlightSelect(flight: Flight): void {
+    this.router.navigate(['/flight', flight.id]);
+  }</code></pre>
+      </div>
+    </section>
+
+    <!-- Section 4: Detailseite -->
+    <section class="section">
+      <h2>4 &mdash; Die Detailseite</h2>
+      <p>
+        Die Detailseite braucht den Wert von <code>:id</code>. Dank <code>withComponentInputBinding()</code>
+        kommt er als Input mit demselben Namen an: <code>id = input.required&lt;string&gt;()</code>. Werte aus der
+        URL sind immer Strings, deshalb <code>Number(this.id())</code>. Der Service bekommt eine Methode f&uuml;r
+        einen einzelnen Flug:
+      </p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">src/app/flight-api.ts (Ausschnitt)</span>
+          <span class="code-lang">typescript</span>
+        </div>
+        <pre><code class="language-typescript">  getFlight(id: number): Observable&lt;Flight&gt; {
+    return this.http.get&lt;Flight&gt;(`${API_URL}/${id}`);
+  }</code></pre>
+      </div>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">src/app/flight-detail/flight-detail.ts</span>
+          <span class="code-lang">typescript</span>
+        </div>
+        <pre><code class="language-typescript">import { Component, OnInit, inject, input, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { Flight } from '../flight';
+import { FlightApi } from '../flight-api';
+import { StatusLabelPipe } from '../status-label-pipe';
+
+@Component({
+  imports: [RouterLink, StatusLabelPipe],
+  selector: 'app-flight-detail',
+  styleUrl: './flight-detail.css',
+  templateUrl: './flight-detail.html',
+})
+export class FlightDetail implements OnInit {
+  private api = inject(FlightApi);
+
+  // Wert des Routen-Parameters :id aus der URL /flight/:id
+  id = input.required&lt;string&gt;();
+
+  flight = signal&lt;Flight | null&gt;(null);
+  error = signal('');
 
   ngOnInit(): void {
-    // Observable-Variante: reagiert auf URL-Änderungen ohne Neurendern
-    this.flight$ = this.route.paramMap.pipe(
-      switchMap(params =&gt; {
-        const id = Number(params.get('id'));
-        return this.flightApi.getFlightById(id);
-      }),
-    );
-  }
-
-  onDelete(id: number): void {
-    this.flightApi.deleteFlight(id).subscribe(() =&gt; {
-      this.router.navigate(['/flights']);  // zurück zur Liste
+    this.api.getFlight(Number(this.id())).subscribe({
+      next: (flight) =&gt; this.flight.set(flight),
+      error: () =&gt; this.error.set('Flug nicht gefunden.'),
     });
   }
-}
-</code></pre>
+}</code></pre>
       </div>
-    </section>
-
-    <!-- Section 3: Reactive Forms -->
-    <section class="section">
-      <h2>Reactive Forms &mdash; typsicheres Formular-Handling</h2>
-
       <p>
-        Angular bietet zwei Formular-Ans&auml;tze: <strong>Template-Driven</strong> (mit
-        <code>ngModel</code>, einfach, wenig Code) und <strong>Reactive Forms</strong>
-        (mit <code>FormBuilder</code>, typsicher, gut testbar). F&uuml;r komplexe Formulare
-        mit Validierung sind Reactive Forms die empfohlene Wahl.
+        Im Template f&uuml;hrt <code>routerLink="/"</code> zur&uuml;ck zum Board &ndash; wie ein normaler Link, aber
+        ohne die Seite neu zu laden. <code>RouterLink</code> muss dazu im <code>imports</code>-Array stehen.
+        <code>@else if</code> unterscheidet Fehler und Ladezustand.
       </p>
-
       <div class="code-block">
         <div class="code-header">
-          <span class="code-filename">src/app/pages/add-flight/add-flight.component.ts</span>
-          <span class="code-lang">typescript</span>
+          <span class="code-filename">src/app/flight-detail/flight-detail.html</span>
+          <span class="code-lang">html</span>
         </div>
-        <pre><code class="language-typescript">import { Component, inject }              from '@angular/core';
-import { Router }                          from '@angular/router';
-import { ReactiveFormsModule,
-         FormBuilder, Validators,
-         AbstractControl }                 from '@angular/forms';
-import { FlightApiService }               from '../../services/flight-api.service';
+        <pre><code class="language-xml">&lt;a class="back-link" routerLink="/"&gt;← Zurück zum Board&lt;/a&gt;
 
-@Component({
-  selector: 'app-add-flight',
-  standalone: true,
-  imports: [ReactiveFormsModule],
-  template: `
-    &lt;form [formGroup]="form" (ngSubmit)="onSubmit()" class="flight-form"&gt;
-      &lt;h2&gt;Neuen Flug hinzufügen&lt;/h2&gt;
-
-      &lt;div class="form-group"&gt;
-        &lt;label for="flightNumber"&gt;Flugnummer *&lt;/label&gt;
-        &lt;input
-          id="flightNumber"
-          formControlName="flightNumber"
-          placeholder="z.B. OS123"
-          [class.invalid]="isInvalid('flightNumber')"
-        &gt;
-        @if (isInvalid('flightNumber')) {
-          &lt;span class="error"&gt;
-            @if (form.get('flightNumber')?.errors?.['required']) {
-              Flugnummer ist erforderlich.
-            }
-            @if (form.get('flightNumber')?.errors?.['pattern']) {
-              Format: 2 Buchstaben + 1-4 Ziffern (z.B. OS123).
-            }
-          &lt;/span&gt;
-        }
+@if (flight(); as flight) {
+  &lt;div class="detail-card"&gt;
+    &lt;div class="detail-card-header"&gt;
+      &lt;div&gt;
+        &lt;div class="detail-flight-num"&gt;{{ flight.flightNumber }}&lt;/div&gt;
+        &lt;div class="detail-airline"&gt;{{ flight.airline }}&lt;/div&gt;
       &lt;/div&gt;
+      &lt;span class="status-badge status-{{ flight.status }}"&gt;{{ flight.status | statusLabel }}&lt;/span&gt;
+    &lt;/div&gt;
 
-      &lt;div class="form-group"&gt;
-        &lt;label for="airline"&gt;Airline *&lt;/label&gt;
-        &lt;input id="airline" formControlName="airline"
-               [class.invalid]="isInvalid('airline')"&gt;
-        @if (isInvalid('airline')) {
-          &lt;span class="error"&gt;Airline-Name ist erforderlich.&lt;/span&gt;
-        }
+    &lt;div class="detail-body"&gt;
+      &lt;div class="detail-field"&gt;
+        &lt;div class="detail-field-label"&gt;Airport&lt;/div&gt;
+        &lt;div class="detail-field-value"&gt;{{ flight.airport }}&lt;/div&gt;
       &lt;/div&gt;
-
-      &lt;div class="form-group"&gt;
-        &lt;label for="type"&gt;Typ *&lt;/label&gt;
-        &lt;select id="type" formControlName="type"&gt;
-          &lt;option value="departure"&gt;Abflug&lt;/option&gt;
-          &lt;option value="arrival"&gt;Ankunft&lt;/option&gt;
-        &lt;/select&gt;
+      &lt;div class="detail-field"&gt;
+        &lt;div class="detail-field-label"&gt;Planzeit&lt;/div&gt;
+        &lt;div class="detail-field-value"&gt;{{ flight.scheduledTime }}&lt;/div&gt;
       &lt;/div&gt;
-
-      &lt;div class="form-group"&gt;
-        &lt;label for="scheduledTime"&gt;Geplante Zeit *&lt;/label&gt;
-        &lt;input id="scheduledTime" type="time" formControlName="scheduledTime"
-               [class.invalid]="isInvalid('scheduledTime')"&gt;
-        @if (isInvalid('scheduledTime')) {
-          &lt;span class="error"&gt;Zeit ist erforderlich.&lt;/span&gt;
-        }
+      &lt;div class="detail-field"&gt;
+        &lt;div class="detail-field-label"&gt;Terminal / Gate&lt;/div&gt;
+        &lt;div class="detail-field-value"&gt;{{ flight.terminal }} / {{ flight.gate ?? '–' }}&lt;/div&gt;
       &lt;/div&gt;
-
-      &lt;div class="form-group"&gt;
-        &lt;label for="airport"&gt;Flughafen *&lt;/label&gt;
-        &lt;input id="airport" formControlName="airport"
-               placeholder="z.B. Berlin BER"
-               [class.invalid]="isInvalid('airport')"&gt;
-      &lt;/div&gt;
-
-      &lt;div class="form-group"&gt;
-        &lt;label for="terminal"&gt;Terminal *&lt;/label&gt;
-        &lt;input id="terminal" formControlName="terminal" placeholder="z.B. T2"&gt;
-      &lt;/div&gt;
-
-      &lt;div class="form-group"&gt;
-        &lt;label for="gate"&gt;Gate (optional)&lt;/label&gt;
-        &lt;input id="gate" formControlName="gate" placeholder="z.B. B12"&gt;
-      &lt;/div&gt;
-
-      &lt;div class="form-actions"&gt;
-        &lt;button type="submit" [disabled]="form.invalid || isSubmitting"&gt;
-          {{ isSubmitting ? 'Wird gespeichert...' : 'Flug hinzufügen' }}
-        &lt;/button&gt;
-        &lt;a [routerLink]="['/flights']"&gt;Abbrechen&lt;/a&gt;
-      &lt;/div&gt;
-    &lt;/form&gt;
-  `,
-})
-export class AddFlightComponent {
-  private fb        = inject(FormBuilder);
-  private flightApi = inject(FlightApiService);
-  private router    = inject(Router);
-
-  isSubmitting = false;
-
-  form = this.fb.group({
-    flightNumber:  ['', [
-      Validators.required,
-      Validators.pattern(/^[A-Z]{2}\d{1,4}$/),  // z.B. OS123
-    ]],
-    airline:       ['', Validators.required],
-    type:          ['departure' as 'departure' | 'arrival'],
-    scheduledTime: ['', Validators.required],
-    airport:       ['', Validators.required],
-    terminal:      ['T1', Validators.required],
-    gate:          [''],
-    status:        ['on-time'],
-  });
-
-  /** Gibt zurück, ob ein Feld invalid UND bereits berührt wurde */
-  isInvalid(fieldName: string): boolean {
-    const control: AbstractControl | null = this.form.get(fieldName);
-    return !!(control &amp;&amp; control.invalid &amp;&amp; control.touched);
-  }
-
-  onSubmit(): void {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();  // alle Felder als "berührt" markieren
-      return;
-    }
-
-    this.isSubmitting = true;
-    const value = this.form.value;
-
-    this.flightApi.createFlight({
-      flightNumber:  value.flightNumber  ?? '',
-      airline:       value.airline       ?? '',
-      type:          value.type          as 'departure' | 'arrival',
-      scheduledTime: value.scheduledTime ?? '',
-      airport:       value.airport       ?? '',
-      terminal:      value.terminal      ?? 'T1',
-      gate:          value.gate          || undefined,
-      status:        value.status        as any,
-    }).subscribe({
-      next: () =&gt; this.router.navigate(['/flights']),
-      error: err =&gt; {
-        console.error('Fehler beim Speichern:', err);
-        this.isSubmitting = false;
-      },
-    });
-  }
-}
-</code></pre>
+    &lt;/div&gt;
+  &lt;/div&gt;
+} @else if (error()) {
+  &lt;p class="form-error"&gt;{{ error() }}&lt;/p&gt;
+} @else {
+  &lt;p class="page-meta"&gt;Flug wird geladen …&lt;/p&gt;
+}</code></pre>
       </div>
     </section>
 
-    <!-- Section 4: Backend -->
+    <!-- Section 5: Lazy Loading -->
     <section class="section">
-      <h2>Backend: Deno + Hono + Drizzle + SQLite</h2>
-
+      <h2>5 &mdash; Lazy Loading</h2>
       <p>
-        Das Backend ist ein schlanker REST-API-Server auf Basis von <strong>Deno</strong> (modernes,
-        sicheres JavaScript-Runtime), <strong>Hono</strong> (minimales Web-Framework),
-        <strong>Drizzle ORM</strong> (TypeScript-first ORM) und <strong>SQLite</strong> (embedded DB).
+        Mit <code>loadComponent</code> landet die Detailseite in einer eigenen Datei, die der Browser erst beim
+        ersten Aufruf von <code>/flight/…</code> l&auml;dt. Gro&szlig;e Apps starten so schneller. Im Build ist das
+        sichtbar:
       </p>
-
       <div class="code-block">
         <div class="code-header">
-          <span class="code-filename">backend/main.ts</span>
-          <span class="code-lang">typescript</span>
+          <span class="code-filename">Terminal &mdash; ng build (gek&uuml;rzt)</span>
+          <span class="code-lang">bash</span>
         </div>
-        <pre><code class="language-typescript">import { Hono }    from 'hono';
-import { cors }    from 'hono/cors';
-import { serve }   from '@hono/node-server';  // oder Deno serve
-import {
-  getAllFlights,
-  getFlightById,
-  createFlight,
-  deleteFlight,
-  patchStatus,
-} from './db.ts';
-
-const app = new Hono();
-
-// CORS für Angular-Dev-Server freigeben:
-app.use('*', cors({
-  origin: 'http://localhost:4200',
-  allowMethods: ['GET', 'POST', 'PATCH', 'DELETE'],
-}));
-
-// GET /api/flights – alle Flüge
-app.get('/api/flights', async (c) =&gt; {
-  const flights = await getAllFlights();
-  return c.json(flights);
-});
-
-// GET /api/flights/:id – ein Flug
-app.get('/api/flights/:id', async (c) =&gt; {
-  const id     = Number(c.req.param('id'));
-  const flight = await getFlightById(id);
-  if (!flight) return c.json({ error: 'Not found' }, 404);
-  return c.json(flight);
-});
-
-// POST /api/flights – neuen Flug anlegen
-app.post('/api/flights', async (c) =&gt; {
-  const body   = await c.req.json();
-  const flight = await createFlight(body);
-  return c.json(flight, 201);
-});
-
-// PATCH /api/flights/:id/status – Status aktualisieren
-app.patch('/api/flights/:id/status', async (c) =&gt; {
-  const id     = Number(c.req.param('id'));
-  const { status } = await c.req.json();
-  const flight = await patchStatus(id, status);
-  return c.json(flight);
-});
-
-// DELETE /api/flights/:id – Flug löschen
-app.delete('/api/flights/:id', async (c) =&gt; {
-  const id = Number(c.req.param('id'));
-  await deleteFlight(id);
-  return c.json({ success: true });
-});
-
-// Server starten:
-serve({ fetch: app.fetch, port: 8000 }, info =&gt; {
-  console.log(`Backend läuft auf http://localhost:${info.port}`);
-});
-</code></pre>
-      </div>
-
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-filename">backend/db.ts &mdash; Drizzle ORM Schema &amp; Queries</span>
-          <span class="code-lang">typescript</span>
-        </div>
-        <pre><code class="language-typescript">import { drizzle }       from 'drizzle-orm/better-sqlite3';
-import Database           from 'better-sqlite3';
-import { sqliteTable,
-         integer, text } from 'drizzle-orm/sqlite-core';
-import { eq }            from 'drizzle-orm';
-
-// Datenbank initialisieren:
-const sqlite = new Database('flugboard.db');
-const db     = drizzle(sqlite);
-
-// Schema definieren:
-export const flights = sqliteTable('flights', {
-  id:            integer('id').primaryKey({ autoIncrement: true }),
-  flightNumber:  text('flight_number').notNull(),
-  airline:       text('airline').notNull(),
-  type:          text('type', { enum: ['arrival', 'departure'] }).notNull(),
-  scheduledTime: text('scheduled_time').notNull(),
-  expectedTime:  text('expected_time'),
-  status:        text('status', {
-    enum: ['on-time', 'delayed', 'boarding', 'departed', 'landed', 'cancelled'],
-  }).notNull().default('on-time'),
-  airport:       text('airport').notNull(),
-  terminal:      text('terminal').notNull(),
-  gate:          text('gate'),
-});
-
-// Tabelle erstellen (einmalig, idempotent):
-sqlite.exec(`
-  CREATE TABLE IF NOT EXISTS flights (
-    id             INTEGER PRIMARY KEY AUTOINCREMENT,
-    flight_number  TEXT    NOT NULL,
-    airline        TEXT    NOT NULL,
-    type           TEXT    NOT NULL CHECK(type IN ('arrival','departure')),
-    scheduled_time TEXT    NOT NULL,
-    expected_time  TEXT,
-    status         TEXT    NOT NULL DEFAULT 'on-time',
-    airport        TEXT    NOT NULL,
-    terminal       TEXT    NOT NULL,
-    gate           TEXT
-  )
-`);
-
-// CRUD-Operationen:
-export const getAllFlights  = () =&gt;
-  db.select().from(flights).all();
-
-export const getFlightById = (id: number) =&gt;
-  db.select().from(flights).where(eq(flights.id, id)).get();
-
-export const createFlight  = (data: Omit&lt;typeof flights.$inferInsert, 'id'&gt;) =&gt;
-  db.insert(flights).values(data).returning().get();
-
-export const deleteFlight  = (id: number) =&gt;
-  db.delete(flights).where(eq(flights.id, id)).run();
-
-export const patchStatus   = (id: number, status: string) =&gt;
-  db.update(flights)
-    .set({ status: status as any })
-    .where(eq(flights.id, id))
-    .returning().get();
-</code></pre>
+        <pre><code class="language-bash">Initial chunk files | Names         |  Raw size
+main-….js           | main          |  55.57 kB
+…
+Lazy chunk files    | Names         |  Raw size
+chunk-….js          | flight-detail |   1.78 kB</code></pre>
       </div>
     </section>
 
-    <!-- Projektschritte A/B/C -->
+    <!-- Section 6: Rückblick -->
+    <section class="section">
+      <h2>6 &mdash; Das fertige Fullstack-FlugBoard</h2>
+      <div style="overflow-x:auto;">
+        <table class="compare-table">
+          <thead><tr><th>Schicht</th><th>Technik</th><th>Lektion</th></tr></thead>
+          <tbody>
+            <tr><td>Seiten und Navigation</td><td>Angular Router</td><td>2.4</td></tr>
+            <tr><td>Komponenten und Templates</td><td><code>input()</code>, <code>output()</code>, <code>@for</code>/<code>@if</code>, Pipes</td><td>1.2&ndash;1.4</td></tr>
+            <tr><td>Zustand</td><td>Signals, <code>computed</code></td><td>1.2&ndash;1.3</td></tr>
+            <tr><td>Formulare</td><td>Reactive Forms</td><td>2.1</td></tr>
+            <tr><td>Datenzugriff</td><td>Service, HttpClient, RxJS</td><td>2.2&ndash;2.3</td></tr>
+            <tr><td>Backend</td><td>Deno, Hono, Drizzle, SQLite</td><td>2.2</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Projektschritt -->
     <section class="section section-projekt">
-      <h2>Projektschritte</h2>
-
+      <h2>Projektschritt</h2>
       <div class="projekt-box">
         <div class="projekt-box-header">
-          <span class="projekt-step">Projektschritt 2.4a</span>
-          <h3>Backend aufsetzen</h3>
+          <span class="projekt-step">Projektschritt 2.4</span>
+          <h3>Board und Detailseite mit dem Router</h3>
         </div>
-        <p>Starte das Deno+Hono-Backend:</p>
-        <div class="code-block" style="margin:.75rem 0 0">
-          <div class="code-header">
-            <span class="code-filename">Terminal (Backend)</span>
-            <span class="code-lang">bash</span>
-          </div>
-          <pre><code class="language-bash"># Im backend-Ordner:
-npm install             # oder: deno install
-npm install better-sqlite3 drizzle-orm drizzle-kit hono
-
-# Datenbank initial bef&uuml;llen (optional):
-node seed.js
-
-# Server starten:
-node main.js   # oder: deno run --allow-net --allow-read --allow-write main.ts
-
-# Testen:
-curl http://localhost:8000/api/flights</code></pre>
-        </div>
-      </div>
-
-      <div class="projekt-box" style="margin-top:1rem">
-        <div class="projekt-box-header">
-          <span class="projekt-step">Projektschritt 2.4b</span>
-          <h3>Angular-Frontend fertigstellen</h3>
-        </div>
-        <p>Integriere alle Teile aus den Lektionen 1.1&ndash;2.3:</p>
         <ol style="margin:.75rem 0 0 1.25rem;line-height:2">
-          <li>Routing einrichten (<code>app.routes.ts</code> mit 3 Routen + Lazy Loading)</li>
-          <li><code>FlightBoardComponent</code> mit Stream-Architektur aus Lektion 2.3</li>
-          <li><code>FlightDetailComponent</code> mit <code>ActivatedRoute</code> und Delete-Button</li>
-          <li><code>AddFlightComponent</code> mit Reactive Forms und Validierung</li>
-          <li>Navigation: <code>RouterLink</code> und <code>RouterLinkActive</code></li>
-          <li><code>FlightApiService</code> alle CRUD-Methoden implementiert</li>
-        </ol>
-      </div>
-
-      <div class="projekt-box" style="margin-top:1rem">
-        <div class="projekt-box-header">
-          <span class="projekt-step">Projektschritt 2.4c</span>
-          <h3>End-to-End-Testablauf</h3>
-        </div>
-        <p>Verifiziere alle CRUD-Operationen:</p>
-        <ol style="margin:.75rem 0 0 1.25rem;line-height:2">
-          <li>Backend starten (<code>localhost:8000</code>) und Frontend starten (<code>ng serve</code>)</li>
-          <li>Flugliste aufrufen &mdash; alle Fl&uuml;ge aus der Datenbank sollen erscheinen</li>
-          <li>Suchfeld und Filter testen &mdash; Stream-Architektur mit Debounce pr&uuml;fen</li>
-          <li>Auf einen Flug klicken &mdash; Detail-Seite mit <code>/flights/:id</code> &ouml;ffnet sich</li>
-          <li>Neuen Flug anlegen &uuml;ber <code>/flights/new</code> &mdash; Formular-Validierung pr&uuml;fen</li>
-          <li>Flug l&ouml;schen &mdash; Liste soll sich automatisch aktualisieren</li>
-          <li>Browser-Zur&uuml;ck-Button testen &mdash; Router-History funktioniert korrekt</li>
+          <li><code>app.routes.ts</code> anlegen und <code>provideRouter</code> in <code>app.config.ts</code> erg&auml;nzen (Abschnitt&nbsp;2)</li>
+          <li><code>FlightBoard</code> anlegen und den bisherigen Inhalt von <code>App</code> hinein verschieben; Kartenklick navigiert zur Detailseite (Abschnitt&nbsp;3)</li>
+          <li><code>App</code> auf Kopfzeile und <code>&lt;router-outlet /&gt;</code> reduzieren</li>
+          <li><code>getFlight</code> im Service und die Detailseite <code>FlightDetail</code> (Abschnitt&nbsp;4)</li>
+          <li>Testen: Karte anklicken, URL beobachten, mit &bdquo;Zur&uuml;ck&ldquo; und mit der Zur&uuml;ck-Taste des Browsers zum Board; <code>/flight/999</code> zeigt &bdquo;Flug nicht gefunden.&ldquo;</li>
         </ol>
       </div>
     </section>
@@ -633,57 +363,25 @@ curl http://localhost:8000/api/flights</code></pre>
     <!-- Häufige Fehler -->
     <section class="section section-fehler">
       <h2>H&auml;ufige Fehler</h2>
-
       <div class="fehler-item">
-        <div class="fehler-title"><code>Cannot find module 'better-sqlite3'</code> im Deno-Backend</div>
-        <p>
-          Das npm-Paket <code>better-sqlite3</code> ben&ouml;tigt native Node.js-Addons und ist
-          nicht direkt Deno-kompatibel. Mit dem Deno-Node-Compatibility-Layer l&auml;uft es oft,
-          aber nicht immer.
-        </p>
-        <p class="fehler-fix">
-          <strong>Fix:</strong> Entweder <code>npm</code> statt Deno als Runtime verwenden
-          (<code>node main.js</code>), oder auf <code>@db/sqlite</code> (Deno-native) umstellen und
-          das Drizzle-Adapter entsprechend anpassen.
-        </p>
+        <div class="fehler-title"><code>'router-outlet' is not a known element</code></div>
+        <p><code>RouterOutlet</code> fehlt im <code>imports</code>-Array von <code>App</code>.</p>
+        <p class="fehler-fix"><strong>Fix:</strong> <code>imports: [RouterOutlet, AirportHeader]</code>. Gleiches gilt f&uuml;r <code>RouterLink</code> in der Detailseite.</p>
       </div>
-
       <div class="fehler-item">
-        <div class="fehler-title">CORS-Fehler auch mit <code>cors()</code>-Middleware</div>
-        <p>
-          CORS wird oft falsch konfiguriert: Preflight-Requests (<code>OPTIONS</code>) werden
-          nicht korrekt behandelt, oder die <code>origin</code>-Option passt nicht.
-        </p>
-        <p class="fehler-fix">
-          <strong>Fix:</strong> Im Backend <code>app.use('*', cors())</code> ohne Einschr&auml;nkungen
-          f&uuml;r die Entwicklung. In Produktion auf die konkrete Domain beschr&auml;nken.
-          Pr&uuml;fe im Browser-Netzwerk-Tab, ob der <code>OPTIONS</code>-Preflight-Request
-          eine 200-Antwort mit den richtigen Headern bekommt.
-        </p>
+        <div class="fehler-title">Link l&auml;dt die ganze Seite neu</div>
+        <p>Im Template steht <code>href="/"</code> statt <code>routerLink="/"</code>.</p>
+        <p class="fehler-fix"><strong>Fix:</strong> <code>routerLink</code> verwenden &ndash; dann wechselt nur der Inhalt des <code>router-outlet</code>.</p>
       </div>
-
       <div class="fehler-item">
-        <div class="fehler-title"><code>Can't bind to 'formGroup' since it isn't a known property</code></div>
-        <p>
-          <code>ReactiveFormsModule</code> fehlt im <code>imports</code>-Array der Standalone-Komponente.
-        </p>
-        <p class="fehler-fix">
-          <strong>Fix:</strong> <code>import { ReactiveFormsModule } from '@angular/forms';</code>
-          und <code>imports: [ReactiveFormsModule]</code> in der Formular-Komponente hinzuf&uuml;gen.
-        </p>
+        <div class="fehler-title">Detailseite meldet, dass der Input <code>id</code> keinen Wert hat</div>
+        <p>Der Routen-Parameter kommt nicht als Input an, weil <code>withComponentInputBinding()</code> fehlt.</p>
+        <p class="fehler-fix"><strong>Fix:</strong> <code>provideRouter(routes, withComponentInputBinding())</code>. Der Input muss genauso hei&szlig;en wie der Parameter in der Route.</p>
       </div>
-
       <div class="fehler-item">
-        <div class="fehler-title">ActivatedRoute-Parameter gibt <code>null</code> zur&uuml;ck</div>
-        <p>
-          <code>this.route.snapshot.paramMap.get('id')</code> gibt <code>null</code>, wenn die
-          Route keinen <code>:id</code>-Parameter hat oder der Name falsch geschrieben ist.
-        </p>
-        <p class="fehler-fix">
-          <strong>Fix:</strong> Routen-Konfiguration pr&uuml;fen: der Parameter muss exakt als
-          <code>:id</code> in <code>app.routes.ts</code> definiert sein.
-          <code>console.log(this.route.snapshot.params)</code> zeigt alle verf&uuml;gbaren Parameter.
-        </p>
+        <div class="fehler-title">Nach dem Neuladen von <code>/flight/2</code> kommt 404</div>
+        <p>Ein einfacher Webserver kennt nur echte Dateien. <code>ng serve</code> liefert f&uuml;r jede URL die <code>index.html</code> aus &ndash; ein eigener Server muss das ebenfalls tun.</p>
+        <p class="fehler-fix"><strong>Fix:</strong> Den Server so einstellen, dass unbekannte Pfade auf <code>index.html</code> umgeleitet werden (&bdquo;SPA-Fallback&ldquo;).</p>
       </div>
     </section>
 
@@ -691,76 +389,34 @@ curl http://localhost:8000/api/flights</code></pre>
     <section class="section section-aufgaben">
       <h2>Aufgaben</h2>
       <div class="aufgaben-list">
-
         <div class="aufgabe">
           <div class="aufgabe-header">
             <span class="aufgabe-num">Aufgabe 1</span>
-            <span class="aufgabe-title">Status-&Auml;nderung direkt in der Liste</span>
+            <span class="aufgabe-title">Flug l&ouml;schen</span>
           </div>
-          <p>
-            F&uuml;ge in <code>FlightCardComponent</code> ein <code>&lt;select&gt;</code>-Element hinzu,
-            &uuml;ber das der Status eines Flugs direkt ge&auml;ndert werden kann (ohne die
-            Detail-Seite aufzurufen). Der Wert soll per <code>PATCH /api/flights/:id/status</code>
-            an das Backend gesendet werden. Nutze <code>switchMap</code>, damit parallele Klicks
-            sicher behandelt werden.
-          </p>
+          <p>Ein Button auf der Detailseite l&ouml;scht den Flug (<code>DELETE /api/flights/:id</code>) und navigiert danach mit dem <code>Router</code> zur&uuml;ck zum Board.</p>
         </div>
-
         <div class="aufgabe">
           <div class="aufgabe-header">
             <span class="aufgabe-num">Aufgabe 2</span>
-            <span class="aufgabe-title">Route Guard implementieren</span>
+            <span class="aufgabe-title">Status &auml;ndern</span>
           </div>
-          <p>
-            Erstelle einen <code>canDeactivate</code>-Guard f&uuml;r <code>AddFlightComponent</code>:
-            Wenn das Formular ver&auml;ndert (<code>form.dirty === true</code>), aber noch nicht
-            gespeichert wurde, soll beim Navigieren weg ein Bestätigungsdialog erscheinen
-            (<code>confirm('Änderungen verwerfen?')</code>). Implementiere das als
-            <code>CanDeactivateFn</code>-Funktion und binde sie in die Route ein.
-          </p>
+          <p>Ein <code>&lt;select&gt;</code> auf der Detailseite &auml;ndert den Status &uuml;ber <code>PATCH /api/flights/:id</code>. Die Anzeige aktualisiert sich mit dem Flug aus der Antwort.</p>
         </div>
-
         <div class="aufgabe">
           <div class="aufgabe-header">
             <span class="aufgabe-num">Aufgabe 3</span>
-            <span class="aufgabe-title">Pagination</span>
+            <span class="aufgabe-title">Eigene 404-Seite</span>
           </div>
-          <p>
-            Implementiere eine einfache Paginierung f&uuml;r die Flugliste: Pro Seite werden maximal
-            10 Fl&uuml;ge angezeigt. Baue Vor/Zur&uuml;ck-Buttons und einen Seiten-Indikator.
-            Integriere die Seiten-Nummer als Query-Parameter in die URL:
-            <code>/flights?page=2</code>. Lies den Parameter &uuml;ber <code>this.route.queryParamMap</code>.
-          </p>
+          <p>Lege eine Komponente <code>NotFound</code> an und zeige sie f&uuml;r <code>path: '**'</code> statt der Umleitung. Mit einem <code>routerLink</code> geht es zur&uuml;ck zum Board.</p>
         </div>
-
-        <div class="aufgabe">
-          <div class="aufgabe-header">
-            <span class="aufgabe-num">Aufgabe 4</span>
-            <span class="aufgabe-title">Optimistic UI Update</span>
-          </div>
-          <p>
-            Implementiere beim L&ouml;schen eines Flugs ein <strong>Optimistic UI Update</strong>:
-            Entferne den Flug sofort aus der lokalen Liste (ohne auf die API zu warten).
-            Wenn der API-Aufruf fehlschl&auml;gt, stelle die urspr&uuml;ngliche Liste wieder her
-            und zeige eine Fehlermeldung. Nutze <code>catchError</code> im RxJS-Stream.
-          </p>
-        </div>
-
         <div class="aufgabe aufgabe-bonus">
           <div class="aufgabe-header">
             <span class="aufgabe-num">Bonus</span>
-            <span class="aufgabe-title">Deployment vorbereiten</span>
+            <span class="aufgabe-title">Filter in der URL</span>
           </div>
-          <p>
-            Bereite das Projekt f&uuml;r ein Deployment vor:
-            (1) <code>ng build</code> ausf&uuml;hren und den <code>dist/</code>-Ordner inspizieren.
-            (2) Erkl&auml;re, warum f&uuml;r SPAs auf dem Server eine URL-Rewrite-Regel n&ouml;tig ist
-            (alle Pfade auf <code>index.html</code> umleiten).
-            (3) Erstelle eine <code>nginx.conf</code>- oder <code>_redirects</code>-Datei (Netlify),
-            die dieses Rewriting konfiguriert.
-          </p>
+          <p>Speichere den Typfilter als Query-Parameter, z.&nbsp;B. <code>/?type=arrival</code>. Dann l&auml;sst sich eine gefilterte Ansicht als Link weitergeben. Tipp: Auch Query-Parameter kommen mit <code>withComponentInputBinding()</code> als Input an.</p>
         </div>
-
       </div>
     </section>
 

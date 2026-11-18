@@ -56,381 +56,192 @@
 
     <section class="section section-lernziele">
       <h2>Lernziele</h2>
-      <ul class="lernziele-list">
-        <li>Alle vier Datenbindungstypen sicher und korrekt einsetzen k&ouml;nnen</li>
-        <li><code>FormsModule</code> einbinden und <code>[(ngModel)]</code> f&uuml;r Two-Way-Binding nutzen</li>
-        <li>Event-Typisierung verstehen: <code>$event</code>, <code>InputEvent</code>, <code>MouseEvent</code></li>
-        <li>Getter als reaktiven, berechneten State einsetzen (Angular-&Auml;quivalent zu <code>useMemo</code>)</li>
-        <li>Ein Suchfeld und einen Typ-Filter f&uuml;r das FlugBoard implementieren</li>
-        <li>Change Detection und wann sie ausgel&ouml;st wird verstehen</li>
+      <ul>
+        <li>Die vier Bindungstypen unterscheiden und einsetzen</li>
+        <li>Ein Eingabefeld mit <code>[(ngModel)]</code> an ein Signal binden</li>
+        <li>CSS-Klassen mit <code>[class.name]</code> bedingt setzen</li>
+        <li>Abgeleitete Werte mit <code>computed</code> berechnen</li>
+        <li>Verstehen, wie Signals die Aktualisierung der Anzeige steuern</li>
       </ul>
     </section>
 
-    <!-- Section 1: Die 4 Bindungstypen ausführlich -->
+    <!-- Section 1: Bindungstypen -->
     <section class="section">
-      <h2>Die 4 Bindungstypen &mdash; ausf&uuml;hrlich</h2>
-
-      <h3>1. Interpolation <code>{{ }}</code></h3>
-      <p>
-        Wertet einen JavaScript-Ausdruck aus und f&uuml;gt das Ergebnis als Text in das DOM ein.
-        Sicher gegen XSS: Angular escaped automatisch. Kann einfache Ausdr&uuml;cke enthalten,
-        aber keine Statements (<code>if</code>, <code>for</code>, Zuweisungen sind nicht erlaubt).
-      </p>
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-filename">Interpolation Beispiele</span>
-          <span class="code-lang">html</span>
-        </div>
-        <pre><code class="language-html">&lt;!-- Einfache Eigenschaft: --&gt;
-&lt;span&gt;{{ flight.flightNumber }}&lt;/span&gt;
-
-&lt;!-- Berechneter Ausdruck: --&gt;
-&lt;span&gt;{{ flight.airline.toUpperCase() }}&lt;/span&gt;
-
-&lt;!-- Ternary-Operator: --&gt;
-&lt;span&gt;{{ flight.type === 'departure' ? 'Abflug' : 'Ankunft' }}&lt;/span&gt;
-
-&lt;!-- Nullish Coalescing: --&gt;
-&lt;span&gt;{{ flight.gate ?? 'kein Gate' }}&lt;/span&gt;
-
-&lt;!-- Template-Ausdruck (kein Statement erlaubt!): --&gt;
-&lt;span&gt;{{ count++ }}&lt;/span&gt;  &lt;!-- ← FEHLER! Seiteneffekte verboten --&gt;
-</code></pre>
-      </div>
-
-      <h3>2. Property-Binding <code>[property]="ausdruck"</code></h3>
-      <p>
-        Bindet einen Ausdruck an eine DOM-Eigenschaft oder eine Komponent-Input-Eigenschaft.
-        Die eckigen Klammern signalisieren: &bdquo;Dieser Wert wird dynamisch berechnet.&ldquo;
-        Ohne Klammern w&uuml;rde Angular den Wert als literal String &uuml;bergeben.
-      </p>
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-filename">Property-Binding Beispiele</span>
-          <span class="code-lang">html</span>
-        </div>
-        <pre><code class="language-html">&lt;!-- DOM-Eigenschaft: --&gt;
-&lt;img [src]="flight.airlineLogo" [alt]="flight.airline"&gt;
-&lt;button [disabled]="flight.status === 'departed'"&gt;Details&lt;/button&gt;
-
-&lt;!-- CSS-Klasse dynamisch setzen: --&gt;
-&lt;div [class.delayed]="flight.status === 'delayed'"&gt;
-&lt;div [class]="'status-' + flight.status"&gt;
-
-&lt;!-- Inline-Style dynamisch: --&gt;
-&lt;span [style.color]="flight.status === 'cancelled' ? 'red' : 'inherit'"&gt;
-
-&lt;!-- Input einer Kindkomponente: --&gt;
-&lt;app-flight-card [flight]="currentFlight"&gt;&lt;/app-flight-card&gt;
-
-&lt;!-- ACHTUNG: Unterschied zu Interpolation: --&gt;
-&lt;button disabled="true"&gt;     &lt;!-- String "true" → Button IMMER disabled --&gt;
-&lt;button [disabled]="true"&gt;   &lt;!-- Boolean true  → Button disabled --&gt;
-&lt;button [disabled]="false"&gt;  &lt;!-- Boolean false → Button enabled --&gt;
-</code></pre>
-      </div>
-
-      <h3>3. Event-Binding <code>(event)="handler($event)"</code></h3>
-      <p>
-        H&ouml;rt auf DOM-Events (click, input, submit, keyup, ...) oder benutzerdefinierte
-        Ereignisse von Kindkomponenten. <code>$event</code> enth&auml;lt das native
-        <code>Event</code>-Objekt.
-      </p>
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-filename">Event-Binding Beispiele – Template</span>
-          <span class="code-lang">html</span>
-        </div>
-        <pre><code class="language-html">&lt;button (click)="onDeleteFlight(flight)"&gt;Löschen&lt;/button&gt;
-&lt;input (input)="onSearchInput($event)"&gt;
-&lt;form (submit)="onFormSubmit($event)"&gt;
-&lt;input (keyup.enter)="onEnterPressed()"&gt;  &lt;!-- Angular Key-Filter --&gt;
-</code></pre>
-      </div>
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-filename">Event-Binding Beispiele – Klasse</span>
-          <span class="code-lang">typescript</span>
-        </div>
-        <pre><code class="language-typescript">export class FlightListComponent {
-  flights: Flight[] = FLIGHTS;
-
-  onDeleteFlight(flight: Flight): void {
-    this.flights = this.flights.filter(f =&gt; f.id !== flight.id);
-  }
-
-  onSearchInput(event: Event): void {
-    // Typsicherheit: event.target ist EventTarget, kein HTMLInputElement
-    const input = event.target as HTMLInputElement;
-    this.searchTerm = input.value;
-  }
-}
-</code></pre>
-      </div>
-
-      <h3>4. Two-Way-Binding <code>[(ngModel)]="eigenschaft"</code></h3>
-      <p>
-        Syntaktischer Zucker f&uuml;r die Kombination aus Property-Binding und Event-Binding.
-        <code>[(ngModel)]</code> entspricht <code>[ngModel]="term" (ngModelChange)="term = $event"</code>.
-        Ben&ouml;tigt das <strong>FormsModule</strong> im <code>imports</code>-Array.
-      </p>
-    </section>
-
-    <!-- Section 2: FormsModule -->
-    <section class="section">
-      <h2>FormsModule &mdash; Two-Way-Binding aktivieren</h2>
-
-      <div class="callout callout-warning">
-        <div class="callout-icon">&#9888;</div>
-        <div class="callout-body">
-          <div class="callout-title">FormsModule vergessen &mdash; h&auml;ufigster Fehler!</div>
-          <p>
-            <code>[(ngModel)]</code> funktioniert nur, wenn <code>FormsModule</code> im
-            <code>imports</code>-Array der Komponente steht. Ohne diesen Import erscheint der
-            Fehler: <em>&bdquo;Can't bind to 'ngModel' since it isn't a known property of 'input'.&ldquo;</em>
-          </p>
-        </div>
-      </div>
-
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-filename">FlugBoard-Suchfeld mit [(ngModel)]</span>
-          <span class="code-lang">typescript</span>
-        </div>
-        <pre><code class="language-typescript">import { Component }  from '@angular/core';
-import { FormsModule } from '@angular/forms';   // ← Pflicht für ngModel!
-import { Flight }      from '../../models/flight';
-import { FLIGHTS }     from '../../data/flights';
-
-@Component({
-  selector: 'app-flight-list',
-  standalone: true,
-  imports: [FormsModule],  // ← hier eintragen
-  template: `
-    &lt;div class="controls"&gt;
-      &lt;input
-        type="text"
-        [(ngModel)]="searchTerm"
-        placeholder="Flugnummer, Airline, Flughafen..."
-        class="search-input"
-      &gt;
-      &lt;span class="result-count"&gt;{{ filteredFlights.length }} Treffer&lt;/span&gt;
-    &lt;/div&gt;
-
-    &lt;table class="flight-table"&gt;
-      &lt;thead&gt;
-        &lt;tr&gt;
-          &lt;th&gt;Flug&lt;/th&gt;&lt;th&gt;Airline&lt;/th&gt;&lt;th&gt;Zeit&lt;/th&gt;&lt;th&gt;Status&lt;/th&gt;
-        &lt;/tr&gt;
-      &lt;/thead&gt;
-      &lt;tbody&gt;
-        @for (flight of filteredFlights; track flight.id) {
-          &lt;tr&gt;
-            &lt;td&gt;{{ flight.flightNumber }}&lt;/td&gt;
-            &lt;td&gt;{{ flight.airline }}&lt;/td&gt;
-            &lt;td&gt;{{ flight.scheduledTime }}&lt;/td&gt;
-            &lt;td&gt;{{ flight.status }}&lt;/td&gt;
-          &lt;/tr&gt;
-        } @empty {
-          &lt;tr&gt;
-            &lt;td colspan="4" class="empty-state"&gt;Keine Flüge gefunden.&lt;/td&gt;
-          &lt;/tr&gt;
-        }
-      &lt;/tbody&gt;
-    &lt;/table&gt;
-  `,
-})
-export class FlightListComponent {
-  flights: Flight[]  = FLIGHTS;
-  searchTerm: string = '';
-
-  // Getter = reaktiver computed State (kein useMemo nötig)
-  get filteredFlights(): Flight[] {
-    const term = this.searchTerm.toLowerCase().trim();
-    if (!term) return this.flights;
-    return this.flights.filter(f =&gt;
-      f.flightNumber.toLowerCase().includes(term) ||
-      f.airline.toLowerCase().includes(term)      ||
-      f.airport.toLowerCase().includes(term)
-    );
-  }
-}
-</code></pre>
-      </div>
-    </section>
-
-    <!-- Section 3: Typ-Filter -->
-    <section class="section">
-      <h2>Typ-Filter mit Buttons</h2>
-
-      <p>
-        Zus&auml;tzlich zum Suchfeld wollen wir per Button zwischen <em>Alle</em>, <em>Abfl&uuml;ge</em>
-        und <em>Ank&uuml;nfte</em> filtern k&ouml;nnen. Das Muster ist: eine Zustandsvariable
-        h&auml;lt den aktiven Filter, der Getter kombiniert beide Filter, Property-Binding auf
-        <code>[class.active]</code> markiert den aktiven Button.
-      </p>
-
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-filename">Typ-Filter &mdash; Komponente komplett</span>
-          <span class="code-lang">typescript</span>
-        </div>
-        <pre><code class="language-typescript">import { Component }  from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { Flight, FlightType } from '../../models/flight';
-import { FLIGHTS }            from '../../data/flights';
-
-type FilterType = 'all' | FlightType;
-
-@Component({
-  selector: 'app-flight-list',
-  standalone: true,
-  imports: [FormsModule],
-  template: `
-    &lt;div class="controls"&gt;
-      &lt;input
-        type="text"
-        [(ngModel)]="searchTerm"
-        placeholder="Suche..."
-      &gt;
-      &lt;div class="type-filter"&gt;
-        &lt;button
-          [class.active]="typeFilter === 'all'"
-          (click)="typeFilter = 'all'"
-        &gt;Alle&lt;/button&gt;
-        &lt;button
-          [class.active]="typeFilter === 'departure'"
-          (click)="typeFilter = 'departure'"
-        &gt;Abflüge&lt;/button&gt;
-        &lt;button
-          [class.active]="typeFilter === 'arrival'"
-          (click)="typeFilter = 'arrival'"
-        &gt;Ankünfte&lt;/button&gt;
-      &lt;/div&gt;
-      &lt;p class="result-info"&gt;
-        {{ filteredFlights.length }} von {{ flights.length }} Flügen
-      &lt;/p&gt;
-    &lt;/div&gt;
-
-    @for (flight of filteredFlights; track flight.id) {
-      &lt;div class="flight-row"&gt;
-        &lt;strong&gt;{{ flight.flightNumber }}&lt;/strong&gt; – {{ flight.airline }}
-      &lt;/div&gt;
-    } @empty {
-      &lt;p class="empty"&gt;Keine Flüge für diese Auswahl.&lt;/p&gt;
-    }
-  `,
-})
-export class FlightListComponent {
-  flights: Flight[]   = FLIGHTS;
-  searchTerm: string  = '';
-  typeFilter: FilterType = 'all';
-
-  get filteredFlights(): Flight[] {
-    const term = this.searchTerm.toLowerCase().trim();
-
-    return this.flights.filter(f =&gt; {
-      // Typ-Filter
-      if (this.typeFilter !== 'all' &amp;&amp; f.type !== this.typeFilter) {
-        return false;
-      }
-      // Suchtext-Filter
-      if (term) {
-        return (
-          f.flightNumber.toLowerCase().includes(term) ||
-          f.airline.toLowerCase().includes(term)      ||
-          f.airport.toLowerCase().includes(term)
-        );
-      }
-      return true;
-    });
-  }
-}
-</code></pre>
-      </div>
-    </section>
-
-    <!-- Section 4: Getter als computed State -->
-    <section class="section">
-      <h2>Getter als reaktiver State &mdash; das Angular-Muster</h2>
-
-      <p>
-        In React w&uuml;rde man <code>useMemo()</code> verwenden, um eine berechnete Liste
-        nicht bei jedem Render neu zu berechnen. In Angular ist das Muster anders:
-        <strong>TypeScript-Getter</strong> werden bei jedem Change-Detection-Durchlauf
-        aufgerufen und liefern den aktuellen Wert.
-      </p>
-
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Konzept</th>
-              <th>React</th>
-              <th>Angular</th>
-            </tr>
-          </thead>
+      <h2>1 &mdash; Die vier Bindungstypen</h2>
+      <p>Drei Arten, Klasse und Template zu verbinden, kennst du schon aus den Lektionen&nbsp;1.1 und&nbsp;1.2. Neu ist die vierte:</p>
+      <div style="overflow-x:auto;">
+        <table class="compare-table">
+          <thead><tr><th>Typ</th><th>Syntax</th><th>Richtung</th><th>Beispiel im FlugBoard</th></tr></thead>
           <tbody>
-            <tr><td>Lokaler State</td><td><code>const [x, setX] = useState(v)</code></td><td><code>x = v</code> (Klasseneigenschaft)</td></tr>
-            <tr><td>State &auml;ndern</td><td><code>setX(newVal)</code></td><td><code>this.x = newVal</code></td></tr>
-            <tr><td>Berechneter Wert</td><td><code>useMemo(() =&gt; compute(x), [x])</code></td><td><code>get computed() { return compute(this.x); }</code></td></tr>
-            <tr><td>Seiteneffekte</td><td><code>useEffect(() =&gt; {}, [dep])</code></td><td><code>ngOnInit()</code>, <code>ngOnChanges()</code></td></tr>
-            <tr><td>Input (Props)</td><td><code>function Comp({ prop }: Props)</code></td><td><code>@Input() prop: Type</code></td></tr>
-            <tr><td>Output (Callback)</td><td><code>const cb = props.onEvent</code></td><td><code>@Output() ev = new EventEmitter()</code></td></tr>
+            <tr><td>Interpolation</td><td><code>{{ ausdruck }}</code></td><td>Klasse &rarr; Template</td><td><code>{{ flight().airline }}</code></td></tr>
+            <tr><td>Property-Binding</td><td><code>[eigenschaft]="ausdruck"</code></td><td>Klasse &rarr; Template</td><td><code>[flight]="flight"</code></td></tr>
+            <tr><td>Event-Binding</td><td><code>(ereignis)="anweisung"</code></td><td>Template &rarr; Klasse</td><td><code>(click)="selected.emit(flight())"</code></td></tr>
+            <tr><td><strong>Two-Way-Binding</strong></td><td><code>[(ngModel)]="signal"</code></td><td>beide Richtungen</td><td><code>[(ngModel)]="searchText"</code></td></tr>
           </tbody>
         </table>
       </div>
+    </section>
 
-      <div class="callout callout-info">
-        <div class="callout-icon">&#8505;</div>
-        <div class="callout-body">
-          <div class="callout-title">Getter und Performance</div>
-          <p>
-            Angular ruft Getter bei jedem Change-Detection-Durchlauf auf. F&uuml;r einfache Berechnungen
-            (Filter, Sort) ist das vollkommen in Ordnung. F&uuml;r sehr teure Berechnungen:
-            entweder <code>ChangeDetectionStrategy.OnPush</code> verwenden (reduziert Checks drastisch)
-            oder die Filterlogik in einen <code>Signal</code> oder ein <code>computed()</code>
-            verlagern (Angular 16+ Signals API).
-          </p>
+    <!-- Section 2: Signals und ngModel -->
+    <section class="section">
+      <h2>2 &mdash; Suchfeld mit Two-Way-Binding</h2>
+      <p>
+        Der Suchtext ist ein Wert, den die Benutzerin im Template &auml;ndert &ndash; also ein Signal wie
+        <code>selectedFlight</code> aus Lektion&nbsp;1.2:
+      </p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">src/app/app.ts (Ausschnitt)</span>
+          <span class="code-lang">typescript</span>
         </div>
+        <pre><code class="language-typescript">searchText = signal('');</code></pre>
+      </div>
+      <p>
+        <code>[(ngModel)]="searchText"</code> verbindet das Eingabefeld in beide Richtungen: Tippt man, setzt
+        Angular das Signal; &auml;ndert der Code das Signal, &auml;ndert sich das Feld. Die Schreibweise
+        <code>[( )]</code> (&bdquo;Banana in a Box&ldquo;) kombiniert Property- und Event-Binding.
+      </p>
+      <p>
+        <code>ngModel</code> geh&ouml;rt zum <code>FormsModule</code>. Wie eine Komponente muss es im
+        <code>imports</code>-Array stehen, sonst kennt das Template <code>ngModel</code> nicht.
+      </p>
+    </section>
+
+    <!-- Section 3: Typfilter -->
+    <section class="section">
+      <h2>3 &mdash; Typfilter mit Buttons</h2>
+      <p>Der Typfilter ist ebenfalls ein Signal. Sein Typ erlaubt nur drei Werte:</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">src/app/app.ts (Ausschnitt)</span>
+          <span class="code-lang">typescript</span>
+        </div>
+        <pre><code class="language-typescript">activeType = signal&lt;'all' | FlightType&gt;('all');</code></pre>
+      </div>
+      <ul>
+        <li><code>(click)="activeType.set('departure')"</code>: Event-Binding ruft direkt <code>set</code> auf &ndash; eine eigene Methode ist nicht n&ouml;tig.</li>
+        <li><code>[class.active]="activeType() === 'departure'"</code>: Property-Binding auf eine einzelne CSS-Klasse. Ist der Ausdruck wahr, bekommt der Button die Klasse <code>active</code>.</li>
+      </ul>
+    </section>
+
+    <!-- Section 4: computed -->
+    <section class="section">
+      <h2>4 &mdash; computed: abgeleitete Werte</h2>
+      <p>
+        Die angezeigte Liste h&auml;ngt von <code>searchText</code> und <code>activeType</code> ab.
+        <code>computed(() =&gt; …)</code> erzeugt ein Signal, dessen Wert aus anderen Signals berechnet wird.
+        Angular merkt sich, welche Signals die Funktion liest, und rechnet nur neu, wenn sich eines davon
+        &auml;ndert &ndash; wie <code>useMemo</code> in React, nur ohne Abh&auml;ngigkeitsliste.
+      </p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">src/app/app.ts</span>
+          <span class="code-lang">typescript</span>
+        </div>
+        <pre><code class="language-typescript">import { Component, computed, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { AirportHeader } from './airport-header/airport-header';
+import { FlightCard } from './flight-card/flight-card';
+import { Flight, FlightType } from './flight';
+import { FLIGHTS } from './flights';
+
+@Component({
+  imports: [FormsModule, AirportHeader, FlightCard],
+  selector: 'app-root',
+  styleUrl: './app.css',
+  templateUrl: './app.html',
+})
+export class App {
+  flights: Flight[] = FLIGHTS;
+  selectedFlight = signal&lt;Flight | null&gt;(null);
+
+  // Suchtext und Typfilter werden im Template geändert
+  searchText = signal('');
+  activeType = signal&lt;'all' | FlightType&gt;('all');
+
+  // computed: wird neu berechnet, sobald sich ein gelesenes Signal ändert
+  filteredFlights = computed(() =&gt; {
+    const q = this.searchText().trim().toLowerCase();
+    return this.flights
+      .filter((f) =&gt; this.activeType() === 'all' || f.type === this.activeType())
+      .filter(
+        (f) =&gt;
+          !q ||
+          f.flightNumber.toLowerCase().includes(q) ||
+          f.airline.toLowerCase().includes(q) ||
+          f.airport.toLowerCase().includes(q),
+      );
+  });
+
+  onFlightSelect(flight: Flight): void {
+    this.selectedFlight.set(flight);
+  }
+}</code></pre>
+      </div>
+      <p>Im Template ersetzt <code>filteredFlights()</code> die bisherige Liste; dazu kommen Suchfeld, Filter-Buttons und die Trefferzahl:</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">src/app/app.html</span>
+          <span class="code-lang">html</span>
+        </div>
+        <pre><code class="language-xml">&lt;div class="page-content"&gt;
+  &lt;app-airport-header airportName="Wien" /&gt;
+
+  &lt;div class="toolbar"&gt;
+    &lt;!-- Two-Way-Binding: Eingabe und Signal bleiben synchron --&gt;
+    &lt;input
+      class="search-input"
+      [(ngModel)]="searchText"
+      placeholder="Flug, Airline, Airport ..."
+    /&gt;
+
+    &lt;!-- Property-Binding auf eine CSS-Klasse + Event-Binding --&gt;
+    &lt;div class="type-filter"&gt;
+      &lt;button [class.active]="activeType() === 'all'" (click)="activeType.set('all')"&gt;Alle&lt;/button&gt;
+      &lt;button [class.active]="activeType() === 'departure'" (click)="activeType.set('departure')"&gt;
+        Abflüge
+      &lt;/button&gt;
+      &lt;button [class.active]="activeType() === 'arrival'" (click)="activeType.set('arrival')"&gt;
+        Ankünfte
+      &lt;/button&gt;
+    &lt;/div&gt;
+
+    &lt;span class="page-meta"&gt;{{ filteredFlights().length }} Treffer&lt;/span&gt;
+  &lt;/div&gt;
+
+  @if (selectedFlight()) {
+    &lt;div class="selected-info"&gt;
+      &lt;strong&gt;Ausgewählt:&lt;/strong&gt;
+      {{ selectedFlight()?.flightNumber }} – {{ selectedFlight()?.airline }}
+    &lt;/div&gt;
+  }
+
+  &lt;div class="card-grid"&gt;
+    @for (flight of filteredFlights(); track flight.id) {
+      &lt;app-flight-card [flight]="flight" (selected)="onFlightSelect($event)" /&gt;
+    }
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
       </div>
     </section>
 
     <!-- Section 5: Change Detection -->
     <section class="section">
-      <h2>Change Detection &mdash; wann aktualisiert Angular die View?</h2>
-
+      <h2>5 &mdash; Wie Angular die Anzeige aktualisiert</h2>
       <p>
-        Angular h&ouml;rt automatisch auf alle asynchronen Ereignisse: Browser-Events (Clicks, Inputs),
-        HTTP-Antworten, <code>setTimeout</code>/<code>setInterval</code>-Callbacks &mdash; und l&auml;uft
-        danach durch den gesamten Komponentenbaum, um zu pr&uuml;fen, ob sich etwas ge&auml;ndert hat
-        (<em>Dirty Checking</em>). Das passiert dank der Zone.js-Bibliothek, die Angular im Hintergrund
-        patcht.
+        Neue Angular-Projekte arbeiten mit Signals: Wird ein Signal ge&auml;ndert, wei&szlig; Angular genau, welche
+        Templates es lesen, und zeichnet nur diese neu. Ein Signal, das sich &auml;ndert, zieht automatisch
+        alle davon abh&auml;ngigen <code>computed</code>-Werte nach &ndash; <code>searchText</code> &rarr;
+        <code>filteredFlights</code> &rarr; Trefferzahl und Kartenraster.
       </p>
-
-      <h3>Default vs. OnPush</h3>
-      <ul>
-        <li>
-          <strong>Default:</strong> Nach jedem Event wird der gesamte Baum gepr&uuml;ft.
-          Einfach und sicher, aber bei gro&szlig;en Apps langsam.
-        </li>
-        <li>
-          <strong>OnPush:</strong> Eine Komponente wird nur gepr&uuml;ft, wenn (a) ein
-          neues Input-Objekt ankommt (neue Referenz!), (b) ein Output-Event gefeuert hat
-          oder (c) manuell <code>markForCheck()</code> aufgerufen wurde.
-        </li>
-      </ul>
-
-      <div class="callout callout-tip">
-        <div class="callout-icon">&#10003;</div>
+      <div class="callout callout-warning">
+        <div class="callout-icon">&#9888;</div>
         <div class="callout-body">
-          <div class="callout-title">Unveränderlichkeit und OnPush</div>
+          <div class="callout-title">Ver&auml;nderliche Werte immer als Signal</div>
           <p>
-            Mit <code>OnPush</code> muss man darauf achten, Arrays und Objekte immer durch
-            <strong>neue Referenzen</strong> zu ersetzen statt sie zu mutieren.
-            <code>this.flights.push(newFlight)</code> w&uuml;rde bei OnPush kein Re-Render
-            ausl&ouml;sen. Richtig: <code>this.flights = [...this.flights, newFlight]</code>.
-            Dasselbe Prinzip wie in React.
+            Ein normales Feld wie <code>flights</code> darf es geben, solange es sich nicht &auml;ndert. Werte,
+            die sich zur Laufzeit &auml;ndern, geh&ouml;ren in ein Signal &ndash; sonst bekommt Angular die
+            &Auml;nderung nicht zuverl&auml;ssig mit.
           </p>
         </div>
       </div>
@@ -442,18 +253,13 @@ export class FlightListComponent {
       <div class="projekt-box">
         <div class="projekt-box-header">
           <span class="projekt-step">Projektschritt 1.3</span>
-          <h3>Suchfeld + Typfilter + Trefferzaehler</h3>
+          <h3>Suchfeld, Typfilter und Trefferz&auml;hler</h3>
         </div>
-        <p>
-          Erweitere <code>FlightListComponent</code> um vollst&auml;ndige Filterfunktionalit&auml;t:
-        </p>
         <ol style="margin:.75rem 0 0 1.25rem;line-height:2">
-          <li><code>FormsModule</code> in <code>imports</code> einbinden</li>
-          <li>Suchfeld mit <code>[(ngModel)]="searchTerm"</code> einbauen</li>
-          <li>Drei Filter-Buttons (<em>Alle / Abfl&uuml;ge / Ank&uuml;nfte</em>) mit <code>[class.active]</code> und <code>(click)</code> implementieren</li>
-          <li>Getter <code>filteredFlights</code> schreiben, der beide Filter kombiniert</li>
-          <li>Trefferzaehler anzeigen: <em>&bdquo;X von Y Fl&uuml;gen&ldquo;</em></li>
-          <li>Empty-State mit <code>@empty</code> f&uuml;r den Fall, dass nichts gefunden wird</li>
+          <li>In <code>app.ts</code> die Signals <code>searchText</code> und <code>activeType</code> anlegen und <code>FormsModule</code> importieren</li>
+          <li><code>filteredFlights</code> mit <code>computed</code> berechnen</li>
+          <li>Im Template die Toolbar mit Suchfeld (<code>[(ngModel)]</code>), drei Filter-Buttons und Trefferzahl erg&auml;nzen</li>
+          <li><code>@for</code> &uuml;ber <code>filteredFlights()</code> statt <code>flights</code> laufen lassen</li>
         </ol>
       </div>
     </section>
@@ -464,51 +270,20 @@ export class FlightListComponent {
 
       <div class="fehler-item">
         <div class="fehler-title"><code>Can't bind to 'ngModel' since it isn't a known property of 'input'</code></div>
-        <p>Das <code>FormsModule</code> fehlt im <code>imports</code>-Array der Standalone-Komponente.</p>
-        <p class="fehler-fix">
-          <strong>Fix:</strong> <code>import { FormsModule } from '@angular/forms';</code> und
-          <code>imports: [FormsModule]</code> in die betroffene Komponente eintragen.
-        </p>
+        <p><code>FormsModule</code> fehlt im <code>imports</code>-Array der Komponente.</p>
+        <p class="fehler-fix"><strong>Fix:</strong> <code>import { FormsModule } from '@angular/forms';</code> und <code>imports: [FormsModule, …]</code>.</p>
       </div>
 
       <div class="fehler-item">
-        <div class="fehler-title">Filter funktioniert, aber Array-Mutation wird nicht angezeigt</div>
-        <p>
-          Bei <code>this.flights.push(f)</code> bleibt die View leer/veraltet, wenn
-          <code>OnPush</code> aktiv ist.
-        </p>
-        <p class="fehler-fix">
-          <strong>Fix:</strong> <code>this.flights = [...this.flights, f]</code> verwenden,
-          um eine neue Array-Referenz zu erzeugen. Angular erkennt dann die Ver&auml;nderung.
-        </p>
+        <div class="fehler-title">Signal im Template ohne Klammern</div>
+        <p><code>@for (flight of filteredFlights; …)</code> meldet, dass ein Signal nicht durchlaufen werden kann.</p>
+        <p class="fehler-fix"><strong>Fix:</strong> Den Wert lesen: <code>filteredFlights()</code>. Nur bei <code>[(ngModel)]="searchText"</code> steht das Signal selbst, ohne Klammern &ndash; dort braucht Angular das Signal, um es setzen zu k&ouml;nnen.</p>
       </div>
 
       <div class="fehler-item">
-        <div class="fehler-title">Getter wird bei jedem Tastendruck mehrfach aufgerufen</div>
-        <p>
-          Das ist normales Angular-Verhalten bei <code>Default</code>-Change-Detection.
-          Der Getter wird bei jedem CD-Durchlauf aufgerufen (auch wenn keine &Auml;nderung
-          vorliegt), was bei teuren Operationen zu Performance-Problemen f&uuml;hren kann.
-        </p>
-        <p class="fehler-fix">
-          <strong>Fix (kurzfristig):</strong> <code>ChangeDetectionStrategy.OnPush</code> setzen.
-          <strong>Fix (modern):</strong> Angular Signals (<code>signal()</code>, <code>computed()</code>)
-          verwenden &mdash; diese berechnen nur bei tats&auml;chlicher &Auml;nderung neu.
-        </p>
-      </div>
-
-      <div class="fehler-item">
-        <div class="fehler-title"><code>$event</code> hat Typ <code>any</code> beim Input-Event</div>
-        <p>
-          <code>(input)="onInput($event)"</code> &uuml;bergibt <code>Event</code>, nicht
-          <code>InputEvent&lt;HTMLInputElement&gt;</code>. <code>event.target.value</code>
-          ist dann ein Typfehler.
-        </p>
-        <p class="fehler-fix">
-          <strong>Fix:</strong> In der Methode casten: <code>const val = (event.target as HTMLInputElement).value;</code>.
-          Oder besser: <code>[(ngModel)]</code> statt manuellen Input-Events verwenden &mdash;
-          dann ist kein Casten n&ouml;tig.
-        </p>
+        <div class="fehler-title">computed rechnet nicht neu</div>
+        <p>Die Liste reagiert nicht auf den Filter, weil die Funktion den Wert eines normalen Feldes statt eines Signals liest.</p>
+        <p class="fehler-fix"><strong>Fix:</strong> Alles, worauf <code>computed</code> reagieren soll, muss ein Signal sein und mit <code>()</code> gelesen werden.</p>
       </div>
     </section>
 
@@ -520,67 +295,33 @@ export class FlightListComponent {
         <div class="aufgabe">
           <div class="aufgabe-header">
             <span class="aufgabe-num">Aufgabe 1</span>
-            <span class="aufgabe-title">Status-Filter erg&auml;nzen</span>
+            <span class="aufgabe-title">Suchfeld zur&uuml;cksetzen</span>
           </div>
-          <p>
-            F&uuml;ge einen weiteren Filter hinzu, der nach <em>Status</em> filtert.
-            Implementiere ein <code>&lt;select&gt;</code>-Element mit <code>[(ngModel)]</code>
-            und den Optionen <em>Alle Status, On-Time, Delayed, Boarding, Cancelled</em>.
-            Kombiniere den Status-Filter mit dem bestehenden Suchfeld- und Typ-Filter.
-          </p>
+          <p>Ein Button &bdquo;&#10005;&ldquo; neben dem Suchfeld setzt <code>searchText</code> auf <code>''</code> &ndash; das Feld leert sich dank Two-Way-Binding mit.</p>
         </div>
 
         <div class="aufgabe">
           <div class="aufgabe-header">
             <span class="aufgabe-num">Aufgabe 2</span>
-            <span class="aufgabe-title">Sortierung nach Zeit</span>
+            <span class="aufgabe-title">Status-Filter</span>
           </div>
-          <p>
-            Erg&auml;nze den <code>filteredFlights</code>-Getter um eine optionale Sortierung
-            nach <code>scheduledTime</code> aufsteigend oder absteigend.
-            Verwende einen weiteren Button-Toggle (<em>Zeit &#8593; / Zeit &#8595;</em>)
-            und das Zustandsvariable <code>sortAsc: boolean = true</code>.
-          </p>
+          <p>Erg&auml;nze ein <code>&lt;select&gt;</code> mit allen Status-Werten und der Option &bdquo;alle&ldquo;. Binde es mit <code>[(ngModel)]</code> an ein neues Signal und ber&uuml;cksichtige es in <code>filteredFlights</code>.</p>
         </div>
 
         <div class="aufgabe">
           <div class="aufgabe-header">
             <span class="aufgabe-num">Aufgabe 3</span>
-            <span class="aufgabe-title">Suchfeld zur&uuml;cksetzen</span>
+            <span class="aufgabe-title">Sortierung nach Zeit</span>
           </div>
-          <p>
-            F&uuml;ge einen &bdquo;Zur&uuml;cksetzen&ldquo;-Button hinzu, der sichtbar ist wenn
-            <code>searchTerm !== ''</code> oder <code>typeFilter !== 'all'</code>. Ein Klick setzt
-            beide Variablen auf ihren Defaultwert zur&uuml;ck. Nutze <code>[class.visible]</code>
-            oder <code>@if</code> f&uuml;r die Sichtbarkeit.
-          </p>
-        </div>
-
-        <div class="aufgabe">
-          <div class="aufgabe-header">
-            <span class="aufgabe-num">Aufgabe 4</span>
-            <span class="aufgabe-title">Versp&auml;tungs-Indikator</span>
-          </div>
-          <p>
-            Zeige in jeder Flugzeile einen visuellen Versp&auml;tungs-Indikator an.
-            Wenn <code>flight.expectedTime</code> vorhanden ist und sp&auml;ter als
-            <code>flight.scheduledTime</code>, berechne die Versp&auml;tung in Minuten
-            und zeige <em>&bdquo;+X min&ldquo;</em> an. Nutze daf&uuml;r eine Methode
-            <code>getDelay(flight: Flight): number | null</code>.
-          </p>
+          <p>Ein Button schaltet zwischen aufsteigender und absteigender Sortierung nach <code>scheduledTime</code> um. Die Sortierung geh&ouml;rt ins <code>computed</code>; kopiere das Array vorher mit <code>[...liste]</code>, weil <code>sort</code> das Original ver&auml;ndert.</p>
         </div>
 
         <div class="aufgabe aufgabe-bonus">
           <div class="aufgabe-header">
             <span class="aufgabe-num">Bonus</span>
-            <span class="aufgabe-title">Signals statt Getter</span>
+            <span class="aufgabe-title">Versp&auml;tungen z&auml;hlen</span>
           </div>
-          <p>
-            Lies die Angular-Dokumentation zu <strong>Signals</strong> (Angular 16+) und
-            refaktoriere den <code>searchTerm</code> und <code>typeFilter</code> zu
-            <code>signal()</code>-Variablen. Nutze <code>computed()</code> statt eines Getters
-            f&uuml;r <code>filteredFlights</code>. Beobachte den Unterschied im Profiler.
-          </p>
+          <p>Zeige neben der Trefferzahl an, wie viele der gefilterten Fl&uuml;ge versp&auml;tet sind &ndash; als eigenes <code>computed</code>, das auf <code>filteredFlights</code> aufbaut.</p>
         </div>
 
       </div>

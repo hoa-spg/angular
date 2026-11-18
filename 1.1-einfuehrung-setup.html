@@ -106,8 +106,8 @@
             Angular 1.x (&bdquo;AngularJS&ldquo;, 2010) und Angular 2+ sind <strong>komplett
             verschiedene Frameworks</strong>. Ab Angular&nbsp;2 (2016) wurde alles neu geschrieben.
             Wenn jemand &bdquo;Angular&ldquo; sagt, meint er heute immer Angular&nbsp;2+.
-            Dieser Kurs verwendet Angular&nbsp;17+ mit der modernen Standalone-API und der
-            neuen Control-Flow-Syntax.
+            Dieser Kurs verwendet Angular&nbsp;22 mit Standalone-Komponenten, Signals und der
+            Control-Flow-Syntax (<code>@for</code>, <code>@if</code>).
           </p>
         </div>
       </div>
@@ -137,7 +137,7 @@
             <tr><td>Forms</td><td>Extern oder eigene L&ouml;sung</td><td>Eingebaut (Template + Reactive)</td><td>Eingebaut (v-model)</td></tr>
             <tr><td>Lernkurve</td><td>Mittel</td><td>Hoch</td><td>Niedrig</td></tr>
             <tr><td>Einsatzbereich</td><td>Alles; sehr flexibel</td><td>Enterprise, gro&szlig;e Teams</td><td>Kleine-mittlere Projekte</td></tr>
-            <tr><td>State Management</td><td>Extern (Redux, Zustand)</td><td>Services + RxJS / NgRx</td><td>Pinia</td></tr>
+            <tr><td>State Management</td><td>Extern (Redux, Zustand)</td><td>Signals + Services</td><td>Pinia</td></tr>
           </tbody>
         </table>
       </div>
@@ -157,49 +157,32 @@
 
       <h3>Komponenten</h3>
       <p>
-        Die UI besteht aus einem Baum von <strong>Komponenten</strong>. Jede Komponente hat ein
-        TypeScript-Klasse (Logik), ein HTML-Template (Darstellung) und optional CSS-Styles.
-        Der <code>@Component</code>-Decorator verbindet diese drei Teile.
+        Die Oberfl&auml;che besteht aus einem Baum von <strong>Komponenten</strong>. Jede Komponente hat
+        eine TypeScript-Klasse (Daten und Logik), ein HTML-Template (Darstellung) und optional CSS. Der
+        <code>@Component</code>-Decorator verbindet diese Teile.
       </p>
 
       <h3>Services &amp; Dependency Injection</h3>
       <p>
         Gesch&auml;ftslogik, HTTP-Aufrufe und gemeinsamer State geh&ouml;ren in <strong>Services</strong>.
-        Angular&apos;s eingebautes <strong>Dependency-Injection-System</strong> stellt Services
-        automatisch dort bereit, wo sie ben&ouml;tigt werden &mdash; ohne manuelles Instanziieren
-        (<code>new FlightService()</code> ist falsch, <code>inject(FlightService)</code> ist richtig).
+        Angulars <strong>Dependency Injection</strong> stellt sie dort bereit, wo sie gebraucht werden
+        &mdash; ohne <code>new</code>. Das behandeln wir in Lektion&nbsp;2.2.
       </p>
 
-      <h3>NgModule (alt) vs. Standalone (neu)</h3>
+      <h3>Standalone-Komponenten</h3>
       <p>
-        Bis Angular&nbsp;14 musste jede Komponente in einem <strong>NgModule</strong> registriert werden
-        &mdash; ein zus&auml;tzlicher Boilerplate-Container. Seit Angular&nbsp;14 gibt es
-        <strong>Standalone-Komponenten</strong>, die direkt mit <code>standalone: true</code> markiert
-        werden und ihre Abh&auml;ngigkeiten selbst im <code>imports</code>-Array angeben.
-        Dieser Kurs verwendet ausschlie&szlig;lich die Standalone-API.
+        Fr&uuml;her musste jede Komponente in einem <strong>NgModule</strong> registriert werden. Heute ist jede
+        Komponente <strong>standalone</strong>: Sie gibt selbst im <code>imports</code>-Array an, welche
+        anderen Komponenten, Direktiven und Pipes sie verwendet. NgModule begegnen dir nur noch in &auml;lterem Code.
       </p>
 
-      <h3>Change Detection</h3>
+      <h3>Signals und Change Detection</h3>
       <p>
-        Angular&apos;s Change-Detection-Mechanismus pr&uuml;ft nach jeder asynchronen Operation
-        (User-Events, HTTP, Timers), ob sich Daten ge&auml;ndert haben, und aktualisiert das DOM.
-        Standardm&auml;&szlig;ig pr&uuml;ft Angular alle Komponenten (<em>Default Strategy</em>).
-        Mit <code>ChangeDetectionStrategy.OnPush</code> wird eine Komponente nur beim Eingang
-        neuer Input-Referenzen gepr&uuml;ft &mdash; deutlich effizienter bei gro&szlig;en Anwendungen.
+        Wenn sich Daten &auml;ndern, muss Angular die Anzeige aktualisieren (<strong>Change Detection</strong>).
+        Moderne Angular-Apps verwenden daf&uuml;r <strong>Signals</strong>: Werte, die Angular Bescheid geben,
+        sobald sie sich &auml;ndern. Damit wei&szlig; Angular genau, welche Stellen neu zu zeichnen sind. Signals
+        f&uuml;hren wir in Lektion&nbsp;1.2 ein, sobald sich im FlugBoard zum ersten Mal etwas &auml;ndert.
       </p>
-
-      <div class="callout callout-tip">
-        <div class="callout-icon">&#10003;</div>
-        <div class="callout-body">
-          <div class="callout-title">Standalone vs. NgModule: Was soll ich lernen?</div>
-          <p>
-            In neuen Projekten verwende immer <strong>Standalone</strong>. NgModule wirst du in
-            Legacy-Code und &auml;lteren Tutorials begegnen. Es lohnt sich, das Konzept zu verstehen,
-            aber nicht, es aktiv zu verwenden. Die Angular CLI erzeugt seit Angular&nbsp;17 standardm&auml;&szlig;ig
-            Standalone-Projekte.
-          </p>
-        </div>
-      </div>
     </section>
 
     <!-- Section 4: Setup -->
@@ -215,9 +198,8 @@
         <pre><code class="language-bash"># Angular CLI global installieren (einmalig)
 npm install -g @angular/cli
 
-# Version prüfen
-ng version
-# Angular CLI: 17.x.x  Node: 20.x.x</code></pre>
+# Version prüfen – dieser Kurs verwendet Angular 22
+ng version</code></pre>
       </div>
 
       <h3>Projekt anlegen</h3>
@@ -226,17 +208,18 @@ ng version
           <span class="code-filename">Terminal</span>
           <span class="code-lang">bash</span>
         </div>
-        <pre><code class="language-bash"># Neues Projekt – Standalone, Routing, CSS
-ng new flugboard --standalone --routing --style css
-
-# Prompts:
-# ? Which stylesheet format would you like to use? CSS
-# ? Do you want to enable Server-Side Rendering (SSR)? No
+        <pre><code class="language-bash"># Neues Projekt ohne Router, Server-Side Rendering und Tests
+ng new flugboard --routing=false --ssr=false --style=css --skip-tests
 
 cd flugboard
 ng serve
 # → http://localhost:4200</code></pre>
       </div>
+      <p>
+        Die Optionen beantworten die Fragen, die <code>ng new</code> sonst stellt. Den Router brauchen wir
+        erst in Lektion&nbsp;2.4, Tests sind nicht Thema dieses Kurses. <code>ng serve</code> startet einen
+        Entwicklungsserver, der bei jeder &Auml;nderung neu &uuml;bersetzt und den Browser aktualisiert.
+      </p>
 
       <h3>Projektstruktur verstehen</h3>
       <div class="code-block">
@@ -247,15 +230,16 @@ ng serve
         <pre><code class="language-bash">flugboard/
 ├── src/
 │   ├── app/
-│   │   ├── app.component.ts    ← Root-Komponente (Klasse + Template + Style)
-│   │   ├── app.component.html  ← Template (wenn templateUrl verwendet wird)
-│   │   ├── app.component.css   ← Komponentenstyle
-│   │   └── app.routes.ts       ← Routing-Konfiguration
-│   ├── main.ts                 ← Einstiegspunkt; bootstrapApplication()
-│   ├── index.html              ← Host-HTML (enthält &lt;app-root&gt;)
-│   └── styles.css              ← Globale Styles
-├── angular.json                ← CLI-Konfiguration (Build, Serve, Test)
-├── tsconfig.json               ← TypeScript-Konfiguration
+│   │   ├── app.ts          ← Root-Komponente (Klasse + @Component)
+│   │   ├── app.html        ← Template der Root-Komponente
+│   │   ├── app.css         ← Styles nur für diese Komponente
+│   │   └── app.config.ts   ← App-weite Einstellungen (Provider)
+│   ├── main.ts             ← Einstiegspunkt: bootstrapApplication()
+│   ├── index.html          ← Host-Seite mit &lt;app-root&gt;
+│   └── styles.css          ← globale Styles
+├── public/                 ← statische Dateien (favicon.ico)
+├── angular.json            ← CLI-Konfiguration (Build, Serve)
+├── tsconfig.json
 └── package.json</code></pre>
       </div>
 
@@ -266,88 +250,53 @@ ng serve
           <span class="code-lang">typescript</span>
         </div>
         <pre><code class="language-typescript">import { bootstrapApplication } from '@angular/platform-browser';
-import { appConfig }            from './app/app.config';
-import { AppComponent }         from './app/app.component';
+import { appConfig } from './app/app.config';
+import { App } from './app/app';
 
-bootstrapApplication(AppComponent, appConfig)
-  .catch(err =&gt; console.error(err));
-</code></pre>
+bootstrapApplication(App, appConfig)
+  .catch((err) =&gt; console.error(err));</code></pre>
       </div>
+      <p>
+        <code>bootstrapApplication</code> startet die App mit der Root-Komponente <code>App</code>. Angular
+        sucht in <code>index.html</code> das Element <code>&lt;app-root&gt;</code> und zeichnet die Komponente
+        dort hinein. <code>appConfig</code> enth&auml;lt app-weite Einstellungen &mdash; im Moment nur eine
+        bessere Fehlerausgabe in der Browser-Konsole:
+      </p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">src/app/app.config.ts</span>
+          <span class="code-lang">typescript</span>
+        </div>
+        <pre><code class="language-typescript">import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+
+export const appConfig: ApplicationConfig = {
+  providers: [provideBrowserGlobalErrorListeners()],
+};</code></pre>
+      </div>
+
+      <h3>Fertiges Stylesheet</h3>
+      <p>
+        CSS ist nicht Thema dieses Kurses. Ersetze <code>src/styles.css</code> durch die Datei aus
+        <code>beispiele/1.1/src/styles.css</code>: Sie enth&auml;lt alle Klassen, die die Beispiele bis
+        Lektion&nbsp;2.4 verwenden (<code>page-title</code>, <code>flight-table</code> &hellip;), und bleibt
+        danach unver&auml;ndert.
+      </p>
     </section>
 
     <!-- Section 5: Standalone-Komponente -->
     <section class="section">
-      <h2>Standalone-Komponenten &mdash; der @Component-Decorator</h2>
-
-      <p>
-        Jede Angular-Komponente wird mit dem <code>@Component</code>-Decorator dekoriert.
-        Bei Standalone-Komponenten setzt du <code>standalone: true</code> und listest alle
-        ben&ouml;tigten Imports (andere Komponenten, Direktiven, Pipes) direkt im
-        <code>imports</code>-Array auf.
-      </p>
-
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-filename">src/app/app.component.ts</span>
-          <span class="code-lang">typescript</span>
-        </div>
-        <pre><code class="language-typescript">import { Component } from '@angular/core';
-import { FLIGHTS }   from './data/flights';
-import { Flight }    from './models/flight';
-
-@Component({
-  selector: 'app-root',       // HTML-Tag: &lt;app-root&gt;
-  standalone: true,
-  imports: [],                // Hier kommen benötigte Imports rein
-  template: `
-    &lt;header&gt;
-      &lt;h1&gt;&#9992; FlugBoard Wien&lt;/h1&gt;
-    &lt;/header&gt;
-
-    &lt;main&gt;
-      &lt;table&gt;
-        &lt;thead&gt;
-          &lt;tr&gt;
-            &lt;th&gt;Flugnummer&lt;/th&gt;
-            &lt;th&gt;Airline&lt;/th&gt;
-            &lt;th&gt;Typ&lt;/th&gt;
-            &lt;th&gt;Zeit&lt;/th&gt;
-            &lt;th&gt;Status&lt;/th&gt;
-            &lt;th&gt;Flughafen&lt;/th&gt;
-          &lt;/tr&gt;
-        &lt;/thead&gt;
-        &lt;tbody&gt;
-          @for (flight of flights; track flight.id) {
-            &lt;tr&gt;
-              &lt;td&gt;{{ flight.flightNumber }}&lt;/td&gt;
-              &lt;td&gt;{{ flight.airline }}&lt;/td&gt;
-              &lt;td&gt;{{ flight.type }}&lt;/td&gt;
-              &lt;td&gt;{{ flight.scheduledTime }}&lt;/td&gt;
-              &lt;td&gt;{{ flight.status }}&lt;/td&gt;
-              &lt;td&gt;{{ flight.airport }}&lt;/td&gt;
-            &lt;/tr&gt;
-          }
-        &lt;/tbody&gt;
-      &lt;/table&gt;
-    &lt;/main&gt;
-  `,
-})
-export class AppComponent {
-  flights: Flight[] = FLIGHTS;
-}
-</code></pre>
-      </div>
+      <h2>Die erste Komponente &mdash; der @Component-Decorator</h2>
 
       <h3>Das Datenmodell</h3>
+      <p>
+        Zuerst beschreiben wir mit TypeScript, wie ein Flug aussieht. Diese Typen verwenden wir im ganzen Kurs.
+      </p>
       <div class="code-block">
         <div class="code-header">
-          <span class="code-filename">src/app/models/flight.ts</span>
+          <span class="code-filename">src/app/flight.ts</span>
           <span class="code-lang">typescript</span>
         </div>
-        <pre><code class="language-typescript">export type FlightType =
-  | 'arrival'
-  | 'departure';
-
+        <pre><code class="language-typescript">export type FlightType = 'arrival' | 'departure';
 export type FlightStatus =
   | 'on-time'
   | 'delayed'
@@ -357,27 +306,27 @@ export type FlightStatus =
   | 'cancelled';
 
 export interface Flight {
-  id:            number;
-  flightNumber:  string;
-  airline:       string;
-  type:          FlightType;
-  scheduledTime: string;       // "HH:MM"
-  expectedTime?: string;       // nur wenn verspätet
-  status:        FlightStatus;
-  airport:       string;       // Herkunft (arrival) / Ziel (departure)
-  terminal:      string;       // "T1", "T2", "T3"
-  gate?:         string;       // z.B. "B12"
-}
-</code></pre>
+  id: number;
+  flightNumber: string;
+  airline: string;
+  type: FlightType;
+  scheduledTime: string;
+  expectedTime?: string;
+  status: FlightStatus;
+  airport: string;
+  terminal: string;
+  gate?: string;
+}</code></pre>
       </div>
 
       <h3>Seed-Daten</h3>
+      <p>Bis zur API-Anbindung in Lektion&nbsp;2.2 kommen die Fl&uuml;ge aus einem festen Array:</p>
       <div class="code-block">
         <div class="code-header">
-          <span class="code-filename">src/app/data/flights.ts</span>
+          <span class="code-filename">src/app/flights.ts</span>
           <span class="code-lang">typescript</span>
         </div>
-        <pre><code class="language-typescript">import { Flight } from '../models/flight';
+        <pre><code class="language-typescript">import { Flight } from './flight';
 
 export const FLIGHTS: Flight[] = [
   {
@@ -385,9 +334,9 @@ export const FLIGHTS: Flight[] = [
     flightNumber: 'OS123',
     airline: 'Austrian Airlines',
     type: 'departure',
-    scheduledTime: '08:15',
+    scheduledTime: '10:30',
     status: 'boarding',
-    airport: 'Berlin BER',
+    airport: 'London Heathrow (LHR)',
     terminal: 'T3',
     gate: 'B12',
   },
@@ -395,52 +344,147 @@ export const FLIGHTS: Flight[] = [
     id: 2,
     flightNumber: 'LH456',
     airline: 'Lufthansa',
-    type: 'arrival',
-    scheduledTime: '09:30',
-    expectedTime: '09:55',
+    type: 'departure',
+    scheduledTime: '11:15',
+    expectedTime: '11:45',
     status: 'delayed',
-    airport: 'Frankfurt FRA',
+    airport: 'Frankfurt (FRA)',
     terminal: 'T2',
+    gate: 'A07',
   },
   {
     id: 3,
-    flightNumber: 'FR789',
-    airline: 'Ryanair',
-    type: 'departure',
-    scheduledTime: '10:00',
-    status: 'on-time',
-    airport: 'London STN',
+    flightNumber: 'EK789',
+    airline: 'Emirates',
+    type: 'arrival',
+    scheduledTime: '09:45',
+    status: 'landed',
+    airport: 'Dubai (DXB)',
     terminal: 'T1',
-    gate: 'A05',
   },
   {
     id: 4,
-    flightNumber: 'EW201',
-    airline: 'Eurowings',
-    type: 'arrival',
-    scheduledTime: '11:45',
-    status: 'landed',
-    airport: 'Düsseldorf DUS',
-    terminal: 'T2',
-    gate: 'C08',
+    flightNumber: 'BA234',
+    airline: 'British Airways',
+    type: 'departure',
+    scheduledTime: '12:00',
+    status: 'on-time',
+    airport: 'London Heathrow (LHR)',
+    terminal: 'T3',
+    gate: 'C22',
   },
-];
-</code></pre>
+  {
+    id: 5,
+    flightNumber: 'TK567',
+    airline: 'Turkish Airlines',
+    type: 'arrival',
+    scheduledTime: '13:20',
+    expectedTime: '14:05',
+    status: 'delayed',
+    airport: 'Istanbul (IST)',
+    terminal: 'T2',
+  },
+  {
+    id: 6,
+    flightNumber: 'FR890',
+    airline: 'Ryanair',
+    type: 'departure',
+    scheduledTime: '14:50',
+    status: 'on-time',
+    airport: 'Dublin (DUB)',
+    terminal: 'T1',
+    gate: 'D05',
+  },
+  {
+    id: 7,
+    flightNumber: 'WZ112',
+    airline: 'Wizz Air',
+    type: 'arrival',
+    scheduledTime: '15:30',
+    status: 'on-time',
+    airport: 'Budapest (BUD)',
+    terminal: 'T2',
+  },
+  {
+    id: 8,
+    flightNumber: 'VY334',
+    airline: 'Vueling',
+    type: 'departure',
+    scheduledTime: '16:10',
+    status: 'cancelled',
+    airport: 'Barcelona (BCN)',
+    terminal: 'T1',
+  },
+];</code></pre>
       </div>
 
-      <div class="callout callout-info">
-        <div class="callout-icon">&#8505;</div>
-        <div class="callout-body">
-          <div class="callout-title">Angular 17+: Neue Control-Flow-Syntax</div>
-          <p>
-            Angular&nbsp;17 hat eine v&ouml;llig neue Template-Syntax f&uuml;r Kontrollstrukturen
-            eingef&uuml;hrt: <code>@for</code>, <code>@if</code>, <code>@else</code>, <code>@switch</code>.
-            Sie ersetzt die bisherigen strukturellen Direktiven <code>*ngFor</code> und <code>*ngIf</code>
-            und ist direkt in den Angular-Compiler integriert &mdash; kein Import von
-            <code>CommonModule</code> oder <code>NgIf</code> mehr n&ouml;tig. Lektion 1.4 erkl&auml;rt
-            sie im Detail.
-          </p>
+      <h3>Die Root-Komponente</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">src/app/app.ts</span>
+          <span class="code-lang">typescript</span>
         </div>
+        <pre><code class="language-typescript">import { Component } from '@angular/core';
+import { Flight } from './flight';
+import { FLIGHTS } from './flights';
+
+@Component({
+  imports: [],
+  selector: 'app-root',
+  styleUrl: './app.css',
+  templateUrl: './app.html',
+})
+export class App {
+  flights: Flight[] = FLIGHTS;
+}</code></pre>
+      </div>
+      <ul>
+        <li><code>selector: 'app-root'</code>: Unter diesem HTML-Tag wird die Komponente eingesetzt.</li>
+        <li><code>imports</code>: andere Komponenten, die im Template verwendet werden &ndash; noch keine.</li>
+        <li><code>templateUrl</code> und <code>styleUrl</code>: Template und Styles in eigenen Dateien. <code>app.css</code> bleibt vorerst leer.</li>
+        <li>Die Eigenschaft <code>flights</code> der Klasse ist im Template direkt verf&uuml;gbar.</li>
+      </ul>
+
+      <h3>Das Template</h3>
+      <p>Zwei Dinge sind neu im Template:</p>
+      <ul>
+        <li><strong>Interpolation</strong> <code>{{ ausdruck }}</code> setzt einen Wert aus der Klasse als Text ein.</li>
+        <li><strong><code>@for</code></strong> wiederholt einen Block f&uuml;r jedes Element eines Arrays &mdash; wie <code>map()</code> in React. <code>track flight.id</code> sagt Angular, woran es die Zeilen wiedererkennt (wie <code>key</code> in React). Weitere Kontrollstrukturen folgen in Lektion&nbsp;1.4.</li>
+      </ul>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">src/app/app.html</span>
+          <span class="code-lang">html</span>
+        </div>
+        <pre><code class="language-xml">&lt;div class="page-content"&gt;
+  &lt;h1 class="page-title"&gt;✈ FlugBoard Wien&lt;/h1&gt;
+
+  &lt;table class="flight-table"&gt;
+    &lt;thead&gt;
+      &lt;tr&gt;
+        &lt;th&gt;Flug&lt;/th&gt;
+        &lt;th&gt;Airline&lt;/th&gt;
+        &lt;th&gt;Typ&lt;/th&gt;
+        &lt;th&gt;Zeit&lt;/th&gt;
+        &lt;th&gt;Airport&lt;/th&gt;
+        &lt;th&gt;Status&lt;/th&gt;
+      &lt;/tr&gt;
+    &lt;/thead&gt;
+    &lt;tbody&gt;
+      &lt;!-- @for wiederholt die Zeile für jeden Flug --&gt;
+      @for (flight of flights; track flight.id) {
+        &lt;tr&gt;
+          &lt;td class="flight-num"&gt;{{ flight.flightNumber }}&lt;/td&gt;
+          &lt;td&gt;{{ flight.airline }}&lt;/td&gt;
+          &lt;td&gt;{{ flight.type }}&lt;/td&gt;
+          &lt;td&gt;{{ flight.scheduledTime }}&lt;/td&gt;
+          &lt;td&gt;{{ flight.airport }}&lt;/td&gt;
+          &lt;td&gt;{{ flight.status }}&lt;/td&gt;
+        &lt;/tr&gt;
+      }
+    &lt;/tbody&gt;
+  &lt;/table&gt;
+&lt;/div&gt;</code></pre>
       </div>
     </section>
 
@@ -452,19 +496,13 @@ export const FLIGHTS: Flight[] = [
           <span class="projekt-step">Projektschritt 1.1</span>
           <h3>Statische Flugliste aufbauen</h3>
         </div>
-        <p>
-          Lege das Angular-Projekt an und implementiere die statische Flugliste:
-        </p>
         <ol style="margin:.75rem 0 0 1.25rem;line-height:2">
-          <li>Angular CLI installieren und Projekt <code>flugboard</code> anlegen (Standalone, Routing, CSS)</li>
-          <li>Ordner <code>src/app/models/</code> anlegen und <code>flight.ts</code> mit dem Datenmodell erstellen</li>
-          <li>Ordner <code>src/app/data/</code> anlegen und <code>flights.ts</code> mit 4 Seed-Fl&uuml;gen erstellen</li>
-          <li><code>AppComponent</code> so anpassen, dass die 4 Fl&uuml;ge als HTML-Tabelle mit <code>@for</code> ausgegeben werden</li>
-          <li><code>ng serve</code> starten und im Browser pr&uuml;fen, ob alle 4 Zeilen erscheinen</li>
+          <li>Angular CLI installieren und das Projekt mit <code>ng new</code> anlegen (Abschnitt&nbsp;4)</li>
+          <li><code>src/styles.css</code> durch das fertige Stylesheet ersetzen</li>
+          <li><code>src/app/flight.ts</code> und <code>src/app/flights.ts</code> anlegen</li>
+          <li><code>app.ts</code> und <code>app.html</code> wie in Abschnitt&nbsp;5 anpassen &mdash; den Platzhalter-Inhalt von <code>app.html</code> komplett ersetzen</li>
+          <li><code>ng serve</code> starten und pr&uuml;fen, ob alle Fl&uuml;ge in der Tabelle erscheinen</li>
         </ol>
-        <p style="margin-top:.75rem">
-          <strong>Ziel:</strong> Im Browser ist eine Tabelle mit 4 Fl&uuml;gen sichtbar. Noch kein Styling n&ouml;tig.
-        </p>
       </div>
     </section>
 
@@ -498,8 +536,8 @@ export const FLIGHTS: Flight[] = [
           falsch ist.
         </p>
         <p class="fehler-fix">
-          <strong>Fix:</strong> In <code>app.component.ts</code> den Import hinzuf&uuml;gen:
-          <code>import { Flight } from './models/flight';</code>. Pfad pr&uuml;fen: der Dateiname
+          <strong>Fix:</strong> In <code>app.ts</code> den Import hinzuf&uuml;gen:
+          <code>import { Flight } from './flight';</code>. Pfad pr&uuml;fen: der Dateiname
           muss exakt <code>flight.ts</code> hei&szlig;en (ohne <code>.ts</code> im Import).
         </p>
       </div>

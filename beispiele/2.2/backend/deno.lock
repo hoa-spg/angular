@@ -1,9 +1,11 @@
 {
   "version": "5",
   "specifiers": {
+    "npm:@libsql/client@*": "0.14.0",
     "npm:@libsql/client@0.14.0": "0.14.0",
+    "npm:drizzle-orm@*": "0.36.4_@libsql+client@0.14.0",
     "npm:drizzle-orm@0.36.4": "0.36.4_@libsql+client@0.14.0",
-    "npm:hono@4.6.5": "4.6.5"
+    "npm:hono@*": "4.13.13"
   },
   "npm": {
     "@libsql/client@0.14.0": {
@@ -119,8 +121,8 @@
         "fetch-blob"
       ]
     },
-    "hono@4.6.5": {
-      "integrity": "sha512-qsmN3V5fgtwdKARGLgwwHvcdLKursMd+YOt69eGpl1dUCJb8mCd7hZfyZnBYjxCegBG7qkJRQRUy2oO25yHcyQ=="
+    "hono@4.13.13": {
+      "integrity": "sha512-CQ46U0ZkAGmbT/4UxdzzGJpacP2IeKgY4a5/tOI9AABbpOMfK739wfDXmv1usCk+3RkKj1hQy4/fjhiwa2xlrA=="
     },
     "js-base64@3.9.5": {
       "integrity": "sha512-u0CFDUca8BbBRkMkF/fDcuoLCx9nTNbXdVtbjVnBqySA9E221u0uYKbACiYGOEk1heY69qM4caeX3OwjSyxevw=="
@@ -167,10 +169,5 @@
     "ws@8.22.0": {
       "integrity": "sha512-Ydggc987+RO0AnWtZ/7Wq9FtNvcrL1b/RO0ud9mWjUPgDrsAAwQSF51sm2hm1XofbU/4jkpGEsLFsZZxU+1DOg=="
     }
-  },
-  "workspace": {
-    "dependencies": [
-      "npm:hono@4.6.5"
-    ]
   }
 }

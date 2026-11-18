@@ -57,392 +57,225 @@
 
     <section class="section section-lernziele">
       <h2>Lernziele</h2>
-      <ul class="lernziele-list">
-        <li>Das Konzept der Dependency Injection (DI) in Angular verstehen und erkl&auml;ren k&ouml;nnen</li>
-        <li>Einen Service mit <code>@Injectable</code> erstellen und per <code>inject()</code> verwenden</li>
-        <li>Den <code>HttpClient</code> einrichten und HTTP-GET/POST/DELETE-Anfragen ausf&uuml;hren</li>
-        <li>Den Unterschied zwischen Observable und Promise kennen und Observables subscriben</li>
-        <li>Loading-, Error- und Success-Zust&auml;nde im Template sauber darstellen</li>
-        <li>Die statischen Seed-Daten durch echte API-Aufrufe ersetzen</li>
+      <ul>
+        <li>Einen Service mit <code>ng generate service</code> anlegen</li>
+        <li>Abh&auml;ngigkeiten mit <code>inject()</code> beziehen (Dependency Injection)</li>
+        <li>Mit <code>HttpClient</code> Daten laden und speichern</li>
+        <li>Observables mit <code>subscribe</code> starten und Antworten verarbeiten</li>
+        <li>Lade- und Fehlerzustand mit Signals anzeigen</li>
       </ul>
     </section>
 
-    <!-- Section 1: DI -->
+    <!-- Section 1: Backend -->
     <section class="section">
-      <h2>Dependency Injection &mdash; Angulars eingebautes IoC-System</h2>
-
+      <h2>1 &mdash; Das Backend</h2>
       <p>
-        Dependency Injection (DI) ist ein Entwurfsmuster, bei dem Abh&auml;ngigkeiten
-        (<em>Dependencies</em>) nicht selbst instantiiert werden, sondern von au&szlig;en
-        injiziert werden. Angular hat DI tief ins Framework integriert: Es gibt einen
-        <strong>Injektor-Baum</strong>, der Services bereitstellt und ihre Lebensdauer verwaltet.
+        Bis jetzt kamen die Fl&uuml;ge aus <code>flights.ts</code>, und neue Fl&uuml;ge waren nach einem Neuladen
+        wieder weg. Ab dieser Lektion speichert ein kleiner REST-Server die Fl&uuml;ge in einer SQLite-Datenbank
+        &ndash; aufgebaut wie das Deno-Backend aus dem React-Kurs (Hono und Drizzle). Er liegt fertig im
+        Beispielordner <code>backend/</code>; kopiere ihn neben den Ordner <code>src/</code>.
       </p>
-
-      <h3>providedIn: 'root' &mdash; Application-Singleton</h3>
-      <p>
-        Wenn ein Service mit <code>providedIn: 'root'</code> konfiguriert wird, erstellt Angular
-        genau <strong>eine Instanz</strong> des Services f&uuml;r die gesamte Anwendung
-        (Singleton-Pattern). Jede Komponente, die diesen Service anfordert, bekommt dieselbe Instanz.
-      </p>
-
-      <h3>inject() vs. Constructor-Injection</h3>
       <div class="code-block">
         <div class="code-header">
-          <span class="code-filename">inject() vs. Constructor-Injection</span>
-          <span class="code-lang">typescript</span>
+          <span class="code-filename">Terminal &mdash; Backend starten</span>
+          <span class="code-lang">bash</span>
         </div>
-        <pre><code class="language-typescript">// Moderner Ansatz: inject() (Angular 14+, empfohlen)
-import { Component, inject, OnInit } from '@angular/core';
-import { FlightApiService }          from '../services/flight-api.service';
-
-export class AppComponent implements OnInit {
-  private flightApi = inject(FlightApiService); // ← inject() Funktion
-
-  ngOnInit(): void {
-    this.flightApi.getFlights().subscribe(/* ... */);
-  }
-}
-
-// Klassischer Ansatz: Constructor-Injection
-export class AppComponent implements OnInit {
-  constructor(private flightApi: FlightApiService) {}  // ← Konstruktor
-
-  ngOnInit(): void {
-    this.flightApi.getFlights().subscribe(/* ... */);
-  }
-}
-</code></pre>
+        <pre><code class="language-bash">cd backend
+deno task dev
+# → FlugBoard API läuft auf http://localhost:8000</code></pre>
       </div>
-
-      <div class="callout callout-info">
-        <div class="callout-icon">&#8505;</div>
-        <div class="callout-body">
-          <div class="callout-title">inject() &mdash; warum moderner?</div>
-          <p>
-            <code>inject()</code> funktioniert auch in Funktionen und Custom Hooks (ähnlich React),
-            die in einem Injektionskontext aufgerufen werden. Das erlaubt Muster wie
-            <em>Function-based Services</em> und vereinfacht Code im Gegensatz zu langen Konstruktor-
-            Parameterlisten. In neuen Angular-Projekten (17+) ist <code>inject()</code> die
-            empfohlene Methode.
-          </p>
-        </div>
-      </div>
+      <ul>
+        <li><code>GET /api/flights</code> liefert alle Fl&uuml;ge, <code>POST /api/flights</code> legt einen an.</li>
+        <li>Beim ersten Start legt das Backend die Datei <code>flugboard.db</code> an und f&uuml;llt sie mit denselben acht Fl&uuml;gen wie bisher.</li>
+        <li>Es erlaubt Anfragen (CORS) nur von <code>http://localhost:4200</code> &ndash; der Adresse von <code>ng serve</code>.</li>
+      </ul>
+      <p>Die Datei <code>src/app/flights.ts</code> wird damit &uuml;berfl&uuml;ssig und kann gel&ouml;scht werden.</p>
     </section>
 
-    <!-- Section 2: Service erstellen -->
+    <!-- Section 2: Service und DI -->
     <section class="section">
-      <h2>Services erstellen &mdash; @Injectable</h2>
-
+      <h2>2 &mdash; Ein Service f&uuml;r den Datenzugriff</h2>
       <p>
-        Services sind normale TypeScript-Klassen, dekoriert mit <code>@Injectable</code>.
-        Sie kapseln Gesch&auml;ftslogik, HTTP-Aufrufe und gemeinsamen State, den mehrere
-        Komponenten ben&ouml;tigen.
+        Komponenten sollen sich um die Anzeige k&uuml;mmern. Wie die Daten geladen werden, geh&ouml;rt in einen
+        <strong>Service</strong>: eine Klasse, die Angular einmal erzeugt und allen Komponenten zur Verf&uuml;gung
+        stellt, die sie brauchen.
       </p>
-
       <div class="code-block">
         <div class="code-header">
-          <span class="code-filename">src/app/services/flight-api.service.ts</span>
+          <span class="code-filename">Terminal</span>
+          <span class="code-lang">bash</span>
+        </div>
+        <pre><code class="language-bash">ng generate service flight-api</code></pre>
+      </div>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">src/app/flight-api.ts</span>
           <span class="code-lang">typescript</span>
         </div>
-        <pre><code class="language-typescript">import { Injectable, inject }    from '@angular/core';
-import { HttpClient }             from '@angular/common/http';
-import { Observable }             from 'rxjs';
-import { Flight }                 from '../models/flight';
+        <pre><code class="language-typescript">import { HttpClient } from '@angular/common/http';
+import { Service, inject } from '@angular/core';
+import { Observable } from 'rxjs';
+import { Flight } from './flight';
 
-@Injectable({
-  providedIn: 'root',  // Application-Singleton
-})
-export class FlightApiService {
+const API_URL = 'http://localhost:8000/api/flights';
+
+@Service()
+export class FlightApi {
+  // inject(): Angular liefert die eine, gemeinsame HttpClient-Instanz
   private http = inject(HttpClient);
 
-  // Basis-URL des Deno+Hono-Backends
-  private readonly apiUrl = 'http://localhost:8000/api';
-
-  /**
-   * Alle Flüge abrufen
-   */
   getFlights(): Observable&lt;Flight[]&gt; {
-    return this.http.get&lt;Flight[]&gt;(`${this.apiUrl}/flights`);
+    return this.http.get&lt;Flight[]&gt;(API_URL);
   }
 
-  /**
-   * Einzelnen Flug nach ID abrufen
-   */
-  getFlightById(id: number): Observable&lt;Flight&gt; {
-    return this.http.get&lt;Flight&gt;(`${this.apiUrl}/flights/${id}`);
+  addFlight(data: Omit&lt;Flight, 'id'&gt;): Observable&lt;Flight&gt; {
+    return this.http.post&lt;Flight&gt;(API_URL, data);
   }
-
-  /**
-   * Neuen Flug anlegen
-   */
-  createFlight(flight: Omit&lt;Flight, 'id'&gt;): Observable&lt;Flight&gt; {
-    return this.http.post&lt;Flight&gt;(`${this.apiUrl}/flights`, flight);
-  }
-
-  /**
-   * Flug löschen
-   */
-  deleteFlight(id: number): Observable&lt;void&gt; {
-    return this.http.delete&lt;void&gt;(`${this.apiUrl}/flights/${id}`);
-  }
-
-  /**
-   * Status eines Flugs aktualisieren
-   */
-  updateStatus(id: number, status: Flight['status']): Observable&lt;Flight&gt; {
-    return this.http.patch&lt;Flight&gt;(`${this.apiUrl}/flights/${id}`, { status });
-  }
-}
-</code></pre>
+}</code></pre>
       </div>
-    </section>
+      <ul>
+        <li><code>@Service()</code> macht die Klasse zu einem Service, den es in der ganzen App genau einmal gibt.</li>
+        <li><code>inject(HttpClient)</code> holt ein Objekt, das Angular bereitstellt &ndash; das ist <strong>Dependency Injection</strong>: Die Klasse erzeugt ihre Abh&auml;ngigkeiten nicht selbst mit <code>new</code>, sondern bekommt sie geliefert.</li>
+        <li><code>HttpClient</code> macht HTTP-Requests. <code>get&lt;Flight[]&gt;(url)</code> gibt an, welchen Typ die Antwort hat.</li>
+      </ul>
 
-    <!-- Section 3: HttpClient -->
-    <section class="section">
-      <h2>HttpClient einrichten &mdash; provideHttpClient()</h2>
-
+      <h3>HttpClient bereitstellen</h3>
       <p>
-        Der <code>HttpClient</code> muss in <code>main.ts</code> &uuml;ber
-        <code>provideHttpClient()</code> bereitgestellt werden.
-        Mit Angular&nbsp;17 ist das die empfohlene Methode &mdash; kein Import von
-        <code>HttpClientModule</code> mehr n&ouml;tig.
+        Damit <code>inject(HttpClient)</code> funktioniert, muss der HttpClient app-weit registriert sein &ndash;
+        in <code>app.config.ts</code>:
       </p>
-
       <div class="code-block">
         <div class="code-header">
           <span class="code-filename">src/app/app.config.ts</span>
           <span class="code-lang">typescript</span>
         </div>
-        <pre><code class="language-typescript">import { ApplicationConfig }         from '@angular/core';
-import { provideRouter }             from '@angular/router';
-import { provideHttpClient }         from '@angular/common/http';
-import { provideAnimations }         from '@angular/platform-browser/animations';
-import { routes }                    from './app.routes';
+        <pre><code class="language-typescript">import { provideHttpClient } from '@angular/common/http';
+import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
 
 export const appConfig: ApplicationConfig = {
-  providers: [
-    provideRouter(routes),
-    provideHttpClient(),      // ← HTTP-Client für die gesamte App
-    provideAnimations(),
-  ],
-};
-</code></pre>
+  providers: [provideBrowserGlobalErrorListeners(), provideHttpClient()],
+};</code></pre>
       </div>
     </section>
 
-    <!-- Section 4: Observable Einstieg -->
+    <!-- Section 3: Observable -->
     <section class="section">
-      <h2>Observable &mdash; kurzer Einstieg (tiefer in Lektion 2.3)</h2>
-
+      <h2>3 &mdash; Observable: die Antwort kommt sp&auml;ter</h2>
       <p>
-        Angulars <code>HttpClient</code>-Methoden geben <strong>Observables</strong> zur&uuml;ck,
-        keine Promises. Ein Observable repr&auml;sentiert eine Sequenz von Werten &uuml;ber die Zeit.
-        Um an die Daten zu kommen, muss man <code>subscribe()</code> aufrufen.
+        <code>getFlights()</code> liefert keine Fl&uuml;ge, sondern ein <strong>Observable</strong> &ndash; ein
+        Versprechen, dass Daten kommen werden, &auml;hnlich einem Promise. Zwei Unterschiede sind f&uuml;r den
+        Anfang wichtig:
       </p>
-
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Eigenschaft</th>
-              <th>Promise</th>
-              <th>Observable</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td>Werte</td><td>Einmalig (1 Wert)</td><td>Mehrfach (0-n Werte)</td></tr>
-            <tr><td>Lazy</td><td>Startet sofort</td><td>Startet erst bei subscribe()</td></tr>
-            <tr><td>Abbrechen</td><td>Nicht cancellbar</td><td>Cancellbar via unsubscribe()</td></tr>
-            <tr><td>Operatoren</td><td>then/catch/finally</td><td>map, filter, switchMap, &hellip;</td></tr>
-            <tr><td>Mehrere Werte</td><td>Nein</td><td>Ja (Streams, Polling)</td></tr>
-            <tr><td>Angular-Integration</td><td>Ja (toPromise / firstValueFrom)</td><td>Nativ (HttpClient, Router)</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-filename">Observable subscriben &mdash; Grundmuster</span>
-          <span class="code-lang">typescript</span>
-        </div>
-        <pre><code class="language-typescript">// Observable subscriben:
-this.flightApi.getFlights().subscribe({
-  next:     (flights) =&gt; { this.flights = flights; },
-  error:    (err)     =&gt; { this.error   = err.message; },
-  complete: ()        =&gt; { console.log('Stream beendet'); },
-});
-
-// Alternativ (nur next-Handler):
-this.flightApi.getFlights().subscribe(flights =&gt; {
-  this.flights = flights;
-});
-</code></pre>
-      </div>
+      <ul>
+        <li>Der Request startet erst mit <code>subscribe(…)</code>. Ohne <code>subscribe</code> passiert gar nichts.</li>
+        <li><code>subscribe</code> bekommt ein Objekt mit <code>next</code> (Daten sind da) und <code>error</code> (Request fehlgeschlagen) &ndash; wie <code>then</code> und <code>catch</code>.</li>
+      </ul>
+      <p>Observables k&ouml;nnen noch viel mehr, etwa mehrere Werte nacheinander liefern. Das ist Thema von Lektion&nbsp;2.3.</p>
     </section>
 
-    <!-- Section 5: Loading/Error/Success -->
+    <!-- Section 4: App -->
     <section class="section">
-      <h2>Das Drei-Zustands-Modell: Loading / Error / Success</h2>
-
+      <h2>4 &mdash; Daten beim Start laden</h2>
       <p>
-        Jede HTTP-Anfrage durchl&auml;uft drei Zust&auml;nde. Diese sauber im Template
-        darzustellen ist essenziell f&uuml;r eine gute User Experience.
+        <code>App</code> holt sich den Service mit <code>inject(FlightApi)</code> und l&auml;dt die Fl&uuml;ge in
+        <code>ngOnInit</code>. Das ist ein <strong>Lifecycle-Hook</strong>: eine Methode, die Angular einmal aufruft,
+        sobald die Komponente erstellt ist &ndash; vergleichbar mit <code>useEffect(…, [])</code> in React.
+        Die Klasse gibt mit <code>implements OnInit</code> an, dass sie diese Methode hat.
       </p>
-
+      <p>
+        Weil die Antwort sp&auml;ter kommt, startet <code>flights</code> als leere Liste. Dazu kommen zwei Signals
+        f&uuml;r die anderen Zust&auml;nde: <code>loading</code> und <code>error</code>. Alles, was sich hier
+        &auml;ndert, ist ein Signal &ndash; nur so aktualisiert Angular die Anzeige, wenn die Antwort eintrifft.
+      </p>
       <div class="code-block">
         <div class="code-header">
-          <span class="code-filename">AppComponent &mdash; Loading/Error/Success Pattern</span>
+          <span class="code-filename">src/app/app.ts</span>
           <span class="code-lang">typescript</span>
         </div>
-        <pre><code class="language-typescript">import { Component, inject, OnInit }  from '@angular/core';
-import { FlightApiService }           from './services/flight-api.service';
-import { FlightListComponent }        from './components/flight-list/flight-list.component';
-import { Flight }                     from './models/flight';
+        <pre><code class="language-typescript">import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { AddFlightForm } from './add-flight-form/add-flight-form';
+import { AirportHeader } from './airport-header/airport-header';
+import { FlightCard } from './flight-card/flight-card';
+import { Flight, FlightType } from './flight';
+import { FlightApi } from './flight-api';
 
 @Component({
+  imports: [FormsModule, AddFlightForm, AirportHeader, FlightCard],
   selector: 'app-root',
-  standalone: true,
-  imports: [FlightListComponent],
-  template: `
-    @if (isLoading) {
-      &lt;div class="loading-spinner"&gt;
-        &lt;span class="spinner"&gt;&lt;/span&gt;
-        Flugdaten werden geladen...
-      &lt;/div&gt;
-    }
-
-    @if (errorMessage) {
-      &lt;div class="error-banner"&gt;
-        &lt;strong&gt;Fehler:&lt;/strong&gt; {{ errorMessage }}
-        &lt;button (click)="loadFlights()"&gt;Erneut versuchen&lt;/button&gt;
-      &lt;/div&gt;
-    }
-
-    @if (!isLoading &amp;&amp; !errorMessage) {
-      &lt;app-flight-list [flights]="flights" /&gt;
-    }
-  `,
+  styleUrl: './app.css',
+  templateUrl: './app.html',
 })
-export class AppComponent implements OnInit {
-  private flightApi = inject(FlightApiService);
+export class App implements OnInit {
+  private api = inject(FlightApi);
 
-  flights:      Flight[] = [];
-  isLoading:    boolean  = false;
-  errorMessage: string   = '';
+  // Startwert: leere Liste – die Flüge kommen vom Backend
+  flights = signal&lt;Flight[]&gt;([]);
+  loading = signal(true);
+  error = signal('');
+  selectedFlight = signal&lt;Flight | null&gt;(null);
 
+  // Suchtext und Typfilter werden im Template geändert
+  searchText = signal('');
+  activeType = signal&lt;'all' | FlightType&gt;('all');
+
+  // computed: wird neu berechnet, sobald sich ein gelesenes Signal ändert
+  filteredFlights = computed(() =&gt; {
+    const q = this.searchText().trim().toLowerCase();
+    return this.flights()
+      .filter((f) =&gt; this.activeType() === 'all' || f.type === this.activeType())
+      .filter(
+        (f) =&gt;
+          !q ||
+          f.flightNumber.toLowerCase().includes(q) ||
+          f.airline.toLowerCase().includes(q) ||
+          f.airport.toLowerCase().includes(q),
+      );
+  });
+
+  // ngOnInit: läuft einmal, wenn die Komponente erstellt ist
   ngOnInit(): void {
-    this.loadFlights();
-  }
-
-  loadFlights(): void {
-    this.isLoading    = true;
-    this.errorMessage = '';
-
-    this.flightApi.getFlights().subscribe({
+    // subscribe startet den Request und legt fest, was mit der Antwort passiert
+    this.api.getFlights().subscribe({
       next: (flights) =&gt; {
-        this.flights   = flights;
-        this.isLoading = false;
+        this.flights.set(flights);
+        this.loading.set(false);
       },
-      error: (err) =&gt; {
-        this.errorMessage = `API nicht erreichbar: ${err.message}`;
-        this.isLoading    = false;
+      error: () =&gt; {
+        this.error.set('Backend nicht erreichbar – läuft „deno task dev“?');
+        this.loading.set(false);
       },
     });
   }
-}
-</code></pre>
+
+  onFlightSelect(flight: Flight): void {
+    this.selectedFlight.set(flight);
+  }
+
+  addFlight(data: Omit&lt;Flight, 'id'&gt;): void {
+    // Das Backend vergibt die id und liefert den gespeicherten Flug zurück
+    this.api.addFlight(data).subscribe((flight) =&gt; {
+      this.flights.update((list) =&gt; [...list, flight]);
+    });
+  }
+}</code></pre>
       </div>
-
-      <div class="callout callout-warning">
-        <div class="callout-icon">&#9888;</div>
-        <div class="callout-body">
-          <div class="callout-title">Memory Leak: Subscription nicht aufger&auml;umt</div>
-          <p>
-            Wenn man <code>subscribe()</code> aufruft und die Subscription nie beendet, kann es
-            zu Memory Leaks kommen &mdash; besonders wenn Komponenten zerst&ouml;rt und neu erstellt
-            werden. F&uuml;r HTTP-Anfragen ist das in der Regel kein Problem (HTTP-Observables
-            completen nach einem Wert), aber f&uuml;r Intervalle oder unendliche Streams ist
-            <code>takeUntil(this.destroy$)</code> oder die <code>async</code>-Pipe unverzichtbar.
-            Lektion&nbsp;2.3 behandelt dieses Thema ausf&uuml;hrlich.
-          </p>
-        </div>
-      </div>
-
-      <div class="callout callout-warning">
-        <div class="callout-icon">&#9888;</div>
-        <div class="callout-body">
-          <div class="callout-title">CORS-Probleme beim Entwickeln</div>
-          <p>
-            Beim Aufruf von <code>http://localhost:8000</code> aus der Angular-App auf
-            <code>http://localhost:4200</code> blockiert der Browser die Anfrage, wenn das Backend
-            keinen <code>Access-Control-Allow-Origin</code>-Header setzt. Das Deno+Hono-Backend
-            muss CORS explizit aktivieren:
-          </p>
-          <p>
-            Im Hono-Backend: <code>app.use('*', cors({ origin: 'http://localhost:4200' }))</code>.
-            Oder w&auml;hrend der Entwicklung im Angular <code>proxy.conf.json</code> einen Proxy
-            konfigurieren.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Section 6: ngOnInit -->
-    <section class="section">
-      <h2>Lifecycle Hooks &mdash; ngOnInit()</h2>
-
       <p>
-        Angular-Komponenten haben <strong>Lifecycle Hooks</strong> &auml;hnlich wie React&apos;s
-        <code>useEffect</code>. Der wichtigste f&uuml;r Datenladung ist <code>ngOnInit()</code>,
-        der einmal nach der ersten Darbietung der Komponente aufgerufen wird.
+        Auch <code>addFlight</code> geht jetzt &uuml;ber das Backend. Die Antwort ist der gespeicherte Flug mit der
+        vom Backend vergebenen <code>id</code>. Im Template zeigen zwei <code>@if</code> Lade- und Fehlerzustand
+        &uuml;ber den Karten an:
       </p>
-
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Hook</th>
-              <th>Zeitpunkt</th>
-              <th>Verwendung</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td><code>ngOnInit()</code></td><td>Nach erstem Rendern</td><td>HTTP-Abruf, Initialisierung</td></tr>
-            <tr><td><code>ngOnChanges()</code></td><td>Wenn Inputs sich &auml;ndern</td><td>Auf neue @Input()-Werte reagieren</td></tr>
-            <tr><td><code>ngOnDestroy()</code></td><td>Vor Zerst&ouml;rung der Komponente</td><td>Subscriptions beenden, Cleanup</td></tr>
-            <tr><td><code>ngAfterViewInit()</code></td><td>Nach View-Initialisierung</td><td>DOM-Elemente via ViewChild ansprechen</td></tr>
-          </tbody>
-        </table>
-      </div>
-
       <div class="code-block">
         <div class="code-header">
-          <span class="code-filename">ngOnInit + ngOnDestroy Grundmuster</span>
-          <span class="code-lang">typescript</span>
+          <span class="code-filename">src/app/app.html (Ausschnitt)</span>
+          <span class="code-lang">html</span>
         </div>
-        <pre><code class="language-typescript">import { Component, inject, OnInit, OnDestroy } from '@angular/core';
-import { Subscription }                         from 'rxjs';
-import { FlightApiService }                     from './services/flight-api.service';
-
-export class FlightPageComponent implements OnInit, OnDestroy {
-  private flightApi    = inject(FlightApiService);
-  private subscription = new Subscription();
-
-  ngOnInit(): void {
-    // Subscription zur Sammlung hinzufügen
-    this.subscription.add(
-      this.flightApi.getFlights().subscribe(flights =&gt; {
-        this.flights = flights;
-      })
-    );
+        <pre><code class="language-xml">  @if (loading()) {
+    &lt;p class="page-meta"&gt;Flüge werden geladen …&lt;/p&gt;
   }
-
-  ngOnDestroy(): void {
-    // Alle Subscriptions beenden (verhindert Memory Leaks)
-    this.subscription.unsubscribe();
-  }
-}
-</code></pre>
+  @if (error()) {
+    &lt;p class="form-error"&gt;{{ error() }}&lt;/p&gt;
+  }</code></pre>
       </div>
     </section>
 
@@ -452,18 +285,14 @@ export class FlightPageComponent implements OnInit, OnDestroy {
       <div class="projekt-box">
         <div class="projekt-box-header">
           <span class="projekt-step">Projektschritt 2.2</span>
-          <h3>Statische Daten durch API ersetzen</h3>
+          <h3>Statische Daten durch das Backend ersetzen</h3>
         </div>
-        <p>
-          Verbinde das FlugBoard mit dem Deno+Hono-Backend:
-        </p>
         <ol style="margin:.75rem 0 0 1.25rem;line-height:2">
-          <li><code>provideHttpClient()</code> in <code>app.config.ts</code> einbinden</li>
-          <li><code>FlightApiService</code> mit <code>getFlights()</code> und <code>getFlightById()</code> erstellen</li>
-          <li><code>AppComponent</code> oder <code>FlightListComponent</code> so anpassen, dass Daten via <code>ngOnInit</code> + <code>subscribe</code> geladen werden</li>
-          <li>Loading-Spinner und Error-Banner im Template implementieren</li>
-          <li>Backend starten (<code>deno task dev</code>) und Verbindung testen</li>
-          <li>CORS im Backend konfigurieren, falls n&ouml;tig</li>
+          <li>Den Ordner <code>backend/</code> aus dem Beispiel &uuml;bernehmen und mit <code>deno task dev</code> starten</li>
+          <li><code>FlightApi</code> mit <code>ng generate service</code> anlegen, <code>provideHttpClient()</code> in <code>app.config.ts</code></li>
+          <li><code>App</code>: Service injizieren, Fl&uuml;ge in <code>ngOnInit</code> laden, <code>loading</code> und <code>error</code> als Signals</li>
+          <li><code>addFlight</code> &uuml;ber <code>api.addFlight</code> speichern; <code>flights.ts</code> l&ouml;schen</li>
+          <li>Testen: Einen Flug hinzuf&uuml;gen, die Seite neu laden &ndash; der Flug ist noch da. Backend stoppen und neu laden &ndash; die Fehlermeldung erscheint.</li>
         </ol>
       </div>
     </section>
@@ -471,51 +300,25 @@ export class FlightPageComponent implements OnInit, OnDestroy {
     <!-- Häufige Fehler -->
     <section class="section section-fehler">
       <h2>H&auml;ufige Fehler</h2>
-
       <div class="fehler-item">
         <div class="fehler-title"><code>NullInjectorError: No provider for HttpClient!</code></div>
-        <p>
-          <code>HttpClient</code> ist nicht verf&uuml;gbar, weil <code>provideHttpClient()</code>
-          fehlt.
-        </p>
-        <p class="fehler-fix">
-          <strong>Fix:</strong> In <code>app.config.ts</code> unter <code>providers</code>
-          <code>provideHttpClient()</code> einf&uuml;gen.
-        </p>
+        <p><code>provideHttpClient()</code> fehlt in <code>app.config.ts</code>.</p>
+        <p class="fehler-fix"><strong>Fix:</strong> In <code>providers</code> eintragen und <code>ng serve</code> neu starten.</p>
       </div>
-
       <div class="fehler-item">
-        <div class="fehler-title">HTTP-Request wird nicht ausgef&uuml;hrt (kein Netzwerk-Tab-Eintrag)</div>
-        <p>
-          Observables sind <em>lazy</em> &mdash; ohne <code>subscribe()</code> passiert nichts.
-        </p>
-        <p class="fehler-fix">
-          <strong>Fix:</strong> <code>this.flightApi.getFlights().subscribe(fn)</code> aufrufen.
-          Oder die <code>async</code>-Pipe im Template verwenden: <code>{{ flights$ | async }}</code>.
-        </p>
+        <div class="fehler-title">Kein Request im Netzwerk-Tab</div>
+        <p><code>this.api.getFlights()</code> wird aufgerufen, aber nie abonniert.</p>
+        <p class="fehler-fix"><strong>Fix:</strong> Ein Observable startet erst mit <code>.subscribe(…)</code>.</p>
       </div>
-
       <div class="fehler-item">
         <div class="fehler-title">CORS-Fehler in der Browser-Konsole</div>
-        <p>
-          <em>&bdquo;Access to fetch at '...' from origin '...' has been blocked by CORS policy&ldquo;</em>
-        </p>
-        <p class="fehler-fix">
-          <strong>Fix:</strong> Im Deno+Hono-Backend den CORS-Middleware einrichten:
-          <code>import { cors } from 'hono/cors'; app.use('*', cors());</code>
-        </p>
+        <p>Das Frontend l&auml;uft auf einem anderen Port als 4200, oder das Backend l&auml;uft nicht.</p>
+        <p class="fehler-fix"><strong>Fix:</strong> Backend starten und das Frontend mit <code>ng serve</code> auf Port&nbsp;4200 betreiben.</p>
       </div>
-
       <div class="fehler-item">
-        <div class="fehler-title">TypeScript-Fehler: Typ <code>unknown</code> bei HTTP-Response</div>
-        <p>
-          <code>this.http.get('/api/flights')</code> ohne Typparameter gibt <code>Observable&lt;unknown&gt;</code>
-          zur&uuml;ck.
-        </p>
-        <p class="fehler-fix">
-          <strong>Fix:</strong> Typparameter angeben: <code>this.http.get&lt;Flight[]&gt;('/api/flights')</code>.
-          TypeScript pr&uuml;ft dann, ob das API-Response-Format mit dem Interface &uuml;bereinstimmt.
-        </p>
+        <div class="fehler-title">Daten kommen an, die Anzeige bleibt leer</div>
+        <p>Im <code>next</code>-Callback wird ein normales Feld gesetzt (<code>this.flights = flights</code>) statt eines Signals.</p>
+        <p class="fehler-fix"><strong>Fix:</strong> <code>this.flights.set(flights)</code> &ndash; nur Signals l&ouml;sen eine Aktualisierung aus.</p>
       </div>
     </section>
 
@@ -523,73 +326,34 @@ export class FlightPageComponent implements OnInit, OnDestroy {
     <section class="section section-aufgaben">
       <h2>Aufgaben</h2>
       <div class="aufgaben-list">
-
         <div class="aufgabe">
           <div class="aufgabe-header">
             <span class="aufgabe-num">Aufgabe 1</span>
-            <span class="aufgabe-title">Flug l&ouml;schen per HTTP DELETE</span>
+            <span class="aufgabe-title">Flug l&ouml;schen</span>
           </div>
-          <p>
-            Implementiere in <code>FlightApiService</code> die Methode <code>deleteFlight(id: number)</code>.
-            F&uuml;ge in <code>FlightCardComponent</code> einen &bdquo;L&ouml;schen&ldquo;-Button hinzu,
-            der den Service aufruft und danach die Liste neu l&auml;dt. Nutze <code>switchMap</code>
-            oder rufe nach dem L&ouml;schen einfach <code>this.loadFlights()</code> erneut auf.
-          </p>
+          <p>Erg&auml;nze im Service <code>deleteFlight(id)</code> mit <code>http.delete</code>. Ein Button in der Auswahl-Box l&ouml;scht den ausgew&auml;hlten Flug und entfernt ihn mit <code>flights.update</code> und <code>filter</code> aus der Liste.</p>
         </div>
-
         <div class="aufgabe">
           <div class="aufgabe-header">
             <span class="aufgabe-num">Aufgabe 2</span>
-            <span class="aufgabe-title">Loading-Skeleton statt Spinner</span>
+            <span class="aufgabe-title">Fehler beim Speichern</span>
           </div>
-          <p>
-            Ersetze den einfachen Spinner durch einen <strong>Skeleton-Loader</strong>: Eine Liste
-            von 4 leeren Zeilen mit einem pulsierenden CSS-Effekt (<code>@keyframes pulse</code>),
-            die w&auml;hrend des Ladevorgangs angezeigt werden. Nutze <code>@if (isLoading)</code>
-            und erstelle eine eigene <code>SkeletonRowComponent</code>.
-          </p>
+          <p>Schl&auml;gt <code>addFlight</code> fehl (Backend gestoppt), soll eine Meldung erscheinen. Verwende dieselbe Objekt-Schreibweise mit <code>next</code> und <code>error</code> wie beim Laden.</p>
         </div>
-
         <div class="aufgabe">
           <div class="aufgabe-header">
             <span class="aufgabe-num">Aufgabe 3</span>
-            <span class="aufgabe-title">Auto-Refresh alle 30 Sekunden</span>
+            <span class="aufgabe-title">Status &auml;ndern</span>
           </div>
-          <p>
-            Nutze <code>setInterval(() =&gt; this.loadFlights(), 30_000)</code> in <code>ngOnInit</code>,
-            um die Flugliste automatisch zu aktualisieren. Stelle sicher, dass das Intervall in
-            <code>ngOnDestroy</code> mit <code>clearInterval</code> gestoppt wird. Zeige einen
-            kleinen Timestamp an, wann zuletzt aktualisiert wurde.
-          </p>
+          <p>Das Backend kennt <code>PATCH /api/flights/:id</code> mit Body <code>{ "status": "boarding" }</code>. Baue im Service <code>updateStatus(id, status)</code> und setze den ausgew&auml;hlten Flug per Button auf &bdquo;Boarding&ldquo;. Ersetze den Flug in der Liste mit <code>map</code>.</p>
         </div>
-
-        <div class="aufgabe">
-          <div class="aufgabe-header">
-            <span class="aufgabe-num">Aufgabe 4</span>
-            <span class="aufgabe-title">async-Pipe kennenlernen</span>
-          </div>
-          <p>
-            Refaktoriere <code>loadFlights()</code>: Anstatt manuell zu subscriben und
-            <code>this.flights</code> zu setzen, erstelle eine <code>flights$</code>-Eigenschaft
-            vom Typ <code>Observable&lt;Flight[]&gt;</code> und nutze die
-            <code>async</code>-Pipe im Template: <code>@if (flights$ | async; as flights) { ... }</code>.
-            Was sind die Vorteile? (Automatisches Unsubscribe, kein Boilerplate)
-          </p>
-        </div>
-
         <div class="aufgabe aufgabe-bonus">
           <div class="aufgabe-header">
             <span class="aufgabe-num">Bonus</span>
-            <span class="aufgabe-title">Retry-Logik mit catchError + retry</span>
+            <span class="aufgabe-title">Filter im Backend</span>
           </div>
-          <p>
-            Verwende RxJS-Operatoren, um bei einem HTTP-Fehler automatisch drei Mal zu wiederholen:
-            <code>this.http.get&lt;Flight[]&gt;(url).pipe(retry(3), catchError(e =&gt; of([])))</code>.
-            Erkunde die Dokumentation von <code>retry</code>, <code>retryWhen</code> und
-            <code>catchError</code> und implementiere einen exponentiellen Backoff.
-          </p>
+          <p>Das Backend kann selbst filtern: <code>/api/flights?type=arrival</code>. &Uuml;bergib den Parameter mit <code>http.get(url, { params: { type } })</code>. Warum filtern wir im FlugBoard trotzdem im Frontend?</p>
         </div>
-
       </div>
     </section>
 

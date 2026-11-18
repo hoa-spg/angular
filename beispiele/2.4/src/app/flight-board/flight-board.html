@@ -1,0 +1,41 @@
+<app-add-flight-form (added)="addFlight($event)" />
+
+<div class="toolbar">
+  <!-- Two-Way-Binding: Eingabe und Signal bleiben synchron -->
+  <input
+    class="search-input"
+    [(ngModel)]="searchText"
+    placeholder="Flug, Airline, Airport ..."
+  />
+
+  <!-- Property-Binding auf eine CSS-Klasse + Event-Binding -->
+  <div class="type-filter">
+    <button [class.active]="activeType() === 'all'" (click)="activeType.set('all')">Alle</button>
+    <button [class.active]="activeType() === 'departure'" (click)="activeType.set('departure')">
+      Abflüge
+    </button>
+    <button [class.active]="activeType() === 'arrival'" (click)="activeType.set('arrival')">
+      Ankünfte
+    </button>
+  </div>
+
+  <span class="page-meta">{{ filteredFlights().length }} Treffer</span>
+  @if (lastUpdated(); as time) {
+    <span class="page-meta">Stand: {{ time | date: 'HH:mm:ss' }}</span>
+  }
+</div>
+
+@if (loading()) {
+  <p class="page-meta">Flüge werden geladen …</p>
+}
+@if (error()) {
+  <p class="form-error">{{ error() }}</p>
+}
+
+<div class="card-grid">
+  @for (flight of filteredFlights(); track flight.id) {
+    <app-flight-card [flight]="flight" (selected)="onFlightSelect($event)" />
+  } @empty {
+    <p class="empty-state">Keine Flüge gefunden.</p>
+  }
+</div>

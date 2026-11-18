@@ -1,0 +1,32 @@
+<a class="back-link" routerLink="/">← Zurück zum Board</a>
+
+@if (flight(); as flight) {
+  <div class="detail-card">
+    <div class="detail-card-header">
+      <div>
+        <div class="detail-flight-num">{{ flight.flightNumber }}</div>
+        <div class="detail-airline">{{ flight.airline }}</div>
+      </div>
+      <span class="status-badge status-{{ flight.status }}">{{ flight.status | statusLabel }}</span>
+    </div>
+
+    <div class="detail-body">
+      <div class="detail-field">
+        <div class="detail-field-label">Airport</div>
+        <div class="detail-field-value">{{ flight.airport }}</div>
+      </div>
+      <div class="detail-field">
+        <div class="detail-field-label">Planzeit</div>
+        <div class="detail-field-value">{{ flight.scheduledTime }}</div>
+      </div>
+      <div class="detail-field">
+        <div class="detail-field-label">Terminal / Gate</div>
+        <div class="detail-field-value">{{ flight.terminal }} / {{ flight.gate ?? '–' }}</div>
+      </div>
+    </div>
+  </div>
+} @else if (error()) {
+  <p class="form-error">{{ error() }}</p>
+} @else {
+  <p class="page-meta">Flug wird geladen …</p>
+}

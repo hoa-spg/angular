@@ -57,437 +57,224 @@
     <section class="section section-lernziele">
       <h2>Lernziele</h2>
       <ul class="lernziele-list">
-        <li>Die Anatomie einer Angular-Komponente vollst&auml;ndig verstehen (@Component-Optionen)</li>
-        <li>Die 4 Template-Bindungstypen kennen und korrekt einsetzen</li>
-        <li>Daten mit <code>@Input()</code> von Eltern- an Kindkomponenten &uuml;bergeben</li>
-        <li>Ereignisse mit <code>@Output()</code> und <code>EventEmitter</code> an Elternkomponenten senden</li>
-        <li>Die FlugBoard-UI in wiederverwendbare Komponenten aufteilen</li>
+        <li>Komponenten mit der CLI anlegen und in anderen Komponenten verwenden</li>
+        <li>Daten mit <code>input()</code> von der Eltern- an die Kind-Komponente &uuml;bergeben</li>
+        <li>Ereignisse mit <code>output()</code> an die Eltern-Komponente melden</li>
+        <li>Property-Binding <code>[ ]</code> und Event-Binding <code>( )</code> einsetzen</li>
+        <li>Ver&auml;nderliche Werte in einem Signal speichern</li>
       </ul>
     </section>
 
-    <!-- Section 1: Komponenten-Anatomie -->
+    <!-- Section 1: Komponente anlegen -->
     <section class="section">
-      <h2>Komponenten-Anatomie &mdash; @Component im Detail</h2>
-
+      <h2>1 &mdash; Eine Komponente anlegen</h2>
       <p>
-        Jede Angular-Komponente ist eine TypeScript-Klasse, dekoriert mit <code>@Component</code>.
-        Der Decorator konfiguriert Angular, wie die Komponente verhalten, dargestellt und eingebunden
-        werden soll.
+        In Lektion&nbsp;1.1 stand alles in der Root-Komponente <code>App</code>. Jetzt zerlegen wir die
+        Oberfl&auml;che in kleinere Bausteine: eine Kopfzeile <code>AirportHeader</code> und eine Karte
+        <code>FlightCard</code> pro Flug. Neue Komponenten legt die CLI an:
       </p>
-
       <div class="code-block">
         <div class="code-header">
-          <span class="code-filename">Vollst&auml;ndige @Component-Optionen</span>
-          <span class="code-lang">typescript</span>
-        </div>
-        <pre><code class="language-typescript">@Component({
-  // Pflichtfelder:
-  selector: 'app-flight-card',  // HTML-Tag dieser Komponente
-
-  // Standalone-API (Angular 14+):
-  standalone: true,
-  imports: [                    // andere Komponenten/Direktiven/Pipes
-    CommonModule,               // bei Verwendung von @if/@for (nicht nötig ab Angular 17)
-    FlightStatusBadgeComponent, // eigene Kindkomponenten müssen hier stehen!
-  ],
-
-  // Template – entweder inline oder als Datei:
-  template: `&lt;div&gt;Inline HTML&lt;/div&gt;`,
-  // oder:
-  templateUrl: './flight-card.component.html',
-
-  // Styles – inline oder als Datei:
-  styles: [`
-    :host { display: block; }
-    .card { border: 1px solid var(--border); }
-  `],
-  // oder:
-  styleUrl: './flight-card.component.css',
-
-  // Change Detection (optional, Standard: Default):
-  changeDetection: ChangeDetectionStrategy.OnPush,
-})
-export class FlightCardComponent {
-  // Klassenlogik hier
-}
-</code></pre>
-      </div>
-
-      <div class="callout callout-warning">
-        <div class="callout-icon">&#9888;</div>
-        <div class="callout-body">
-          <div class="callout-title">H&auml;ufigster Anf&auml;ngerfehler: Vergessenes Import</div>
-          <p>
-            Bei Standalone-Komponenten muss jede genutzte Kind-Komponente im <code>imports</code>-Array
-            stehen. Fehlt ein Eintrag, erscheint der Fehler <em>&bdquo;'app-flight-card' is not a known
-            element&ldquo;</em>. Das gilt auch f&uuml;r eingebaute Direktiven wie <code>NgClass</code>
-            oder Pipes wie <code>DatePipe</code> &mdash; wenn du sie in deinem Template nutzt, m&uuml;ssen
-            sie importiert sein.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Section 2: Template-Syntax -->
-    <section class="section">
-      <h2>Die 4 Bindungstypen im &Uuml;berblick</h2>
-
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Typ</th>
-              <th>Syntax</th>
-              <th>Richtung</th>
-              <th>Beispiel</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Interpolation</td>
-              <td><code>{{ ausdruck }}</code></td>
-              <td>Klasse → DOM (Text)</td>
-              <td><code>{{ flight.flightNumber }}</code></td>
-            </tr>
-            <tr>
-              <td>Property-Binding</td>
-              <td><code>[eigenschaft]="ausdruck"</code></td>
-              <td>Klasse → DOM (Attribut)</td>
-              <td><code>[class.delayed]="isDelayed"</code></td>
-            </tr>
-            <tr>
-              <td>Event-Binding</td>
-              <td><code>(ereignis)="handler($event)"</code></td>
-              <td>DOM → Klasse</td>
-              <td><code>(click)="onSelect(flight)"</code></td>
-            </tr>
-            <tr>
-              <td>Two-Way-Binding</td>
-              <td><code>[(ngModel)]="eigenschaft"</code></td>
-              <td>Bidirektional</td>
-              <td><code>[(ngModel)]="searchTerm"</code></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <h3>Property-Binding vs. Interpolation</h3>
-      <p>
-        Interpolation (<code>{{ }}</code>) wird f&uuml;r <strong>Textinhalt</strong> verwendet.
-        Property-Binding (<code>[]</code>) wird f&uuml;r <strong>HTML-Attribute und DOM-Eigenschaften</strong>
-        verwendet. Ein h&auml;ufiger Fehler ist, <code>src="{{ url }}"</code> statt
-        <code>[src]="url"</code> zu verwenden &mdash; bei <code>src</code> funktioniert beides,
-        aber Property-Binding ist korrekter und notwendig bei boolschen Attributen wie <code>disabled</code>.
-      </p>
-
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-filename">Template-Bindungen im Einsatz</span>
-          <span class="code-lang">typescript</span>
-        </div>
-        <pre><code class="language-typescript">// In der Komponentenklasse:
-export class FlightCardComponent {
-  @Input({ required: true }) flight!: Flight;
-
-  isDelayed(): boolean {
-    return this.flight.status === 'delayed';
-  }
-}
-</code></pre>
-      </div>
-
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-filename">flight-card.component.html (Template)</span>
-          <span class="code-lang">html</span>
-        </div>
-        <pre><code class="language-html">&lt;!-- Interpolation: --&gt;
-&lt;span&gt;{{ flight.flightNumber }}&lt;/span&gt;
-
-&lt;!-- Property-Binding (setzt CSS-Klasse dynamisch): --&gt;
-&lt;div [class.delayed]="flight.status === 'delayed'"&gt;
-
-&lt;!-- Property-Binding auf disabled: --&gt;
-&lt;button [disabled]="flight.status === 'departed'"&gt;Details&lt;/button&gt;
-
-&lt;!-- Event-Binding: --&gt;
-&lt;button (click)="onDetailsClick()"&gt;Details&lt;/button&gt;
-
-&lt;!-- Kombination – dynamische Klasse auf Basis des Status: --&gt;
-&lt;span [class]="'badge badge-' + flight.status"&gt;
-  {{ flight.status }}
-&lt;/span&gt;
-</code></pre>
-      </div>
-    </section>
-
-    <!-- Section 3: @Input -->
-    <section class="section">
-      <h2>@Input() &mdash; Props von Eltern an Kind &uuml;bergeben</h2>
-
-      <p>
-        In Angular heissen &bdquo;Props&ldquo; <strong>Inputs</strong>. Sie werden mit dem
-        <code>@Input()</code>-Decorator an einer Klasseneigenschaft markiert.
-        Seit Angular&nbsp;16 kann man <code>required: true</code> angeben, damit Angular beim
-        Vergessen des Inputs einen Fehler wirft.
-      </p>
-
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-filename">src/app/components/flight-card/flight-card.component.ts</span>
-          <span class="code-lang">typescript</span>
-        </div>
-        <pre><code class="language-typescript">import { Component, Input }   from '@angular/core';
-import { Flight }             from '../../models/flight';
-
-@Component({
-  selector: 'app-flight-card',
-  standalone: true,
-  imports: [],
-  template: `
-    &lt;div class="flight-card" [class.delayed]="flight.status === 'delayed'"&gt;
-      &lt;div class="flight-number"&gt;{{ flight.flightNumber }}&lt;/div&gt;
-      &lt;div class="airline"&gt;{{ flight.airline }}&lt;/div&gt;
-      &lt;div class="route"&gt;
-        {{ flight.type === 'departure' ? '&#10132;' : '&#10131;' }}
-        {{ flight.airport }}
-      &lt;/div&gt;
-      &lt;div class="time"&gt;
-        {{ flight.scheduledTime }}
-        @if (flight.expectedTime) {
-          &lt;span class="expected"&gt;(erw. {{ flight.expectedTime }})&lt;/span&gt;
-        }
-      &lt;/div&gt;
-      &lt;div class="meta"&gt;
-        {{ flight.terminal }}
-        @if (flight.gate) {
-          &bull; Gate {{ flight.gate }}
-        }
-      &lt;/div&gt;
-    &lt;/div&gt;
-  `,
-})
-export class FlightCardComponent {
-  // required: true → Fehler wenn kein Wert übergeben wird
-  @Input({ required: true }) flight!: Flight;
-}
-</code></pre>
-      </div>
-
-      <h3>Verwendung im Eltern-Template</h3>
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-filename">Parent-Komponente: flight-list.component.ts</span>
-          <span class="code-lang">typescript</span>
-        </div>
-        <pre><code class="language-typescript">import { Component }           from '@angular/core';
-import { FlightCardComponent } from './flight-card/flight-card.component';
-import { Flight }              from '../../models/flight';
-import { FLIGHTS }             from '../../data/flights';
-
-@Component({
-  selector: 'app-flight-list',
-  standalone: true,
-  imports: [FlightCardComponent],  // ← Kindkomponente muss hier stehen!
-  template: `
-    &lt;section class="flight-list"&gt;
-      &lt;h2&gt;Flüge ({{ flights.length }})&lt;/h2&gt;
-      @for (flight of flights; track flight.id) {
-        &lt;app-flight-card [flight]="flight" /&gt;
-      }
-    &lt;/section&gt;
-  `,
-})
-export class FlightListComponent {
-  flights: Flight[] = FLIGHTS;
-}
-</code></pre>
-      </div>
-    </section>
-
-    <!-- Section 4: @Output EventEmitter -->
-    <section class="section">
-      <h2>@Output() &amp; EventEmitter &mdash; Ereignisse an Eltern senden</h2>
-
-      <p>
-        W&auml;hrend <code>@Input()</code> Daten <em>nach unten</em> (Eltern → Kind) &uuml;bertr&auml;gt,
-        senden <code>@Output()</code>-Eigenschaften Ereignisse <em>nach oben</em> (Kind → Eltern).
-        Das ist &auml;quivalent zu Callback-Props in React.
-      </p>
-
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-filename">flight-card.component.ts &mdash; mit @Output</span>
-          <span class="code-lang">typescript</span>
-        </div>
-        <pre><code class="language-typescript">import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { Flight } from '../../models/flight';
-
-@Component({
-  selector: 'app-flight-card',
-  standalone: true,
-  imports: [],
-  template: `
-    &lt;div class="flight-card" (click)="onCardClick()"&gt;
-      &lt;div class="flight-number"&gt;{{ flight.flightNumber }}&lt;/div&gt;
-      &lt;div class="airline"&gt;{{ flight.airline }}&lt;/div&gt;
-      &lt;button (click)="onSelectClick($event)"&gt;Auswählen&lt;/button&gt;
-    &lt;/div&gt;
-  `,
-})
-export class FlightCardComponent {
-  @Input({ required: true }) flight!: Flight;
-
-  // EventEmitter mit dem Typ des emittierten Werts typisieren:
-  @Output() flightSelected = new EventEmitter&lt;Flight&gt;();
-
-  onCardClick(): void {
-    this.flightSelected.emit(this.flight);
-  }
-
-  onSelectClick(event: MouseEvent): void {
-    event.stopPropagation(); // verhindert Bubble zum (click) auf dem div
-    this.flightSelected.emit(this.flight);
-  }
-}
-</code></pre>
-      </div>
-
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-filename">Parent-Template: auf @Output lauschen</span>
-          <span class="code-lang">html</span>
-        </div>
-        <pre><code class="language-html">&lt;app-flight-card
-  [flight]="flight"
-  (flightSelected)="onFlightSelected($event)"
-/&gt;
-</code></pre>
-      </div>
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-filename">FlightListComponent-Klasse</span>
-          <span class="code-lang">typescript</span>
-        </div>
-        <pre><code class="language-typescript">selectedFlight: Flight | null = null;
-
-onFlightSelected(flight: Flight): void {
-  this.selectedFlight = flight;
-  console.log('Ausgewählt:', flight.flightNumber);
-}
-</code></pre>
-      </div>
-    </section>
-
-    <!-- Section 5: Komponentenkomposition -->
-    <section class="section">
-      <h2>Komponentenkomposition &mdash; FlugBoard aufteilen</h2>
-
-      <p>
-        Die gesamte FlugBoard-App wird in klar getrennte Komponenten aufgeteilt.
-        Die Elternkomponente verwaltet die Daten (Smart Component),
-        die Kindkomponenten pr&auml;sentieren sie (Dumb/Presentational Components).
-      </p>
-
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-filename">Komponentenhierarchie FlugBoard</span>
+          <span class="code-filename">Terminal</span>
           <span class="code-lang">bash</span>
         </div>
-        <pre><code class="language-bash">AppComponent (Root)
-├── AirportHeaderComponent       ← Flughafen-Name, Datum/Uhrzeit
-├── SearchBarComponent           ← Suchfeld (kommt in Lektion 1.3)
-└── FlightListComponent          ← Verwaltet Flug-Array
-    └── FlightCardComponent      ← Einzelner Flug (erhält Flight via @Input)</code></pre>
+        <pre><code class="language-bash">ng generate component airport-header
+ng generate component flight-card</code></pre>
       </div>
+      <p>
+        Jede Komponente bekommt einen eigenen Ordner mit drei Dateien, z.&nbsp;B.
+        <code>flight-card/flight-card.ts</code>, <code>.html</code> und eine leere <code>.css</code>.
+        Der Decorator sieht aus wie bei <code>App</code>:
+      </p>
+      <ul>
+        <li><code>selector</code>: das HTML-Tag, mit dem die Komponente in anderen Templates eingesetzt wird, z.&nbsp;B. <code>&lt;app-flight-card /&gt;</code>.</li>
+        <li><code>imports</code>: alle Komponenten, die <em>dieses</em> Template verwendet. Wer <code>&lt;app-flight-card&gt;</code> verwenden will, muss <code>FlightCard</code> hier eintragen.</li>
+      </ul>
+    </section>
 
-      <h3>AirportHeaderComponent</h3>
+    <!-- Section 2: input() -->
+    <section class="section">
+      <h2>2 &mdash; input(): Werte von der Eltern-Komponente</h2>
+      <p>
+        Komponenten bekommen Daten von au&szlig;en &uuml;ber <strong>Inputs</strong> &ndash; wie Props in React.
+        <code>input.required&lt;string&gt;()</code> legt einen Pflicht-Input vom Typ <code>string</code> an.
+        Im Template liest man den Wert mit Klammern: <code>airportName()</code>, denn ein Input ist eine
+        Funktion, die den aktuellen Wert liefert.
+      </p>
       <div class="code-block">
         <div class="code-header">
-          <span class="code-filename">src/app/components/airport-header/airport-header.component.ts</span>
+          <span class="code-filename">src/app/airport-header/airport-header.ts</span>
           <span class="code-lang">typescript</span>
         </div>
-        <pre><code class="language-typescript">import { Component, Input } from '@angular/core';
+        <pre><code class="language-typescript">import { Component, input } from '@angular/core';
 
 @Component({
-  selector: 'app-airport-header',
-  standalone: true,
   imports: [],
-  template: `
-    &lt;header class="airport-header"&gt;
-      &lt;div class="airport-title"&gt;
-        &lt;span class="icon"&gt;&#9992;&lt;/span&gt;
-        &lt;h1&gt;{{ airportName }}&lt;/h1&gt;
-      &lt;/div&gt;
-      &lt;div class="airport-meta"&gt;
-        &lt;span class="iata"&gt;{{ iataCode }}&lt;/span&gt;
-        &lt;span class="date"&gt;{{ currentDate }}&lt;/span&gt;
-      &lt;/div&gt;
-    &lt;/header&gt;
-  `,
+  selector: 'app-airport-header',
+  styleUrl: './airport-header.css',
+  templateUrl: './airport-header.html',
 })
-export class AirportHeaderComponent {
-  @Input() airportName = 'Flughafen Wien';
-  @Input() iataCode    = 'VIE';
-
-  get currentDate(): string {
-    return new Date().toLocaleDateString('de-AT', {
-      weekday: 'long',
-      year:    'numeric',
-      month:   'long',
-      day:     'numeric',
-    });
-  }
-}
-</code></pre>
+export class AirportHeader {
+  // Input: Der Wert kommt von der Eltern-Komponente
+  airportName = input.required&lt;string&gt;();
+}</code></pre>
       </div>
-
-      <h3>AppComponent als Koordinator</h3>
       <div class="code-block">
         <div class="code-header">
-          <span class="code-filename">src/app/app.component.ts</span>
+          <span class="code-filename">src/app/airport-header/airport-header.html</span>
+          <span class="code-lang">html</span>
+        </div>
+        <pre><code class="language-xml">&lt;h1 class="page-title"&gt;✈ FlugBoard {{ airportName() }}&lt;/h1&gt;</code></pre>
+      </div>
+      <p>
+        Die Eltern-Komponente setzt den Input wie ein HTML-Attribut:
+        <code>&lt;app-airport-header airportName="Wien" /&gt;</code>. Das ist ein fester Text.
+      </p>
+
+      <h3>Property-Binding: Werte aus der Klasse &uuml;bergeben</h3>
+      <p>
+        Soll der Wert aus einer Variablen kommen, setzt man den Namen in eckige Klammern:
+        <code>[flight]="flight"</code>. Rechts steht dann ein TypeScript-Ausdruck, kein Text. Die
+        <code>FlightCard</code> bekommt so ein ganzes <code>Flight</code>-Objekt:
+      </p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">src/app/flight-card/flight-card.html</span>
+          <span class="code-lang">html</span>
+        </div>
+        <pre><code class="language-xml">&lt;article class="flight-card" (click)="selected.emit(flight())"&gt;
+  &lt;div class="flight-card-head"&gt;
+    &lt;span class="flight-num"&gt;{{ flight().flightNumber }}&lt;/span&gt;
+    &lt;span class="status-badge status-{{ flight().status }}"&gt;{{ flight().status }}&lt;/span&gt;
+  &lt;/div&gt;
+  &lt;p class="flight-card-airline"&gt;{{ flight().airline }}&lt;/p&gt;
+  &lt;p class="flight-card-meta"&gt;
+    {{ flight().type === 'departure' ? '↑' : '↓' }} {{ flight().airport }}
+  &lt;/p&gt;
+  &lt;p class="flight-card-meta"&gt;{{ flight().scheduledTime }} · {{ flight().terminal }}&lt;/p&gt;
+&lt;/article&gt;</code></pre>
+      </div>
+      <ul>
+        <li><code>class="status-badge status-{{ flight().status }}"</code>: Interpolation funktioniert auch in Attributen. Bei <code>delayed</code> entsteht die CSS-Klasse <code>status-delayed</code>.</li>
+        <li>Im Ausdruck d&uuml;rfen JavaScript-Operatoren stehen, etwa der Bedingungsoperator <code>? :</code> f&uuml;r den Pfeil.</li>
+      </ul>
+    </section>
+
+    <!-- Section 3: output() -->
+    <section class="section">
+      <h2>3 &mdash; output(): Ereignisse an die Eltern-Komponente</h2>
+      <p>
+        Daten flie&szlig;en &uuml;ber Inputs nach unten. Will das Kind etwas melden &ndash; &bdquo;ich wurde
+        angeklickt&ldquo; &ndash;, verwendet es einen <strong>Output</strong>. In React w&auml;re das eine
+        Callback-Prop wie <code>onSelect</code>.
+      </p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">src/app/flight-card/flight-card.ts</span>
           <span class="code-lang">typescript</span>
         </div>
-        <pre><code class="language-typescript">import { Component }              from '@angular/core';
-import { AirportHeaderComponent } from './components/airport-header/airport-header.component';
-import { FlightListComponent }    from './components/flight-list/flight-list.component';
-import { Flight }                 from './models/flight';
+        <pre><code class="language-typescript">import { Component, input, output } from '@angular/core';
+import { Flight } from '../flight';
 
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [AirportHeaderComponent, FlightListComponent],
-  template: `
-    &lt;app-airport-header
-      airportName="Flughafen Wien"
-      iataCode="VIE"
-    /&gt;
-    &lt;main class="board-main"&gt;
-      &lt;app-flight-list /&gt;
-    &lt;/main&gt;
-  `,
+  imports: [],
+  selector: 'app-flight-card',
+  styleUrl: './flight-card.css',
+  templateUrl: './flight-card.html',
 })
-export class AppComponent {}
-</code></pre>
+export class FlightCard {
+  flight = input.required&lt;Flight&gt;();
+  // Output: meldet der Eltern-Komponente, dass die Karte angeklickt wurde
+  selected = output&lt;Flight&gt;();
+}</code></pre>
+      </div>
+      <ul>
+        <li><code>output&lt;Flight&gt;()</code> legt ein Ereignis an, das einen <code>Flight</code> mitliefert.</li>
+        <li><code>(click)="selected.emit(flight())"</code> im Template: Runde Klammern binden ein DOM-Ereignis (<strong>Event-Binding</strong>). Beim Klick l&ouml;st die Karte <code>selected</code> mit ihrem Flug aus.</li>
+      </ul>
+    </section>
+
+    <!-- Section 4: App -->
+    <section class="section">
+      <h2>4 &mdash; Komposition in App: das erste Signal</h2>
+      <p>
+        <code>App</code> setzt die Bausteine zusammen. Auf den Output der Karte h&ouml;rt sie mit
+        Event-Binding: <code>(selected)="onFlightSelect($event)"</code>. <code>$event</code> ist der Wert,
+        den die Karte mit <code>emit</code> geschickt hat.
+      </p>
+      <p>
+        Der ausgew&auml;hlte Flug ist der erste Wert im FlugBoard, der sich &auml;ndert. Damit Angular dann die
+        Anzeige aktualisiert, speichern wir ihn in einem <strong>Signal</strong>:
+      </p>
+      <ul>
+        <li><code>signal&lt;Flight | null&gt;(null)</code> erzeugt ein Signal mit Startwert <code>null</code> &ndash; vergleichbar mit <code>useState</code>.</li>
+        <li><code>selectedFlight.set(flight)</code> setzt einen neuen Wert, <code>selectedFlight()</code> liest ihn &ndash; im Template genauso wie in der Klasse.</li>
+      </ul>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">src/app/app.ts</span>
+          <span class="code-lang">typescript</span>
+        </div>
+        <pre><code class="language-typescript">import { Component, signal } from '@angular/core';
+import { AirportHeader } from './airport-header/airport-header';
+import { FlightCard } from './flight-card/flight-card';
+import { Flight } from './flight';
+import { FLIGHTS } from './flights';
+
+@Component({
+  imports: [AirportHeader, FlightCard],
+  selector: 'app-root',
+  styleUrl: './app.css',
+  templateUrl: './app.html',
+})
+export class App {
+  flights: Flight[] = FLIGHTS;
+  // Signal: Angular aktualisiert die Anzeige, sobald sich der Wert ändert
+  selectedFlight = signal&lt;Flight | null&gt;(null);
+
+  onFlightSelect(flight: Flight): void {
+    this.selectedFlight.set(flight);
+  }
+}</code></pre>
+      </div>
+      <p>
+        Im Template zeigt <code>@if</code> einen Block nur an, wenn die Bedingung erf&uuml;llt ist &ndash; hier
+        erst, wenn ein Flug ausgew&auml;hlt wurde. <code>?.</code> ist n&ouml;tig, weil TypeScript den Wert weiterhin
+        als <code>Flight | null</code> sieht. Die Tabelle aus Lektion&nbsp;1.1 wird zu einem Raster aus Karten:
+      </p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">src/app/app.html</span>
+          <span class="code-lang">html</span>
+        </div>
+        <pre><code class="language-xml">&lt;div class="page-content"&gt;
+  &lt;app-airport-header airportName="Wien" /&gt;
+
+  @if (selectedFlight()) {
+    &lt;div class="selected-info"&gt;
+      &lt;strong&gt;Ausgewählt:&lt;/strong&gt;
+      {{ selectedFlight()?.flightNumber }} – {{ selectedFlight()?.airline }}
+    &lt;/div&gt;
+  }
+
+  &lt;div class="card-grid"&gt;
+    @for (flight of flights; track flight.id) {
+      &lt;app-flight-card [flight]="flight" (selected)="onFlightSelect($event)" /&gt;
+    }
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
       </div>
 
-      <h3>React JSX vs. Angular Template &mdash; Vergleich</h3>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Konzept</th>
-              <th>React (JSX)</th>
-              <th>Angular (Template)</th>
-            </tr>
-          </thead>
+      <h3>React und Angular im Vergleich</h3>
+      <div style="overflow-x:auto;">
+        <table class="compare-table">
+          <thead><tr><th>React</th><th>Angular</th></tr></thead>
           <tbody>
-            <tr><td>Props an Kind</td><td><code>&lt;Card flight={f} /&gt;</code></td><td><code>&lt;app-card [flight]="f" /&gt;</code></td></tr>
-            <tr><td>Callback-Prop</td><td><code>&lt;Card onSelect={fn} /&gt;</code></td><td><code>&lt;app-card (selected)="fn($event)" /&gt;</code></td></tr>
-            <tr><td>Bedingtes Rendern</td><td><code>{show &amp;&amp; &lt;Elem /&gt;}</code></td><td><code>@if (show) { &lt;elem /&gt; }</code></td></tr>
-            <tr><td>Liste rendern</td><td><code>{list.map(i =&gt; &lt;Item key={i.id} /&gt;)}</code></td><td><code>@for (i of list; track i.id) { &lt;app-item /&gt; }</code></td></tr>
-            <tr><td>Textinterpolation</td><td><code>{value}</code></td><td><code>{{ value }}</code></td></tr>
-            <tr><td>Dynamische Klasse</td><td><code>className={active ? 'on' : ''}</code></td><td><code>[class.on]="active"</code></td></tr>
+            <tr><td>Prop <code>flight</code></td><td><code>flight = input.required&lt;Flight&gt;()</code></td></tr>
+            <tr><td>Callback-Prop <code>onSelect</code></td><td><code>selected = output&lt;Flight&gt;()</code></td></tr>
+            <tr><td><code>&lt;FlightCard flight={flight} /&gt;</code></td><td><code>&lt;app-flight-card [flight]="flight" /&gt;</code></td></tr>
+            <tr><td><code>useState</code></td><td><code>signal()</code></td></tr>
+            <tr><td><code>{cond &amp;&amp; &lt;div /&gt;}</code></td><td><code>@if (cond) { &lt;div /&gt; }</code></td></tr>
           </tbody>
         </table>
       </div>
@@ -501,15 +288,11 @@ export class AppComponent {}
           <span class="projekt-step">Projektschritt 1.2</span>
           <h3>FlugBoard in Komponenten aufteilen</h3>
         </div>
-        <p>
-          Refaktoriere das Ergebnis aus Lektion&nbsp;1.1 in eine saubere Komponentenstruktur:
-        </p>
         <ol style="margin:.75rem 0 0 1.25rem;line-height:2">
-          <li>Erstelle <code>FlightCardComponent</code> mit <code>@Input({ required: true }) flight</code> und einem Template, das alle Felder zeigt</li>
-          <li>Erstelle <code>FlightListComponent</code>, die <code>flights: Flight[]</code> verwaltet und <code>FlightCardComponent</code> per <code>@for</code> rendert</li>
-          <li>Erstelle <code>AirportHeaderComponent</code> mit den Inputs <code>airportName</code> und <code>iataCode</code></li>
-          <li>Verdrahte alles in <code>AppComponent</code> zusammen</li>
-          <li>Erg&auml;nze <code>@Output() flightSelected</code> auf <code>FlightCardComponent</code>; gib den selektierten Flug in der Konsole aus</li>
+          <li><code>AirportHeader</code> und <code>FlightCard</code> mit <code>ng generate component</code> anlegen</li>
+          <li><code>AirportHeader</code> mit Input <code>airportName</code> (Abschnitt&nbsp;2)</li>
+          <li><code>FlightCard</code> mit Input <code>flight</code> und Output <code>selected</code> (Abschnitte&nbsp;2 und 3)</li>
+          <li><code>App</code>: beide Komponenten importieren, Tabelle durch Karten ersetzen, ausgew&auml;hlten Flug als Signal speichern und anzeigen (Abschnitt&nbsp;4)</li>
         </ol>
       </div>
     </section>
@@ -520,40 +303,20 @@ export class AppComponent {}
 
       <div class="fehler-item">
         <div class="fehler-title"><code>'app-flight-card' is not a known element</code></div>
-        <p>
-          Die <code>FlightCardComponent</code> wurde im Template verwendet, aber nicht im
-          <code>imports</code>-Array der nutzenden Komponente eingetragen.
-        </p>
-        <p class="fehler-fix">
-          <strong>Fix:</strong> In der <code>FlightListComponent</code> (oder welche Komponente auch
-          immer <code>&lt;app-flight-card&gt;</code> verwendet) die Klasse importieren:
-          <code>imports: [FlightCardComponent]</code>.
-        </p>
+        <p>Die Komponente wird im Template verwendet, steht aber nicht im <code>imports</code>-Array der nutzenden Komponente.</p>
+        <p class="fehler-fix"><strong>Fix:</strong> In <code>app.ts</code> importieren und eintragen: <code>imports: [AirportHeader, FlightCard]</code>.</p>
       </div>
 
       <div class="fehler-item">
-        <div class="fehler-title">Property has no initializer and is not definitely assigned</div>
-        <p>
-          TypeScript beschwert sich, dass <code>@Input() flight!: Flight</code> das Ausrufezeichen
-          fehlt. Ohne <code>!</code> meldet TypeScript einen Fehler, weil die Eigenschaft im Konstruktor
-          nicht initialisiert wird.
-        </p>
-        <p class="fehler-fix">
-          <strong>Fix:</strong> Das Non-null-Assertion-Ausrufezeichen hinzuf&uuml;gen: <code>flight!: Flight</code>.
-          Bei <code>required: true</code> garantiert Angular, dass der Wert immer gesetzt ist.
-        </p>
+        <div class="fehler-title">Input ohne Klammern gelesen</div>
+        <p>Im Template steht <code>{{ flight.flightNumber }}</code> &ndash; TypeScript meldet, dass es <code>flightNumber</code> auf dem Input nicht gibt.</p>
+        <p class="fehler-fix"><strong>Fix:</strong> Inputs und Signals sind Funktionen: <code>{{ flight().flightNumber }}</code>.</p>
       </div>
 
       <div class="fehler-item">
-        <div class="fehler-title">EventEmitter gibt den falschen Typ aus</div>
-        <p>
-          <code>@Output() flightSelected = new EventEmitter()</code> ohne Typparameter liefert
-          <code>EventEmitter&lt;any&gt;</code> &mdash; der Elternteil bekommt <code>$event: any</code>.
-        </p>
-        <p class="fehler-fix">
-          <strong>Fix:</strong> Typ explizit angeben: <code>new EventEmitter&lt;Flight&gt;()</code>.
-          Dann wird <code>$event</code> im Eltern-Template automatisch als <code>Flight</code> typisiert.
-        </p>
+        <div class="fehler-title">Signal direkt zugewiesen</div>
+        <p><code>this.selectedFlight = flight</code> &uuml;berschreibt das Signal selbst mit einem Flug &ndash; TypeScript meldet einen Typfehler.</p>
+        <p class="fehler-fix"><strong>Fix:</strong> Den Wert mit <code>this.selectedFlight.set(flight)</code> setzen.</p>
       </div>
     </section>
 
@@ -565,27 +328,21 @@ export class AppComponent {}
         <div class="aufgabe">
           <div class="aufgabe-header">
             <span class="aufgabe-num">Aufgabe 1</span>
-            <span class="aufgabe-title">Typ-Badge in FlightCard einbauen</span>
+            <span class="aufgabe-title">Ausgew&auml;hlte Karte hervorheben</span>
           </div>
           <p>
-            Erg&auml;nze <code>FlightCardComponent</code> um ein visuelles Element, das
-            <em>&#9650; Abflug</em> oder <em>&#9660; Ankunft</em> anzeigt, je nachdem ob
-            <code>flight.type === 'departure'</code> oder <code>'arrival'</code>. Nutze daf&uuml;r
-            Property-Binding auf eine CSS-Klasse (<code>[class.departure]="..."</code>).
+            Gib <code>FlightCard</code> einen zweiten Input <code>isSelected</code> (Typ <code>boolean</code>,
+            Standardwert <code>false</code>: <code>input(false)</code>). Setze damit die Klasse
+            <code>is-selected</code> &uuml;ber Property-Binding: <code>[class.is-selected]="isSelected()"</code>, und lege in <code>flight-card.css</code> eine Regel f&uuml;r <code>.is-selected</code> an (z.&nbsp;B. ein farbiger Rahmen). Die Styles in dieser Datei gelten nur f&uuml;r die Karte.
           </p>
         </div>
 
         <div class="aufgabe">
           <div class="aufgabe-header">
             <span class="aufgabe-num">Aufgabe 2</span>
-            <span class="aufgabe-title">Selektion im AppComponent anzeigen</span>
+            <span class="aufgabe-title">Auswahl aufheben</span>
           </div>
-          <p>
-            Wenn auf eine <code>FlightCard</code> geklickt wird, soll der ausgew&auml;hlte Flug
-            unterhalb der Liste in einer kleinen Detail-Box angezeigt werden. Implementiere das
-            <code>@Output()</code>-Pattern vollst&auml;ndig: <code>flightSelected</code> in der
-            Card, Handler im <code>AppComponent</code>, Anzeige mit <code>@if (selectedFlight)</code>.
-          </p>
+          <p>Erg&auml;nze in der Auswahl-Box einen Button &bdquo;&#10005;&ldquo;, der <code>selectedFlight</code> wieder auf <code>null</code> setzt.</p>
         </div>
 
         <div class="aufgabe">
@@ -593,26 +350,15 @@ export class AppComponent {}
             <span class="aufgabe-num">Aufgabe 3</span>
             <span class="aufgabe-title">FlightCount-Komponente</span>
           </div>
-          <p>
-            Erstelle eine kleine Komponente <code>FlightCountComponent</code>, die
-            <code>@Input() count: number</code> und <code>@Input() label: string</code> empf&auml;ngt
-            und <em>&bdquo;X Fl&uuml;ge&ldquo;</em> anzeigt. Verwende sie im Header der
-            <code>FlightListComponent</code>.
-          </p>
+          <p>Lege eine Komponente <code>FlightCount</code> mit den Inputs <code>count</code> (Zahl) und <code>label</code> (Text) an, die z.&nbsp;B. &bdquo;8 Fl&uuml;ge&ldquo; anzeigt. Setze sie unter die Kopfzeile.</p>
         </div>
 
         <div class="aufgabe aufgabe-bonus">
           <div class="aufgabe-header">
             <span class="aufgabe-num">Bonus</span>
-            <span class="aufgabe-title">ChangeDetectionStrategy.OnPush</span>
+            <span class="aufgabe-title">Kopfzeile mit Untertitel</span>
           </div>
-          <p>
-            Setze <code>changeDetection: ChangeDetectionStrategy.OnPush</code> in der
-            <code>FlightCardComponent</code>. Was &auml;ndert sich? &Ouml;ffne die Angular DevTools
-            und beobachte, wie oft die Komponente neu gerendert wird. Was passiert, wenn du
-            in der Elternkomponente ein Flug-Objekt durch ein neues Objekt mit identischen Werten
-            ersetzt statt es zu mutieren?
-          </p>
+          <p>Gib <code>AirportHeader</code> einen optionalen Input <code>subtitle</code> (<code>input&lt;string&gt;()</code>). Nur wenn er gesetzt ist, erscheint darunter eine Zeile mit der Klasse <code>page-meta</code>.</p>
         </div>
 
       </div>
