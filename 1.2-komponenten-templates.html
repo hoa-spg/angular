@@ -382,49 +382,51 @@ export class App {
         <details class="quiz-box">
 <summary><h2>Quiz</h2><span class="quiz-box-hint">5 Fragen &middot; zum Aufklappen klicken</span></summary>
 <div class="quiz" id="quiz-1">
-  <div class="quiz-frage" data-multi="0">
-    <p class="quiz-q"><span class="quiz-num">Frage 1</span> Wie übergibt die Eltern-Komponente einen Wert aus einer Variablen an das Input <code>flight</code>?</p>
+  <div class="quiz-frage" data-multi="1">
+    <p class="quiz-q"><span class="quiz-num">Frage 1</span> Die Eltern-Komponente soll den Wert der Variablen <code>flight</code> an das Input <code>flight</code> übergeben. Was stimmt?</p>
+    <p class="quiz-hint">Mehrere Antworten sind richtig.</p>
     <ul class="quiz-opts">
-      <li class="quiz-opt" data-correct="0"><label><input type="radio" name="quiz-1-1"> <span><code>&lt;app-flight-card flight="flight" /&gt;</code></span></label></li>
-      <li class="quiz-opt" data-correct="1"><label><input type="radio" name="quiz-1-1"> <span><code>&lt;app-flight-card [flight]="flight" /&gt;</code></span></label></li>
-      <li class="quiz-opt" data-correct="0"><label><input type="radio" name="quiz-1-1"> <span><code>&lt;app-flight-card (flight)="flight" /&gt;</code></span></label></li>
-      <li class="quiz-opt" data-correct="0"><label><input type="radio" name="quiz-1-1"> <span><code>&lt;app-flight-card {flight} /&gt;</code></span></label></li>
+      <li class="quiz-opt" data-correct="1"><label><input type="checkbox" name="quiz-1-1"> <span><code>flight="flight"</code> übergibt nur den Text „flight“, nicht den Wert der Variablen</span></label></li>
+      <li class="quiz-opt" data-correct="0"><label><input type="checkbox" name="quiz-1-1"> <span><code>&lt;app-flight-card {flight} /&gt;</code> ist die richtige Schreibweise</span></label></li>
+      <li class="quiz-opt" data-correct="0"><label><input type="checkbox" name="quiz-1-1"> <span><code>&lt;app-flight-card (flight)="flight" /&gt;</code> ist die richtige Schreibweise</span></label></li>
+      <li class="quiz-opt" data-correct="1"><label><input type="checkbox" name="quiz-1-1"> <span><code>&lt;app-flight-card [flight]="flight" /&gt;</code> ist die richtige Schreibweise</span></label></li>
     </ul>
     <div class="quiz-actions"><button type="button" class="quiz-check" disabled>Antwort pr&uuml;fen</button><button type="button" class="quiz-reveal">L&ouml;sung zeigen</button></div>
     <p class="quiz-feedback" hidden></p>
-    <div class="quiz-erklaerung" hidden><strong>Erkl&auml;rung:</strong> Mit eckigen Klammern (Property-Binding) steht rechts ein TypeScript-Ausdruck. Ohne Klammern wäre es der feste Text „flight“.</div>
+    <div class="quiz-erklaerung" hidden><strong>Erkl&auml;rung:</strong> Mit eckigen Klammern <code>[flight]="flight"</code> wird der Ausdruck ausgewertet und sein Wert übergeben. Ohne Klammern übergibt <code>flight="flight"</code> nur den Text „flight“. Runde Klammern stehen für Events (Outputs); <code>{flight}</code> ist keine Angular-Syntax.</div>
   </div>
   <div class="quiz-frage" data-multi="0">
     <p class="quiz-q"><span class="quiz-num">Frage 2</span> Im Template steht <code>{{ flight.flightNumber }}</code>, und TypeScript meldet einen Fehler. Warum?</p>
     <ul class="quiz-opts">
-      <li class="quiz-opt" data-correct="0"><label><input type="radio" name="quiz-1-2"> <span>Weil Interpolation keine Punkte erlaubt</span></label></li>
+      <li class="quiz-opt" data-correct="0"><label><input type="radio" name="quiz-1-2"> <span>Weil man <code>[[ … ]]</code> schreiben muss</span></label></li>
       <li class="quiz-opt" data-correct="1"><label><input type="radio" name="quiz-1-2"> <span>Weil Inputs (wie Signals) Funktionen sind – richtig ist <code>{{ flight().flightNumber }}</code></span></label></li>
       <li class="quiz-opt" data-correct="0"><label><input type="radio" name="quiz-1-2"> <span>Weil <code>flightNumber</code> privat ist</span></label></li>
-      <li class="quiz-opt" data-correct="0"><label><input type="radio" name="quiz-1-2"> <span>Weil man <code>[[ … ]]</code> schreiben muss</span></label></li>
+      <li class="quiz-opt" data-correct="0"><label><input type="radio" name="quiz-1-2"> <span>Weil Interpolation keine Punkte erlaubt</span></label></li>
     </ul>
     <div class="quiz-actions"><button type="button" class="quiz-check" disabled>Antwort pr&uuml;fen</button><button type="button" class="quiz-reveal">L&ouml;sung zeigen</button></div>
     <p class="quiz-feedback" hidden></p>
     <div class="quiz-erklaerung" hidden><strong>Erkl&auml;rung:</strong> <code>flight = input.required&lt;Flight&gt;()</code> liefert eine Funktion, die den aktuellen Wert zurückgibt.</div>
   </div>
-  <div class="quiz-frage" data-multi="0">
+  <div class="quiz-frage" data-multi="1">
     <p class="quiz-q"><span class="quiz-num">Frage 3</span> Wie meldet eine Kind-Komponente ein Ereignis an die Eltern-Komponente?</p>
+    <p class="quiz-hint">Mehrere Antworten sind richtig.</p>
     <ul class="quiz-opts">
-      <li class="quiz-opt" data-correct="0"><label><input type="radio" name="quiz-1-3"> <span>Sie ändert ihr Input</span></label></li>
-      <li class="quiz-opt" data-correct="1"><label><input type="radio" name="quiz-1-3"> <span>Über ein Output: <code>selected = output&lt;Flight&gt;()</code> und <code>this.selected.emit(flight)</code></span></label></li>
-      <li class="quiz-opt" data-correct="0"><label><input type="radio" name="quiz-1-3"> <span>Über ein globales Event im <code>window</code></span></label></li>
-      <li class="quiz-opt" data-correct="0"><label><input type="radio" name="quiz-1-3"> <span>Über <code>return</code> aus dem Template</span></label></li>
+      <li class="quiz-opt" data-correct="0"><label><input type="checkbox" name="quiz-1-3"> <span>Das Kind ändert sein Input, damit die Eltern-Komponente es bemerkt</span></label></li>
+      <li class="quiz-opt" data-correct="1"><label><input type="checkbox" name="quiz-1-3"> <span>Das Kind deklariert ein Output (<code>selected = output&lt;Flight&gt;()</code>) und ruft <code>this.selected.emit(flight)</code> auf</span></label></li>
+      <li class="quiz-opt" data-correct="1"><label><input type="checkbox" name="quiz-1-3"> <span>Die Eltern-Komponente reagiert im Template mit <code>(selected)="…"</code> auf das Ereignis</span></label></li>
+      <li class="quiz-opt" data-correct="0"><label><input type="checkbox" name="quiz-1-3"> <span>Über <code>return</code> aus dem Template</span></label></li>
     </ul>
     <div class="quiz-actions"><button type="button" class="quiz-check" disabled>Antwort pr&uuml;fen</button><button type="button" class="quiz-reveal">L&ouml;sung zeigen</button></div>
     <p class="quiz-feedback" hidden></p>
-    <div class="quiz-erklaerung" hidden><strong>Erkl&auml;rung:</strong> Die Eltern-Komponente hört mit Event-Binding darauf: <code>(selected)="onFlightSelect($event)"</code>. In React wäre das eine Callback-Prop.</div>
+    <div class="quiz-erklaerung" hidden><strong>Erkl&auml;rung:</strong> Das Kind deklariert ein Output, z. B. <code>selected = output&lt;Flight&gt;()</code>, und löst es mit <code>this.selected.emit(flight)</code> aus. Die Eltern-Komponente reagiert im Template mit runden Klammern: <code>(selected)="…"</code>. Inputs ändert das Kind nicht, und globale Events sind nicht nötig.</div>
   </div>
   <div class="quiz-frage" data-multi="0">
     <p class="quiz-q"><span class="quiz-num">Frage 4</span> Die Fehlermeldung lautet <code>'app-flight-card' is not a known element</code>. Was fehlt?</p>
     <ul class="quiz-opts">
-      <li class="quiz-opt" data-correct="0"><label><input type="radio" name="quiz-1-4"> <span>Die CSS-Datei der Komponente</span></label></li>
-      <li class="quiz-opt" data-correct="1"><label><input type="radio" name="quiz-1-4"> <span>Die Komponente <code>FlightCard</code> im <code>imports</code>-Array der Komponente, die sie verwendet</span></label></li>
       <li class="quiz-opt" data-correct="0"><label><input type="radio" name="quiz-1-4"> <span>Ein Eintrag in <code>index.html</code></span></label></li>
+      <li class="quiz-opt" data-correct="1"><label><input type="radio" name="quiz-1-4"> <span>Die Komponente <code>FlightCard</code> im <code>imports</code>-Array der Komponente, die sie verwendet</span></label></li>
       <li class="quiz-opt" data-correct="0"><label><input type="radio" name="quiz-1-4"> <span>Ein <code>export default</code></span></label></li>
+      <li class="quiz-opt" data-correct="0"><label><input type="radio" name="quiz-1-4"> <span>Die CSS-Datei der Komponente</span></label></li>
     </ul>
     <div class="quiz-actions"><button type="button" class="quiz-check" disabled>Antwort pr&uuml;fen</button><button type="button" class="quiz-reveal">L&ouml;sung zeigen</button></div>
     <p class="quiz-feedback" hidden></p>
@@ -433,10 +435,10 @@ export class App {
   <div class="quiz-frage" data-multi="0">
     <p class="quiz-q"><span class="quiz-num">Frage 5</span> Wie setzt man einen neuen Wert in das Signal <code>selectedFlight</code>?</p>
     <ul class="quiz-opts">
-      <li class="quiz-opt" data-correct="0"><label><input type="radio" name="quiz-1-5"> <span><code>this.selectedFlight = flight;</code></span></label></li>
       <li class="quiz-opt" data-correct="1"><label><input type="radio" name="quiz-1-5"> <span><code>this.selectedFlight.set(flight);</code></span></label></li>
       <li class="quiz-opt" data-correct="0"><label><input type="radio" name="quiz-1-5"> <span><code>this.selectedFlight(flight);</code></span></label></li>
       <li class="quiz-opt" data-correct="0"><label><input type="radio" name="quiz-1-5"> <span><code>setSelectedFlight(flight);</code></span></label></li>
+      <li class="quiz-opt" data-correct="0"><label><input type="radio" name="quiz-1-5"> <span><code>this.selectedFlight = flight;</code></span></label></li>
     </ul>
     <div class="quiz-actions"><button type="button" class="quiz-check" disabled>Antwort pr&uuml;fen</button><button type="button" class="quiz-reveal">L&ouml;sung zeigen</button></div>
     <p class="quiz-feedback" hidden></p>

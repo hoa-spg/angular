@@ -401,8 +401,8 @@ export class App implements OnInit {
     <p class="quiz-q"><span class="quiz-num">Frage 1</span> Was unterscheidet ein Observable von einem Promise?</p>
     <p class="quiz-hint">Mehrere Antworten sind richtig.</p>
     <ul class="quiz-opts">
-      <li class="quiz-opt" data-correct="1"><label><input type="checkbox" name="quiz-1-1"> <span>Ein Observable kann beliebig viele Werte über die Zeit liefern</span></label></li>
       <li class="quiz-opt" data-correct="1"><label><input type="checkbox" name="quiz-1-1"> <span>Ein Observable startet erst mit <code>subscribe</code> und lässt sich abbrechen</span></label></li>
+      <li class="quiz-opt" data-correct="1"><label><input type="checkbox" name="quiz-1-1"> <span>Ein Observable kann beliebig viele Werte über die Zeit liefern</span></label></li>
       <li class="quiz-opt" data-correct="0"><label><input type="checkbox" name="quiz-1-1"> <span>Ein Observable liefert genau einen Wert</span></label></li>
       <li class="quiz-opt" data-correct="0"><label><input type="checkbox" name="quiz-1-1"> <span>Ein Observable startet sofort beim Erzeugen</span></label></li>
     </ul>
@@ -410,25 +410,26 @@ export class App implements OnInit {
     <p class="quiz-feedback" hidden></p>
     <div class="quiz-erklaerung" hidden><strong>Erkl&auml;rung:</strong> Ein Promise liefert genau einen Wert, startet sofort und lässt sich nicht abbrechen. Observables formt man mit Operatoren in <code>pipe(…)</code> um.</div>
   </div>
-  <div class="quiz-frage" data-multi="0">
+  <div class="quiz-frage" data-multi="1">
     <p class="quiz-q"><span class="quiz-num">Frage 2</span> Was macht <code>switchMap(() =&gt; this.api.getFlights())</code> im Polling-Stream?</p>
+    <p class="quiz-hint">Mehrere Antworten sind richtig.</p>
     <ul class="quiz-opts">
-      <li class="quiz-opt" data-correct="0"><label><input type="radio" name="quiz-1-2"> <span>Es sortiert die Flüge</span></label></li>
-      <li class="quiz-opt" data-correct="1"><label><input type="radio" name="quiz-1-2"> <span>Es macht aus jedem Timer-Wert einen HTTP-Request und liefert dessen Ergebnis; ein noch laufender alter Request wird abgebrochen</span></label></li>
-      <li class="quiz-opt" data-correct="0"><label><input type="radio" name="quiz-1-2"> <span>Es wiederholt fehlgeschlagene Requests</span></label></li>
-      <li class="quiz-opt" data-correct="0"><label><input type="radio" name="quiz-1-2"> <span>Es wartet 300 ms</span></label></li>
+      <li class="quiz-opt" data-correct="0"><label><input type="checkbox" name="quiz-1-2"> <span>Es sortiert die Flüge</span></label></li>
+      <li class="quiz-opt" data-correct="1"><label><input type="checkbox" name="quiz-1-2"> <span>Es macht aus jedem Timer-Wert einen HTTP-Request und liefert dessen Ergebnis</span></label></li>
+      <li class="quiz-opt" data-correct="0"><label><input type="checkbox" name="quiz-1-2"> <span>Es wiederholt fehlgeschlagene Requests</span></label></li>
+      <li class="quiz-opt" data-correct="1"><label><input type="checkbox" name="quiz-1-2"> <span>Ein noch laufender alter Request wird abgebrochen, sobald ein neuer Timer-Wert kommt</span></label></li>
     </ul>
     <div class="quiz-actions"><button type="button" class="quiz-check" disabled>Antwort pr&uuml;fen</button><button type="button" class="quiz-reveal">L&ouml;sung zeigen</button></div>
     <p class="quiz-feedback" hidden></p>
-    <div class="quiz-erklaerung" hidden><strong>Erkl&auml;rung:</strong> <code>switchMap</code> „wechselt“ immer auf den neuesten inneren Stream.</div>
+    <div class="quiz-erklaerung" hidden><strong>Erkl&auml;rung:</strong> <code>switchMap</code> macht aus jedem Timer-Wert einen HTTP-Request und liefert dessen Ergebnis weiter. Kommt ein neuer Timer-Wert, während der alte Request noch läuft, wird der alte abgebrochen. Wiederholen bei Fehlern wäre <code>retry</code>, Warten wäre <code>debounceTime</code>.</div>
   </div>
   <div class="quiz-frage" data-multi="0">
     <p class="quiz-q"><span class="quiz-num">Frage 3</span> Warum kommt der erste Request erst nach 30 Sekunden, und wie behebt man das?</p>
     <ul class="quiz-opts">
-      <li class="quiz-opt" data-correct="0"><label><input type="radio" name="quiz-1-3"> <span>Weil HttpClient langsam ist – mit <code>retry</code></span></label></li>
-      <li class="quiz-opt" data-correct="1"><label><input type="radio" name="quiz-1-3"> <span>Weil <code>interval</code> seinen ersten Wert erst nach Ablauf der Zeit liefert – mit <code>startWith(0)</code> direkt danach</span></label></li>
-      <li class="quiz-opt" data-correct="0"><label><input type="radio" name="quiz-1-3"> <span>Weil <code>debounceTime</code> fehlt</span></label></li>
       <li class="quiz-opt" data-correct="0"><label><input type="radio" name="quiz-1-3"> <span>Weil <code>takeUntilDestroyed</code> den ersten Wert verschluckt</span></label></li>
+      <li class="quiz-opt" data-correct="0"><label><input type="radio" name="quiz-1-3"> <span>Weil <code>debounceTime</code> fehlt</span></label></li>
+      <li class="quiz-opt" data-correct="1"><label><input type="radio" name="quiz-1-3"> <span>Weil <code>interval</code> seinen ersten Wert erst nach Ablauf der Zeit liefert – mit <code>startWith(0)</code> direkt danach</span></label></li>
+      <li class="quiz-opt" data-correct="0"><label><input type="radio" name="quiz-1-3"> <span>Weil HttpClient langsam ist – mit <code>retry</code></span></label></li>
     </ul>
     <div class="quiz-actions"><button type="button" class="quiz-check" disabled>Antwort pr&uuml;fen</button><button type="button" class="quiz-reveal">L&ouml;sung zeigen</button></div>
     <p class="quiz-feedback" hidden></p>
@@ -437,10 +438,10 @@ export class App implements OnInit {
   <div class="quiz-frage" data-multi="0">
     <p class="quiz-q"><span class="quiz-num">Frage 4</span> Das Polling hört nach dem ersten Fehler auf. Was ist die Ursache?</p>
     <ul class="quiz-opts">
-      <li class="quiz-opt" data-correct="0"><label><input type="radio" name="quiz-1-4"> <span>Der Server ist zu langsam</span></label></li>
-      <li class="quiz-opt" data-correct="1"><label><input type="radio" name="quiz-1-4"> <span><code>catchError</code> steht in der äußeren <code>pipe</code> – der Fehler beendet den ganzen Stream; er muss am HTTP-Observable innerhalb von <code>switchMap</code> abgefangen werden</span></label></li>
-      <li class="quiz-opt" data-correct="0"><label><input type="radio" name="quiz-1-4"> <span><code>startWith</code> fehlt</span></label></li>
       <li class="quiz-opt" data-correct="0"><label><input type="radio" name="quiz-1-4"> <span>Observables können nur einen Fehler verarbeiten</span></label></li>
+      <li class="quiz-opt" data-correct="0"><label><input type="radio" name="quiz-1-4"> <span><code>startWith</code> fehlt</span></label></li>
+      <li class="quiz-opt" data-correct="1"><label><input type="radio" name="quiz-1-4"> <span><code>catchError</code> steht in der äußeren <code>pipe</code> – der Fehler beendet den ganzen Stream; er muss am HTTP-Observable innerhalb von <code>switchMap</code> abgefangen werden</span></label></li>
+      <li class="quiz-opt" data-correct="0"><label><input type="radio" name="quiz-1-4"> <span>Der Server ist zu langsam</span></label></li>
     </ul>
     <div class="quiz-actions"><button type="button" class="quiz-check" disabled>Antwort pr&uuml;fen</button><button type="button" class="quiz-reveal">L&ouml;sung zeigen</button></div>
     <p class="quiz-feedback" hidden></p>
@@ -449,10 +450,10 @@ export class App implements OnInit {
   <div class="quiz-frage" data-multi="0">
     <p class="quiz-q"><span class="quiz-num">Frage 5</span> Wozu dient <code>takeUntilDestroyed</code>?</p>
     <ul class="quiz-opts">
+      <li class="quiz-opt" data-correct="0"><label><input type="radio" name="quiz-1-5"> <span>Es verzögert die Suche</span></label></li>
       <li class="quiz-opt" data-correct="0"><label><input type="radio" name="quiz-1-5"> <span>Es löscht die Komponente nach einer Zeit</span></label></li>
       <li class="quiz-opt" data-correct="1"><label><input type="radio" name="quiz-1-5"> <span>Es beendet das Abo automatisch, wenn die Komponente entfernt wird – sonst liefe das Intervall weiter (Memory Leak)</span></label></li>
       <li class="quiz-opt" data-correct="0"><label><input type="radio" name="quiz-1-5"> <span>Es verhindert, dass Fehler angezeigt werden</span></label></li>
-      <li class="quiz-opt" data-correct="0"><label><input type="radio" name="quiz-1-5"> <span>Es verzögert die Suche</span></label></li>
     </ul>
     <div class="quiz-actions"><button type="button" class="quiz-check" disabled>Antwort pr&uuml;fen</button><button type="button" class="quiz-reveal">L&ouml;sung zeigen</button></div>
     <p class="quiz-feedback" hidden></p>
