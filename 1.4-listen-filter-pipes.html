@@ -39,6 +39,9 @@
       <a class="nav-link" href="2.4-fullstack-flugboard.html"><span class="ln">2.4</span>Fullstack FlugBoard</a>
     </div>
   </nav>
+  <div class="sidebar-footer">
+    <a class="sidebar-home" href="https://hoa-spg.github.io/">&larr; Kursseite</a>
+  </div>
 </aside>
 
 <main class="main-content">
@@ -311,7 +314,9 @@ export class FlightCard {
 
     <!-- Häufige Fehler -->
     <section class="section section-fehler">
-      <h2>H&auml;ufige Fehler</h2>
+<details class="fold-box">
+<summary><h2>H&auml;ufige Fehler</h2><span class="quiz-box-hint">3 Fehler &middot; zum Aufklappen klicken</span></summary>
+<div class="fold-body">
       <div class="fehler-item">
         <div class="fehler-title"><code>@for</code> ohne <code>track</code></div>
         <p>Der Compiler meldet einen Fehler: <code>track</code> ist bei <code>@for</code> Pflicht.</p>
@@ -327,11 +332,15 @@ export class FlightCard {
         <p><code>@empty</code> steht in einem eigenen Block statt direkt nach der schlie&szlig;enden Klammer von <code>@for</code>.</p>
         <p class="fehler-fix"><strong>Fix:</strong> <code>} @empty {</code> &ndash; der Block geh&ouml;rt unmittelbar zu <code>@for</code>, wie <code>@else</code> zu <code>@if</code>.</p>
       </div>
+</div>
+</details>
     </section>
 
     <!-- Aufgaben -->
     <section class="section section-aufgaben">
-      <h2>Aufgaben</h2>
+<details class="fold-box">
+<summary><h2>Aufgaben</h2><span class="quiz-box-hint">3 Aufgaben + Bonus &middot; zum Aufklappen klicken</span></summary>
+<div class="fold-body">
       <div class="aufgaben-list">
         <div class="aufgabe">
           <div class="aufgabe-header">
@@ -362,6 +371,8 @@ export class FlightCard {
           <p>Eine Pipe <code>delayMinutes</code> bekommt einen Flug und liefert z.&nbsp;B. &bdquo;+30 min&ldquo; aus <code>scheduledTime</code> und <code>expectedTime</code>. Verwende sie im <code>@case ('delayed')</code>.</p>
         </div>
       </div>
+</div>
+</details>
     </section>
 
       <section class="section section-quiz">

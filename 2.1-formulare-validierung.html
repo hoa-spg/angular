@@ -39,6 +39,9 @@
       <a class="nav-link" href="2.4-fullstack-flugboard.html"><span class="ln">2.4</span>Fullstack FlugBoard</a>
     </div>
   </nav>
+  <div class="sidebar-footer">
+    <a class="sidebar-home" href="https://hoa-spg.github.io/">&larr; Kursseite</a>
+  </div>
 </aside>
 
 <main class="main-content">
@@ -338,7 +341,9 @@ export class App {
 
     <!-- Häufige Fehler -->
     <section class="section section-fehler">
-      <h2>H&auml;ufige Fehler</h2>
+<details class="fold-box">
+<summary><h2>H&auml;ufige Fehler</h2><span class="quiz-box-hint">3 Fehler &middot; zum Aufklappen klicken</span></summary>
+<div class="fold-body">
       <div class="fehler-item">
         <div class="fehler-title"><code>Can't bind to 'formGroup' since it isn't a known property of 'form'</code></div>
         <p><code>ReactiveFormsModule</code> fehlt im <code>imports</code>-Array der Formular-Komponente.</p>
@@ -354,11 +359,15 @@ export class App {
         <p><code>this.flights().push(neu)</code> ver&auml;ndert das Array, aber das Signal bekommt davon nichts mit.</p>
         <p class="fehler-fix"><strong>Fix:</strong> <code>this.flights.update((list) =&gt; [...list, neu])</code> &ndash; ein neues Array erzeugen.</p>
       </div>
+</div>
+</details>
     </section>
 
     <!-- Aufgaben -->
     <section class="section section-aufgaben">
-      <h2>Aufgaben</h2>
+<details class="fold-box">
+<summary><h2>Aufgaben</h2><span class="quiz-box-hint">3 Aufgaben + Bonus &middot; zum Aufklappen klicken</span></summary>
+<div class="fold-body">
       <div class="aufgaben-list">
         <div class="aufgabe">
           <div class="aufgabe-header">
@@ -401,6 +410,8 @@ export function noViennaValidator(control: AbstractControl): ValidationErrors | 
       </div>
         </div>
       </div>
+</div>
+</details>
     </section>
 
       <section class="section section-quiz">

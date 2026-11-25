@@ -39,6 +39,9 @@
       <a class="nav-link" href="2.4-fullstack-flugboard.html"><span class="ln">2.4</span>Fullstack FlugBoard</a>
     </div>
   </nav>
+  <div class="sidebar-footer">
+    <a class="sidebar-home" href="https://hoa-spg.github.io/">&larr; Kursseite</a>
+  </div>
 </aside>
 
 <main class="main-content">
@@ -362,7 +365,9 @@ chunk-….js          | flight-detail |   1.78 kB</code></pre>
 
     <!-- Häufige Fehler -->
     <section class="section section-fehler">
-      <h2>H&auml;ufige Fehler</h2>
+<details class="fold-box">
+<summary><h2>H&auml;ufige Fehler</h2><span class="quiz-box-hint">4 Fehler &middot; zum Aufklappen klicken</span></summary>
+<div class="fold-body">
       <div class="fehler-item">
         <div class="fehler-title"><code>'router-outlet' is not a known element</code></div>
         <p><code>RouterOutlet</code> fehlt im <code>imports</code>-Array von <code>App</code>.</p>
@@ -383,11 +388,15 @@ chunk-….js          | flight-detail |   1.78 kB</code></pre>
         <p>Ein einfacher Webserver kennt nur echte Dateien. <code>ng serve</code> liefert f&uuml;r jede URL die <code>index.html</code> aus &ndash; ein eigener Server muss das ebenfalls tun.</p>
         <p class="fehler-fix"><strong>Fix:</strong> Den Server so einstellen, dass unbekannte Pfade auf <code>index.html</code> umgeleitet werden (&bdquo;SPA-Fallback&ldquo;).</p>
       </div>
+</div>
+</details>
     </section>
 
     <!-- Aufgaben -->
     <section class="section section-aufgaben">
-      <h2>Aufgaben</h2>
+<details class="fold-box">
+<summary><h2>Aufgaben</h2><span class="quiz-box-hint">3 Aufgaben + Bonus &middot; zum Aufklappen klicken</span></summary>
+<div class="fold-body">
       <div class="aufgaben-list">
         <div class="aufgabe">
           <div class="aufgabe-header">
@@ -418,6 +427,8 @@ chunk-….js          | flight-detail |   1.78 kB</code></pre>
           <p>Speichere den Typfilter als Query-Parameter, z.&nbsp;B. <code>/?type=arrival</code>. Dann l&auml;sst sich eine gefilterte Ansicht als Link weitergeben. Tipp: Auch Query-Parameter kommen mit <code>withComponentInputBinding()</code> als Input an.</p>
         </div>
       </div>
+</div>
+</details>
     </section>
 
       <section class="section section-quiz">

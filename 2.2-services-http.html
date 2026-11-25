@@ -39,6 +39,9 @@
       <a class="nav-link" href="2.4-fullstack-flugboard.html"><span class="ln">2.4</span>Fullstack FlugBoard</a>
     </div>
   </nav>
+  <div class="sidebar-footer">
+    <a class="sidebar-home" href="https://hoa-spg.github.io/">&larr; Kursseite</a>
+  </div>
 </aside>
 
 <main class="main-content">
@@ -299,7 +302,9 @@ export class App implements OnInit {
 
     <!-- Häufige Fehler -->
     <section class="section section-fehler">
-      <h2>H&auml;ufige Fehler</h2>
+<details class="fold-box">
+<summary><h2>H&auml;ufige Fehler</h2><span class="quiz-box-hint">4 Fehler &middot; zum Aufklappen klicken</span></summary>
+<div class="fold-body">
       <div class="fehler-item">
         <div class="fehler-title"><code>NullInjectorError: No provider for HttpClient!</code></div>
         <p><code>provideHttpClient()</code> fehlt in <code>app.config.ts</code>.</p>
@@ -320,11 +325,15 @@ export class App implements OnInit {
         <p>Im <code>next</code>-Callback wird ein normales Feld gesetzt (<code>this.flights = flights</code>) statt eines Signals.</p>
         <p class="fehler-fix"><strong>Fix:</strong> <code>this.flights.set(flights)</code> &ndash; nur Signals l&ouml;sen eine Aktualisierung aus.</p>
       </div>
+</div>
+</details>
     </section>
 
     <!-- Aufgaben -->
     <section class="section section-aufgaben">
-      <h2>Aufgaben</h2>
+<details class="fold-box">
+<summary><h2>Aufgaben</h2><span class="quiz-box-hint">3 Aufgaben + Bonus &middot; zum Aufklappen klicken</span></summary>
+<div class="fold-body">
       <div class="aufgaben-list">
         <div class="aufgabe">
           <div class="aufgabe-header">
@@ -355,6 +364,8 @@ export class App implements OnInit {
           <p>Das Backend kann selbst filtern: <code>/api/flights?type=arrival</code>. &Uuml;bergib den Parameter mit <code>http.get(url, { params: { type } })</code>. Warum filtern wir im FlugBoard trotzdem im Frontend?</p>
         </div>
       </div>
+</div>
+</details>
     </section>
 
       <section class="section section-quiz">

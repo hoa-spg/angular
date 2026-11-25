@@ -39,6 +39,9 @@
       <a class="nav-link" href="2.4-fullstack-flugboard.html"><span class="ln">2.4</span>Fullstack FlugBoard</a>
     </div>
   </nav>
+  <div class="sidebar-footer">
+    <a class="sidebar-home" href="https://hoa-spg.github.io/">&larr; Kursseite</a>
+  </div>
 </aside>
 
 <main class="main-content">
@@ -326,7 +329,9 @@ export class App implements OnInit {
 
     <!-- Häufige Fehler -->
     <section class="section section-fehler">
-      <h2>H&auml;ufige Fehler</h2>
+<details class="fold-box">
+<summary><h2>H&auml;ufige Fehler</h2><span class="quiz-box-hint">3 Fehler &middot; zum Aufklappen klicken</span></summary>
+<div class="fold-body">
       <div class="fehler-item">
         <div class="fehler-title">Polling h&ouml;rt nach dem ersten Fehler auf</div>
         <p><code>catchError</code> steht nach <code>switchMap</code> in der &auml;u&szlig;eren <code>pipe</code>. Ein Fehler beendet dann den ganzen Stream.</p>
@@ -342,11 +347,15 @@ export class App implements OnInit {
         <p><code>toSignal</code> oder <code>toObservable</code> wird in einer Methode wie <code>ngOnInit</code> aufgerufen.</p>
         <p class="fehler-fix"><strong>Fix:</strong> Direkt bei der Deklaration des Feldes aufrufen &ndash; wie <code>inject</code>.</p>
       </div>
+</div>
+</details>
     </section>
 
     <!-- Aufgaben -->
     <section class="section section-aufgaben">
-      <h2>Aufgaben</h2>
+<details class="fold-box">
+<summary><h2>Aufgaben</h2><span class="quiz-box-hint">3 Aufgaben + Bonus &middot; zum Aufklappen klicken</span></summary>
+<div class="fold-body">
       <div class="aufgaben-list">
         <div class="aufgabe">
           <div class="aufgabe-header">
@@ -377,6 +386,8 @@ export class App implements OnInit {
           <p>Statt zu abonnieren kann das Template einen Stream direkt anzeigen: <code>{{ zeit$ | async }}</code>. Zeige damit eine Uhr an, die jede Sekunde weiterl&auml;uft (<code>interval(1000)</code> und <code>map(() =&gt; new Date())</code>).</p>
         </div>
       </div>
+</div>
+</details>
     </section>
 
       <section class="section section-quiz">

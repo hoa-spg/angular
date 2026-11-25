@@ -39,6 +39,9 @@
       <a class="nav-link" href="2.4-fullstack-flugboard.html"><span class="ln">2.4</span>Fullstack FlugBoard</a>
     </div>
   </nav>
+  <div class="sidebar-footer">
+    <a class="sidebar-home" href="https://hoa-spg.github.io/">&larr; Kursseite</a>
+  </div>
 </aside>
 
 <main class="main-content">
@@ -266,7 +269,9 @@ export class App {
 
     <!-- Häufige Fehler -->
     <section class="section section-fehler">
-      <h2>H&auml;ufige Fehler</h2>
+<details class="fold-box">
+<summary><h2>H&auml;ufige Fehler</h2><span class="quiz-box-hint">3 Fehler &middot; zum Aufklappen klicken</span></summary>
+<div class="fold-body">
 
       <div class="fehler-item">
         <div class="fehler-title"><code>Can't bind to 'ngModel' since it isn't a known property of 'input'</code></div>
@@ -285,11 +290,15 @@ export class App {
         <p>Die Liste reagiert nicht auf den Filter, weil die Funktion den Wert eines normalen Feldes statt eines Signals liest.</p>
         <p class="fehler-fix"><strong>Fix:</strong> Alles, worauf <code>computed</code> reagieren soll, muss ein Signal sein und mit <code>()</code> gelesen werden.</p>
       </div>
+</div>
+</details>
     </section>
 
     <!-- Aufgaben -->
     <section class="section section-aufgaben">
-      <h2>Aufgaben</h2>
+<details class="fold-box">
+<summary><h2>Aufgaben</h2><span class="quiz-box-hint">3 Aufgaben + Bonus &middot; zum Aufklappen klicken</span></summary>
+<div class="fold-body">
       <div class="aufgaben-list">
 
         <div class="aufgabe">
@@ -325,6 +334,8 @@ export class App {
         </div>
 
       </div>
+</div>
+</details>
     </section>
 
       <section class="section section-quiz">
